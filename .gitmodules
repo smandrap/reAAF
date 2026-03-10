@@ -1,0 +1,10 @@
+[submodule "extern/reaper-sdk"]
+	path = extern/reaper-sdk
+	url = https://github.com/justinfrankel/reaper-sdk.git
+
+[submodule "extern/LibAAF"]
+	path = extern/LibAAF
+	url = https://github.com/agfline/LibAAF.git
+[submodule "extern/WDL"]
+	path = extern/WDL
+	url = https://github.com/justinfrankel/WDL.git
