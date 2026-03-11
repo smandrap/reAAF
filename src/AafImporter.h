@@ -1,12 +1,14 @@
 #ifndef REAPER_AAF_AAFIMPORTER_H
 #define REAPER_AAF_AAFIMPORTER_H
 
+#include <functional>
 #include <string>
+
 #include "RppWriter.h"
 #include "FadeResolver.h"
 #include "libaaf/AAFTypes.h"
 
-//Forward declarations
+// Forward declarations
 struct AAF_Iface;
 struct aafiAudioTrack;
 struct aafiAudioClip;
@@ -26,32 +28,29 @@ private:
     std::string m_extractDir;
     std::string m_filePath;
 
-    void writeTrack(
-        const aafiAudioTrack *track,
-        int trackIdx,
-        int &itemCounter) const;
-
-    void writeItem(
-        aafiAudioClip *clip,
-        const aafiTimelineItem *ti,
-        const aafRational_t *trackEditRate,
-        int itemIdx,
-        const XFadeMap &xFadeMap) const;
-
-    void writeSource(const aafiAudioClip *clip) const;
-
-
-    void writeVolEnvelope(const aafiAudioGain *gain,
-                          double seg_start_sec,
-                          double seg_len_sec,
-                          const char *envTag) const;
-
-    void writePanEnvelope(const aafiAudioGain *pan,
-                          double seg_start_sec,
-                          double seg_len_sec) const;
-
     void writeMarkers() const;
+
+    void writeTrack(const aafiAudioTrack *track,
+                    int trackIdx, int &itemCounter);
+
+    void writeItem(aafiAudioClip *clip,
+                   const aafiTimelineItem *ti,
+                   const aafRational_t *trackEditRate,
+                   int itemIdx,
+                   const XFadeMap &xFadeMap);
+
+    void writeSource(const aafiAudioClip *clip);
+
+    // Unified envelope emitter.
+    // `tag`       : RPP tag (e.g. "VOLENV2", "PANENV2")
+    // `transform` : maps raw AAF value → RPP value
+    // `arm`       : emit "ARM 1" inside the envelope block (needed for pan)
+    void writeEnvelope(const aafiAudioGain *gain,
+                       double segStartSec,
+                       double segLenSec,
+                       const char *tag,
+                       const std::function<double(double)> &transform,
+                       bool arm = false);
 };
 
-
-#endif //REAPER_AAF_AAFIMPORTER_H
+#endif // REAPER_AAF_AAFIMPORTER_H
