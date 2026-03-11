@@ -40,11 +40,8 @@ add_library(reaper_aaf MODULE
         src/main.cpp
         src/aaf_import.cpp
         ${LIBAAF_SOURCES}
-        src/aaf_markers.cpp
         src/helpers.cpp
         src/RppWriter.cpp
-        src/aaf_envelopes.cpp
-        src/aaf_envelopes.h
         src/AafImporter.cpp
         src/AafImporter.h
         src/XFadeMap.cpp
