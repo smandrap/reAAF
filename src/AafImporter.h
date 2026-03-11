@@ -3,7 +3,7 @@
 
 #include <string>
 #include "RppWriter.h"
-#include "XFadeMap.h"
+#include "FadeResolver.h"
 #include "libaaf/AAFTypes.h"
 
 //Forward declarations

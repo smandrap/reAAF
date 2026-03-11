@@ -1,6 +1,6 @@
 #include "AafImporter.h"
 #include "helpers.h"
-#include "XFadeMap.h"
+#include "FadeResolver.h"
 
 #include <libaaf.h>
 
@@ -140,39 +140,8 @@ void AafImporter::writeItem(aafiAudioClip *clip, const aafiTimelineItem *ti, con
         gain_lin = clamp_volume(rational_to_double(clip->gain->value[0]));
     }
 
-    // --- Fade-in ---
-    // Priority: plain AAFI_TRANS_FADE_IN on this clip, else xfade incoming side.
-    const aafiTransition *fadein = aafi_getFadeIn(clip);
-    double fadeInLen = 0.0;
-    int fadeInShape = 1;
-
-    if (fadein) {
-        fadeInLen = pos_to_seconds(fadein->len, trackEditRate);
-        fadeInShape = interpol_to_reaper_shape(fadein->flags);
-    } else {
-        if (const auto it = xFadeMap.find(ti); it != xFadeMap.end() && it->second.fadeIn) {
-            const aafiTransition *xf = it->second.fadeIn;
-            fadeInLen = pos_to_seconds(xf->len, trackEditRate);
-            fadeInShape = interpol_to_reaper_shape(xf->flags);
-        }
-    }
-
-    // --- Fade-out ---
-    // Priority: plain AAFI_TRANS_FADE_OUT on this clip, else xfade outgoing side.
-    const aafiTransition *fadeout = aafi_getFadeOut(clip);
-    double fadeOutLen = 0.0;
-    int fadeOutShape = 1;
-
-    if (fadeout) {
-        fadeOutLen = pos_to_seconds(fadeout->len, trackEditRate);
-        fadeOutShape = interpol_to_reaper_shape(fadeout->flags);
-    } else {
-        if (const auto it = xFadeMap.find(ti); it != xFadeMap.end() && it->second.fadeOut) {
-            const aafiTransition *xf = it->second.fadeOut;
-            fadeOutLen = pos_to_seconds(xf->len, trackEditRate);
-            fadeOutShape = interpol_to_reaper_shape(xf->flags);
-        }
-    }
+    const auto [fadeInLen, fadeInShape]   = resolveFadeIn (clip, ti, xFadeMap, trackEditRate);
+    const auto [fadeOutLen, fadeOutShape] = resolveFadeOut(clip, ti, xFadeMap, trackEditRate);
 
     // Display name: subClipName (rarely set), else essence name
     const char *clipName = clip->subClipName;

@@ -44,8 +44,8 @@ add_library(reaper_aaf MODULE
         src/RppWriter.cpp
         src/AafImporter.cpp
         src/AafImporter.h
-        src/XFadeMap.cpp
-        src/XFadeMap.h
+        src/FadeResolver.cpp
+        src/FadeResolver.h
 )
 
 # -------------------------------------------------------------------------
