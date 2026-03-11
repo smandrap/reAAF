@@ -164,26 +164,19 @@ void AafImporter::writeItem(aafiAudioClip *clip, const aafiTimelineItem *ti, con
     if (clip->automation && (clip->automation->flags & AAFI_AUDIO_GAIN_VARIABLE))
         writeVolEnvelope(clip->automation, pos, len, "VOLENV");
 
-    m_writer.line("NAME \"%s\"", clipName ? escape_rpp_string(clipName).c_str() : "");
-
     writeSource(clip);
 
     m_writer.line(">"); // </ITEM>
 }
 
 void AafImporter::writeSource(const aafiAudioClip *clip) const {
-    if (!clip->essencePointerList) {
+    if (!clip->essencePointerList || !clip->essencePointerList->essenceFile) {
         m_writer.line("<SOURCE EMPTY");
         m_writer.line(">");
         return;
     }
 
     aafiAudioEssenceFile *ess = clip->essencePointerList->essenceFile;
-    if (!ess) {
-        m_writer.line("<SOURCE EMPTY");
-        m_writer.line(">");
-        return;
-    }
 
     // Extract embedded essence if not yet done.
     // aafi_extractAudioEssenceFile() sets ess->usable_file_path on success.
@@ -213,12 +206,11 @@ void AafImporter::writeSource(const aafiAudioClip *clip) const {
         return;
     }
 
-    const char *srcType = "WAVE";
+    auto srcType = "WAVE";
     if (const char *ext = strrchr(filePath, '.')) {
         if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
         else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
         else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
-        // .wav / .aif / .aiff → WAVE (default)
     }
 
     m_writer.line("<SOURCE %s", srcType);
