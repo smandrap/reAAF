@@ -24,13 +24,11 @@ int AafImporter::run() {
     aafi_set_debug(m_aafi, VERB_WARNING, 0, nullptr, nullptr, nullptr);
 
     aafi_set_option_int(m_aafi, "protools",
-                        AAFI_PROTOOLS_OPT_REPLACE_CLIP_FADES |
-                        AAFI_PROTOOLS_OPT_REMOVE_SAMPLE_ACCURATE_EDIT);
+                        PROTOOLS_ALL_OPT);
 
     {
         std::string dir(m_filePath);
-        const auto sep = dir.find_last_of("/\\");
-        if (sep != std::string::npos) dir.resize(sep);
+        if (const auto sep = dir.find_last_of("/\\"); sep != std::string::npos) dir.resize(sep);
         aafi_set_option_str(m_aafi, "media_location", dir.c_str());
     }
 
@@ -61,9 +59,16 @@ int AafImporter::run() {
         const aafiAudioTrack *track = nullptr;
         int trackIdx = 1;
         int itemCount = 1;
-        AAFI_foreachAudioTrack(m_aafi, track) {
-            writeTrack(track, trackIdx++, itemCount);
+
+        const aafiVideoTrack *vtrack = nullptr;
+        AAFI_foreachVideoTrack(m_aafi, vtrack) {
+            writeVideoTrack(vtrack, trackIdx++, itemCount);
         }
+
+        AAFI_foreachAudioTrack(m_aafi, track) {
+            writeAudioTrack(track, trackIdx++, itemCount);
+        }
+
     }
 
     aafi_release(&m_aafi);
@@ -74,9 +79,9 @@ int AafImporter::run() {
 // Track
 // ---------------------------------------------------------------------------
 
-void AafImporter::writeTrack(const aafiAudioTrack *track,
-                             int /*trackIdx*/,
-                             int &itemCounter) {
+void AafImporter::writeAudioTrack(const aafiAudioTrack *track,
+                                  int /*trackIdx*/,
+                                  int &itemCounter) {
     const char *trackName = track->name ? track->name : "";
 
     // format == channel count; AAFI_TRACK_FORMAT_UNKNOWN (99) → mono
@@ -128,7 +133,7 @@ void AafImporter::writeTrack(const aafiAudioTrack *track,
     aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
         if (aafiAudioClip *clip = aafi_timelineItemToAudioClip(ti))
-            writeItem(clip, ti, track->edit_rate, itemCounter++, xFadeMap);
+            writeAudioItem(clip, ti, track->edit_rate, itemCounter++, xFadeMap);
         // AAFI_TRANS items are consumed via xFadeMap; nothing to emit directly.
     }
     // 't' destructor fires here → ">"
@@ -138,11 +143,11 @@ void AafImporter::writeTrack(const aafiAudioTrack *track,
 // Item
 // ---------------------------------------------------------------------------
 
-void AafImporter::writeItem(aafiAudioClip *clip,
-                            const aafiTimelineItem *ti,
-                            const aafRational_t *trackEditRate,
-                            int /*itemIdx*/,
-                            const XFadeMap &xFadeMap) {
+void AafImporter::writeAudioItem(aafiAudioClip *clip,
+                                 const aafiTimelineItem *ti,
+                                 const aafRational_t *trackEditRate,
+                                 int /*itemIdx*/,
+                                 const XFadeMap &xFadeMap) {
     const double pos = pos_to_seconds(clip->pos, trackEditRate);
     const double len = pos_to_seconds(clip->len, trackEditRate);
     const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
@@ -180,7 +185,7 @@ void AafImporter::writeItem(aafiAudioClip *clip,
                       [](const double v) { return clamp_volume(v); });
     }
 
-    writeSource(clip);
+    writeAudioSource(clip);
     // 'i' destructor fires here ">"
 }
 
@@ -188,7 +193,7 @@ void AafImporter::writeItem(aafiAudioClip *clip,
 // Source
 // ---------------------------------------------------------------------------
 
-void AafImporter::writeSource(const aafiAudioClip *clip) {
+void AafImporter::writeAudioSource(const aafiAudioClip *clip) {
     // Helper lambda: emit an EMPTY source and return.
     const auto emitEmpty = [this] {
         auto s = m_writer.source(nullptr, nullptr); // guard closes immediately
@@ -227,7 +232,7 @@ void AafImporter::writeSource(const aafiAudioClip *clip) {
     }
 
     // Determine source type from extension
-    const char *srcType = "WAVE";
+    auto srcType = "WAVE";
     if (const char *ext = strrchr(filePath, '.')) {
         if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
         else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
@@ -238,6 +243,44 @@ void AafImporter::writeSource(const aafiAudioClip *clip) {
     auto s = m_writer.source(srcType, filePath);
     // 's' destructor fires here ">"
 }
+
+void AafImporter::writeVideoTrack(const aafiVideoTrack *track, int trackIdx, int &itemCounter) {
+    auto t = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
+    const aafiTimelineItem *ti = nullptr;
+    AAFI_foreachTrackItem(track, ti) {
+        if (ti->type == AAFI_VIDEO_CLIP)
+            writeVideoItem(static_cast<aafiVideoClip *>(ti->data), track->edit_rate, itemCounter++);
+        //libaaf has no transitions on video items. Noooooooo
+    }
+}
+
+void AafImporter::writeVideoItem(const aafiVideoClip *clip, const aafRational_t *trackEditRate, int itemIdx) {
+    const double pos = pos_to_seconds(clip->pos, trackEditRate);
+    const double len = pos_to_seconds(clip->len, trackEditRate);
+    const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
+
+    const char *clipName = clip->Essence ? clip->Essence->name : "Video";
+
+    auto i = m_writer.item(clipName,
+                           pos, len,
+                           0.0, 0,
+                           0.0, 0,
+                           1.0, srcOffset,
+                           0);
+
+    writeVideoSource(clip->Essence);
+}
+
+void AafImporter::writeVideoSource(const aafiVideoEssence *ess) {
+    if (!ess || !ess->usable_file_path || ess->usable_file_path[0] == '\0') {
+            rlog("ReAAF: WARNING: video essence has no usable path.\n");
+        auto s = m_writer.source(nullptr, nullptr);
+        return;
+    }
+
+    auto s = m_writer.source("VIDEO", ess->usable_file_path);
+}
+
 
 // ---------------------------------------------------------------------------
 // Envelopes

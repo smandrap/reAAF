@@ -6,13 +6,15 @@
 
 #include "RppWriter.h"
 #include "FadeResolver.h"
-#include "libaaf/AAFTypes.h"
 
 // Forward declarations
 struct AAF_Iface;
 struct aafiAudioTrack;
 struct aafiAudioClip;
 struct aafiAudioGain;
+struct aafiVideoTrack;
+struct aafiVideoClip;
+struct aafiVideoEssence;
 struct aafiTimelineItem;
 class ProjectStateContext;
 
@@ -30,16 +32,23 @@ private:
 
     void writeMarkers() const;
 
-    void writeTrack(const aafiAudioTrack *track,
+    void writeAudioTrack(const aafiAudioTrack *track,
                     int trackIdx, int &itemCounter);
 
-    void writeItem(aafiAudioClip *clip,
-                   const aafiTimelineItem *ti,
-                   const aafRational_t *trackEditRate,
-                   int itemIdx,
-                   const XFadeMap &xFadeMap);
+    void writeAudioItem(aafiAudioClip *clip,
+                        const aafiTimelineItem *ti,
+                        const aafRational_t *trackEditRate,
+                        int itemIdx,
+                        const XFadeMap &xFadeMap);
 
-    void writeSource(const aafiAudioClip *clip);
+    void writeAudioSource(const aafiAudioClip *clip);
+
+    void writeVideoTrack(const aafiVideoTrack *track,
+                int trackIdx, int &itemCounter);
+
+    void writeVideoItem(const aafiVideoClip *clip, const aafRational_t *trackEditRate, int itemIdx);
+
+    void writeVideoSource(const aafiVideoEssence *ess);
 
     // Unified envelope emitter.
     // `tag`       : RPP tag (e.g. "VOLENV2", "PANENV2")
