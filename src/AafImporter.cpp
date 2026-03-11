@@ -4,6 +4,11 @@
 
 #include <libaaf.h>
 
+// TODO: fix video support [MXF files audio is not grabbed properly]
+// TODO: avoid creating a directory when it's of no use
+// TODO: fix envelopes. They're correctly exported but they don't work here.
+// TODO: do not loop stuff
+
 // ---------------------------------------------------------------------------
 // Constructor / run
 // ---------------------------------------------------------------------------
@@ -117,13 +122,13 @@ void AafImporter::writeAudioTrack(const aafiAudioTrack *track,
                                           m_aafi->compositionLength_editRate);
 
     if (track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE)) {
-        writeEnvelope(track->gain, 0.0, compLen, "VOLENV2",
+        writeEnvelope(track->gain, compLen, "VOLENV2",
                       [](const double v) { return clamp_volume(v); });
     }
 
     if (track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE)) {
         // AAF pan: 0=left, 0.5=center, 1=right → REAPER −1...+1 (negated)
-        writeEnvelope(track->pan, 0.0, compLen, "PANENV2",
+        writeEnvelope(track->pan, compLen, "PANENV2",
                       [](double v) { return clamp_pan((v - 0.5) * -2.0); },
                       /*arm=*/true);
     }
@@ -181,7 +186,7 @@ void AafImporter::writeAudioItem(aafiAudioClip *clip,
 
     // Per-clip varying gain automation
     if (clip->automation && (clip->automation->flags & AAFI_AUDIO_GAIN_VARIABLE)) {
-        writeEnvelope(clip->automation, pos, len, "VOLENV",
+        writeEnvelope(clip->automation, len, "VOLENV",
                       [](const double v) { return clamp_volume(v); });
     }
 
@@ -287,7 +292,6 @@ void AafImporter::writeVideoSource(const aafiVideoEssence *ess) {
 // ---------------------------------------------------------------------------
 
 void AafImporter::writeEnvelope(const aafiAudioGain *gain,
-                                const double segStartSec,
                                 const double segLenSec,
                                 const char *tag,
                                 const std::function<double(double)> &transform,
@@ -301,7 +305,7 @@ void AafImporter::writeEnvelope(const aafiAudioGain *gain,
 
     for (unsigned int i = 0; i < gain->pts_cnt; ++i) {
         const double frac = rational_to_double(gain->time[i]); // 0.0 .. 1.0
-        const double t = segStartSec + frac * segLenSec;
+        const double t = frac * segLenSec;
         const double val = transform(rational_to_double(gain->value[i]));
         m_writer.writeEnvPoint(t, val);
     }

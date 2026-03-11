@@ -55,7 +55,6 @@ private:
     // `transform` : maps raw AAF value → RPP value
     // `arm`       : emit "ARM 1" inside the envelope block (needed for pan)
     void writeEnvelope(const aafiAudioGain *gain,
-                       double segStartSec,
                        double segLenSec,
                        const char *tag,
                        const std::function<double(double)> &transform,
