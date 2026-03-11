@@ -1,26 +1,3 @@
-/*
- * reaper_aaf — AAF import plugin for REAPER
- * main.cpp  — DLL entry point and projectimport registration
- *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *
- * Modelled on atmosfar/reaper_sesx_import_plugin.
- * We register only "projectimport" — REAPER owns the file dialog entirely.
- * No hookcommand, no action, no GetUserFileNameForRead.
- */
-
-/*
- * REAPERAPI_IMPLEMENT: emit storage for the function pointers declared in
- * reaper_plugin_functions.h (e.g. ShowConsoleMsg). Must be defined in
- * exactly one translation unit before including that header.
- *
- * REAPERAPI_MINIMAL: only declare/store pointers for functions guarded by
- * a REAPERAPI_WANT_* define, keeping the symbol table small.
- *
- * REAPERAPI_LoadAPI(GetFunc) iterates every wanted symbol, calls GetFunc
- * for each one, and returns the count of symbols that could NOT be resolved.
- * We treat any failure as fatal (return 0 from ENTRYPOINT).
- */
 #define REAPERAPI_IMPLEMENT
 #include "reaper_plugin_functions.h"
 #include "reaper_plugin.h"
@@ -40,10 +17,10 @@ static bool aaf_WantProjectFile(const char* fn)
     return ext && strcasecmp(ext, ".aaf") == 0;
 }
 
-static const char* aaf_EnumFileExtensions(int i, char** descptr)
+static const char* aaf_EnumFileExtensions(const int i, char** descptr)
 {
     if (i == 0) {
-        if (descptr) *descptr = (char*)"AAF Session File (*.aaf)";
+        if (descptr) *descptr = const_cast<char *>("Advanced Authoring Format (*.aaf)");
         return "aaf";
     }
     return nullptr;

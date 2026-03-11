@@ -1,15 +1,3 @@
-/*
- * reaper_aaf — AAF import plugin for REAPER
- * aaf_import.cpp — AAF → RPP conversion
- *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *
- * Mapping inspired by:
- *   - skysphr/reaper-aaf importaaf.py  (logic / field mapping)
- *   - atmosfar/reaper_sesx_import_plugin (C++ structure / RPP emission)
- *   - agfline/LibAAF (API — verified against AAFIface.h)
- */
-
 #include "aaf_import.h"
 #include "reaper_plugin_functions.h"
 
@@ -43,9 +31,9 @@ static inline double rational_to_double(aafRational_t r) {
 
 // Convert a position in edit-rate units to seconds.
 // editRate is a POINTER — may be null, returns 0 safely.
-static inline double pos_to_seconds(aafPosition_t pos, const aafRational_t *editRate) {
+static inline double pos_to_seconds(const aafPosition_t pos, const aafRational_t *editRate) {
     if (!editRate) return 0.0;
-    double er = rational_to_double(*editRate);
+    const double er = rational_to_double(*editRate);
     if (er == 0.0) return 0.0;
     return static_cast<double>(pos) / er;
 }
@@ -468,7 +456,7 @@ static void write_track(const RppWriter &w,
         && track->pan->value) {
         pan = clamp_pan((rational_to_double(track->pan->value[0]) - 0.5) * 2.0);
     }
-
+    w.line("<TRACK");
     w.line("NAME \"%s\"", escape_rpp_string(trackName).c_str());
     w.line("VOLPAN %.6f %.6f -1 -1 1", vol, pan);
     w.line("MUTESOLO %d %d 0", track->mute != 0 ? 1 : 0, track->solo != 0 ? 1 : 0);
