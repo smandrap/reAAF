@@ -10,68 +10,8 @@
 #include "helpers.h"
 #include "aaf_markers.h"
 #include "RppWriter.h"
+#include "aaf_envelopes.h"
 
-// ---------------------------------------------------------------------------
-// Automation envelopes
-//
-// aafiAudioGain (from AAFIface.h):
-//   uint32_t       flags;    — AAFI_AUDIO_GAIN_CONSTANT or AAFI_AUDIO_GAIN_VARIABLE
-//   unsigned int   pts_cnt;  — number of control points
-//   aafRational_t *time;     — array[pts_cnt]: 0.0–1.0 fraction of segment duration
-//   aafRational_t *value;    — array[pts_cnt]: amplitude multipliers
-//
-// gain->time[i] is a 0.0–1.0 fraction of the enclosing segment's duration.
-// Absolute seconds = seg_start_sec + time[i] * seg_len_sec
-// ---------------------------------------------------------------------------
-
-static void write_volume_envelope(const RppWriter &w,
-                                  const aafiAudioGain *gain,
-                                  const double seg_start_sec,
-                                  const double seg_len_sec,
-                                  const char *envTag) {
-    if (!gain) return;
-    if (!(gain->flags & AAFI_AUDIO_GAIN_VARIABLE)) return;
-    if (gain->pts_cnt == 0 || !gain->time || !gain->value) return;
-
-    w.line("<%s", envTag);
-    // w.line("ACT 0 -1");
-    w.line("VIS 1 1 1");
-
-    for (unsigned int i = 0; i < gain->pts_cnt; ++i) {
-        const double frac = rational_to_double(gain->time[i]); // 0.0 .. 1.0
-        const double t = seg_start_sec + frac * seg_len_sec;
-        const double val = clamp_volume(rational_to_double(gain->value[i]));
-
-        w.line("PT %.10f %.10f 0", t, val);
-    }
-
-    w.line(">");
-}
-
-static void write_pan_envelope(const RppWriter &w,
-                               const aafiAudioGain *pan,
-                               const double seg_start_sec,
-                               const double seg_len_sec) {
-    // if (!pan) return;
-    if (!(pan->flags & AAFI_AUDIO_GAIN_VARIABLE)) return;
-    if (pan->pts_cnt == 0 || !pan->time || !pan->value) return;
-
-    // AAF pan: 0=left, 0.5=center, 1=right → REAPER: -1=left, 0=centre, +1=right
-    w.line("<PANENV2");
-    // w.line("ACT 1 -1"); //Uncomment to always active
-    w.line("VIS 1 1 1");
-    w.line("ARM 1");
-
-    for (unsigned int i = 0; i < pan->pts_cnt; ++i) {
-        const double frac = rational_to_double(pan->time[i]);
-        const double t = seg_start_sec + frac * seg_len_sec;
-        const double aafPan = rational_to_double(pan->value[i]);
-        const double rPan = clamp_pan((aafPan - 0.5) * -2.0); // multiply negative otherwise panning is reversed
-        w.line("PT %.10f %.10f 0", t, rPan);
-    }
-
-    w.line(">");
-}
 
 // ---------------------------------------------------------------------------
 // Source block
@@ -156,10 +96,10 @@ struct ClipXfades {
     const aafiTransition *fadeOut = nullptr; // xfade where this clip is the outgoing side
 };
 
-using XfadeMap = std::unordered_map<const aafiTimelineItem *, ClipXfades>;
+using XFadeMap = std::unordered_map<const aafiTimelineItem *, ClipXfades>;
 
-static XfadeMap build_xfade_map(const aafiAudioTrack *track) {
-    XfadeMap m;
+static XFadeMap build_xfade_map(const aafiAudioTrack *track) {
+    XFadeMap m;
     aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
         const aafiTransition *xf = aafi_timelineItemToCrossFade(ti);
@@ -194,7 +134,7 @@ static void write_item(const RppWriter &w,
                        const std::string &extractDir,
                        AAF_Iface *aafi,
                        int itemIdx,
-                       const XfadeMap &xfadeMap) {
+                       const XFadeMap &xfadeMap) {
     const double pos = pos_to_seconds(clip->pos, trackEditRate);
     const double len = pos_to_seconds(clip->len, trackEditRate);
 
@@ -335,7 +275,7 @@ static void write_track(const RppWriter &w,
     // Pre-pass: map each clip timelineItem* to its adjacent xfade (if any).
     // aafi_getFadeIn/getFadeOut do NOT return AAFI_TRANS_XFADE items, so we
     // must find them ourselves and supply the data to write_item.
-    const XfadeMap xfadeMap = build_xfade_map(track);
+    const XFadeMap xfadeMap = build_xfade_map(track);
 
     // Items — track->edit_rate is a pointer, pass it directly
     aafiTimelineItem *ti = nullptr;

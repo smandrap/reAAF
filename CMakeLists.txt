@@ -43,6 +43,12 @@ add_library(reaper_aaf MODULE
         src/aaf_markers.cpp
         src/helpers.cpp
         src/RppWriter.cpp
+        src/aaf_envelopes.cpp
+        src/aaf_envelopes.h
+        src/AafImporter.cpp
+        src/AafImporter.h
+        src/XFadeMap.cpp
+        src/XFadeMap.h
 )
 
 # -------------------------------------------------------------------------
