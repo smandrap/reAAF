@@ -14,13 +14,12 @@
 #include "reaper_plugin_functions.h"
 
 #include <libaaf.h>
-#include <libaaf/AAFIEssenceFile.h>
 
-// #include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
 #include <string>
+#include <unordered_map>
 #include <sys/stat.h>
 #include <cerrno>
 
@@ -156,17 +155,13 @@ static void write_volume_envelope(const RppWriter &w,
     if (gain->pts_cnt == 0 || !gain->time || !gain->value) return;
 
     w.line("<%s", envTag);
-    w.line("EGUID {00000000-0000-0000-0000-000000000000}");
-    w.line("ACT 0 -1");
+    // w.line("ACT 0 -1");
     w.line("VIS 1 1 1");
-    w.line("LANEHEIGHT 0 0");
-    w.line("ARM 0");
-    w.line("DEFSHAPE 0 -1 -1");
 
     for (unsigned int i = 0; i < gain->pts_cnt; ++i) {
-        double frac = rational_to_double(gain->time[i]); // 0.0 .. 1.0
-        double t = seg_start_sec + frac * seg_len_sec;
-        double val = clamp_volume(rational_to_double(gain->value[i]));
+        const double frac = rational_to_double(gain->time[i]); // 0.0 .. 1.0
+        const double t = seg_start_sec + frac * seg_len_sec;
+        const double val = clamp_volume(rational_to_double(gain->value[i]));
         w.line("PT %.10f %.10f 0", t, val);
     }
 
@@ -190,7 +185,7 @@ static void write_pan_envelope(const RppWriter &w,
     for (unsigned int i = 0; i < pan->pts_cnt; ++i) {
         const double frac = rational_to_double(pan->time[i]);
         const double t = seg_start_sec + frac * seg_len_sec;
-        double aafPan = rational_to_double(pan->value[i]);
+        const double aafPan = rational_to_double(pan->value[i]);
         const double rPan = clamp_pan((aafPan - 0.5) * -2.0); // multiply negative otherwise panning is reversed
         w.line("PT %.10f %.10f 0", t, rPan);
     }
@@ -210,18 +205,17 @@ static void write_pan_envelope(const RppWriter &w,
 // ---------------------------------------------------------------------------
 static void write_markers(const RppWriter &w, const AAF_Iface *aafi) {
     int id = 1;
-    aafiMarker *m = nullptr;
+    const aafiMarker *m = nullptr;
     AAFI_foreachMarker(aafi, m) {
         // edit_rate is a pointer
-        double t = pos_to_seconds(m->start, m->edit_rate);
-        bool isRegion = (m->length > 0);
+        const double t = pos_to_seconds(m->start, m->edit_rate);
 
-        if (!isRegion) {
+        if (const bool isRegion = (m->length > 0); !isRegion) {
             w.line("MARKER %d %.10f \"%s\" 0 0 1",
                    id++, t,
                    m->name ? escape_rpp_string(m->name).c_str() : "");
         } else {
-            double end = pos_to_seconds(m->start + m->length, m->edit_rate);
+            const double end = pos_to_seconds(m->start + m->length, m->edit_rate);
             w.line("MARKER %d %.10f \"%s\" 0 1 1",
                    id, t, m->name ? escape_rpp_string(m->name).c_str() : "");
             w.line("MARKER %d %.10f \"%s\" 0 1 1",
@@ -254,15 +248,14 @@ static void write_source(const RppWriter &w,
     // Extract embedded essence if not yet done.
     // aafi_extractAudioEssenceFile() sets ess->usable_file_path on success.
 
-    // WE NEVER STEP HERE
     if (ess->is_embedded && !ess->usable_file_path) {
         char *outPath = nullptr;
-        int rc = aafi_extractAudioEssenceFile(aafi, ess,
-                                              AAFI_EXTRACT_DEFAULT,
-                                              extractDir.c_str(),
-                                              0, 0,
-                                              nullptr,
-                                              &outPath);
+        const int rc = aafi_extractAudioEssenceFile(aafi, ess,
+                                                    AAFI_EXTRACT_DEFAULT,
+                                                    extractDir.c_str(),
+                                                    0, 0,
+                                                    nullptr,
+                                                    &outPath);
 
         if (rc != 0)
             rlog("reaper_aaf: WARNING: failed to extract '%s'\n",
@@ -271,7 +264,6 @@ static void write_source(const RppWriter &w,
     }
 
     const char *filePath = ess->usable_file_path;
-
 
     if (!filePath || filePath[0] == '\0') {
         rlog("reaper_aaf: WARNING: no usable path for '%s'\n",
@@ -295,6 +287,45 @@ static void write_source(const RppWriter &w,
 }
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Crossfade lookup
+//
+// aafi_getFadeIn / aafi_getFadeOut only find AAFI_TRANS_FADE_IN /
+// AAFI_TRANS_FADE_OUT transitions — they do NOT return AAFI_TRANS_XFADE
+// items. A xfade sits between two clips in the linked list; neither
+// flanking clip returns it via the fade helpers.
+//
+// We solve this with a pre-pass over the track's timeline items:
+// for every AAFI_TRANS_XFADE we record it keyed by the timelineItem*
+// of both its predecessor (fade-out side) and its successor (fade-in side).
+// write_item then merges the xfade data with any plain fade-in/out.
+// ---------------------------------------------------------------------------
+// Per-clip xfade record: a clip can have an xfade on BOTH sides simultaneously
+// (it is the outgoing clip of one xfade AND the incoming clip of the next).
+// Storing a single value per clip key would silently overwrite one side.
+struct ClipXfades {
+    const aafiTransition *fadeIn = nullptr; // xfade where this clip is the incoming side
+    const aafiTransition *fadeOut = nullptr; // xfade where this clip is the outgoing side
+};
+
+using XfadeMap = std::unordered_map<const aafiTimelineItem *, ClipXfades>;
+
+static XfadeMap build_xfade_map(const aafiAudioTrack *track) {
+    XfadeMap m;
+    aafiTimelineItem *ti = nullptr;
+    AAFI_foreachTrackItem(track, ti) {
+        const aafiTransition *xf = aafi_timelineItemToCrossFade(ti);
+        if (!xf) continue;
+        if (!(xf->flags & AAFI_TRANS_XFADE)) continue;
+
+        // Use separate fields so a clip between two xfades keeps both.
+        if (ti->prev) m[ti->prev].fadeOut = xf;
+        if (ti->next) m[ti->next].fadeIn = xf;
+    }
+    return m;
+}
+
+// ---------------------------------------------------------------------------
 // Item (clip)
 //
 // aafiAudioClip (from AAFIface.h):
@@ -310,15 +341,17 @@ static void write_source(const RppWriter &w,
 // ---------------------------------------------------------------------------
 static void write_item(const RppWriter &w,
                        aafiAudioClip *clip,
+                       const aafiTimelineItem *ti,
                        const aafRational_t *trackEditRate,
                        const std::string &extractDir,
                        AAF_Iface *aafi,
-                       int itemIdx) {
-    double pos = pos_to_seconds(clip->pos, trackEditRate);
-    double len = pos_to_seconds(clip->len, trackEditRate);
+                       int itemIdx,
+                       const XfadeMap &xfadeMap) {
+    const double pos = pos_to_seconds(clip->pos, trackEditRate);
+    const double len = pos_to_seconds(clip->len, trackEditRate);
 
     // essence_offset is in the same track edit-rate units (per AAFIface.h comment)
-    double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
+    const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
 
     // Fixed clip gain
     double gain_lin = 1.0;
@@ -329,16 +362,39 @@ static void write_item(const RppWriter &w,
         gain_lin = clamp_volume(rational_to_double(clip->gain->value[0]));
     }
 
-    bool muted = (clip->mute != 0);
-
+    // --- Fade-in ---
+    // Priority: plain AAFI_TRANS_FADE_IN on this clip, else xfade incoming side.
     const aafiTransition *fadein = aafi_getFadeIn(clip);
-    const aafiTransition *fadeout = aafi_getFadeOut(clip);
+    double fadeInLen = 0.0;
+    int fadeInShape = 1;
 
-    // aafiTransition.len is in edit-rate units
-    const double fadeInLen = fadein ? pos_to_seconds(fadein->len, trackEditRate) : 0.0;
-    const double fadeOutLen = fadeout ? pos_to_seconds(fadeout->len, trackEditRate) : 0.0;
-    const int fadeInShape = fadein ? interpol_to_reaper_shape(fadein->flags) : 1;
-    const int fadeOutShape = fadeout ? interpol_to_reaper_shape(fadeout->flags) : 1;
+    if (fadein) {
+        fadeInLen = pos_to_seconds(fadein->len, trackEditRate);
+        fadeInShape = interpol_to_reaper_shape(fadein->flags);
+    } else {
+        if (const auto it = xfadeMap.find(ti); it != xfadeMap.end() && it->second.fadeIn) {
+            const aafiTransition *xf = it->second.fadeIn;
+            fadeInLen = pos_to_seconds(xf->len, trackEditRate);
+            fadeInShape = interpol_to_reaper_shape(xf->flags);
+        }
+    }
+
+    // --- Fade-out ---
+    // Priority: plain AAFI_TRANS_FADE_OUT on this clip, else xfade outgoing side.
+    const aafiTransition *fadeout = aafi_getFadeOut(clip);
+    double fadeOutLen = 0.0;
+    int fadeOutShape = 1;
+
+    if (fadeout) {
+        fadeOutLen = pos_to_seconds(fadeout->len, trackEditRate);
+        fadeOutShape = interpol_to_reaper_shape(fadeout->flags);
+    } else {
+        if (const auto it = xfadeMap.find(ti); it != xfadeMap.end() && it->second.fadeOut) {
+            const aafiTransition *xf = it->second.fadeOut;
+            fadeOutLen = pos_to_seconds(xf->len, trackEditRate);
+            fadeOutShape = interpol_to_reaper_shape(xf->flags);
+        }
+    }
 
     // Display name: subClipName (rarely set), else essence name
     const char *clipName = clip->subClipName;
@@ -352,7 +408,7 @@ static void write_item(const RppWriter &w,
     w.line("LENGTH %.10f", len);
     w.line("FADEIN %d %.10f 0", fadeInShape, fadeInLen);
     w.line("FADEOUT %d %.10f 0", fadeOutShape, fadeOutLen);
-    w.line("MUTE %d 0", muted ? 1 : 0);
+    w.line("MUTE %d 0", clip->mute != 0 ? 1 : 0);
     w.line("NAME \"%s\"", clipName ? escape_rpp_string(clipName).c_str() : "");
     w.line("VOLPAN %.6f 0.000000 1.000000 -1", gain_lin);
     w.line("SOFFS %.10f", srcOffset);
@@ -379,7 +435,7 @@ static void write_item(const RppWriter &w,
 //   aafiAudioPan   *pan        — track pan, may be NULL (same struct as aafiAudioGain)
 //   char            solo, mute — char
 //   aafRational_t  *edit_rate  — POINTER
-//   No colour field exists on aafiAudioTrack.
+//   No color field exists on aafiAudioTrack.
 // ---------------------------------------------------------------------------
 static void write_track(const RppWriter &w,
                         const aafiAudioTrack *track,
@@ -391,7 +447,7 @@ static void write_track(const RppWriter &w,
 
     // format value equals channel count for standard formats;
     // AAFI_TRACK_FORMAT_UNKNOWN = 99, treat as mono
-    int nchan = static_cast<int>(track->format);
+    int nchan = track->format;
     if (nchan <= 0 || nchan == 99) nchan = 1;
 
     // Fixed track volume
@@ -413,20 +469,13 @@ static void write_track(const RppWriter &w,
         pan = clamp_pan((rational_to_double(track->pan->value[0]) - 0.5) * 2.0);
     }
 
-    bool muted = (track->mute != 0);
-    bool soloed = (track->solo != 0);
-
-    w.line("<TRACK {%08X-0000-0000-0000-%012X}", trackIdx, trackIdx);
     w.line("NAME \"%s\"", escape_rpp_string(trackName).c_str());
-
     w.line("VOLPAN %.6f %.6f -1 -1 1", vol, pan);
-    w.line("MUTESOLO %d %d 0", muted ? 1 : 0, soloed ? 1 : 0);
-
+    w.line("MUTESOLO %d %d 0", track->mute != 0 ? 1 : 0, track->solo != 0 ? 1 : 0);
     w.line("NCHAN %d", nchan);
 
-
-    // Track-level automation: use composition length as the time scale
-    double compLen = pos_to_seconds(aafi->compositionLength,
+    // Track-level automation: use composition length as the timescale
+    const double compLen = pos_to_seconds(aafi->compositionLength,
                                     aafi->compositionLength_editRate);
 
     if (track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE))
@@ -435,16 +484,18 @@ static void write_track(const RppWriter &w,
     if (track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE))
         write_pan_envelope(w, track->pan, 0.0, compLen);
 
+    // Pre-pass: map each clip timelineItem* to its adjacent xfade (if any).
+    // aafi_getFadeIn/getFadeOut do NOT return AAFI_TRANS_XFADE items, so we
+    // must find them ourselves and supply the data to write_item.
+    const XfadeMap xfadeMap = build_xfade_map(track);
+
     // Items — track->edit_rate is a pointer, pass it directly
     aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
-        aafiAudioClip *clip = aafi_timelineItemToAudioClip(ti);
-        const aafiTransition *xfade = aafi_timelineItemToCrossFade(ti);
-
-        if (clip)
-            write_item(w, clip, track->edit_rate, extractDir, aafi, itemCounter++);
-        else if (xfade)
-            (void) xfade; // handled via clip fade-in/out shapes
+        if (aafiAudioClip *clip = aafi_timelineItemToAudioClip(ti))
+            write_item(w, clip, ti, track->edit_rate, extractDir, aafi,
+                       itemCounter++, xfadeMap);
+        // AAFI_TRANS items are consumed via xfadeMap; nothing to emit for them.
     }
 
     w.line(">"); // </TRACK>
@@ -458,7 +509,7 @@ int ImportAAF(const char *filepath, ProjectStateContext *ctx) {
 
     AAF_Iface *aafi = aafi_alloc(nullptr);
     if (!aafi) {
-        rlog("reaper_aaf: aafi_alloc() failed\n");
+        rlog("ReAAF: aafi_alloc() failed\n");
         return -1;
     }
 
@@ -477,27 +528,27 @@ int ImportAAF(const char *filepath, ProjectStateContext *ctx) {
     }
 
     if (aafi_load_file(aafi, filepath) != 0) {
-        rlog("reaper_aaf: failed to load '%s'\n", filepath);
+        rlog("ReAAF: failed to load '%s'\n", filepath);
         aafi_release(&aafi);
         return -1;
     }
 
-    std::string extractDir = build_extract_dir(filepath);
+    const std::string extractDir = build_extract_dir(filepath);
     if (!ensure_dir(extractDir))
-        rlog("reaper_aaf: WARNING: could not create '%s'\n", extractDir.c_str());
+        rlog("ReAAF: WARNING: could not create '%s'\n", extractDir.c_str());
 
     // ---- Project-level values ----
     int samplerate = aafi->Audio->samplerate;
     if (samplerate <= 0) samplerate = 48000;
 
     // compositionStart_editRate and compositionLength_editRate are POINTERS
-    double tcOffset = pos_to_seconds(aafi->compositionStart,
-                                     aafi->compositionStart_editRate);
+    const double tcOffset = pos_to_seconds(aafi->compositionStart,
+                                           aafi->compositionStart_editRate);
 
     int fps = 25;
     if (aafi->Timecode) fps = aafi->Timecode->fps;
 
-    RppWriter w{ctx};
+    const RppWriter w{ctx};
 
     // ---- Project header ----
     w.line("<REAPER_PROJECT 0.1");
@@ -511,7 +562,7 @@ int ImportAAF(const char *filepath, ProjectStateContext *ctx) {
     write_markers(w, aafi);
 
     // ---- Tracks ----
-    aafiAudioTrack *audioTrack = nullptr;
+    const aafiAudioTrack *audioTrack = nullptr;
     int trackIdx = 1;
     int itemCount = 1;
 
@@ -523,7 +574,7 @@ int ImportAAF(const char *filepath, ProjectStateContext *ctx) {
 
     aafi_release(&aafi);
 
-    // rlog("reaper_aaf: import complete — %d track(s), %d item(s)\n",
+    // rlog("ReAAF: import complete — %d track(s), %d item(s)\n",
     //      trackIdx - 1, itemCount - 1);
 
     return 0;
