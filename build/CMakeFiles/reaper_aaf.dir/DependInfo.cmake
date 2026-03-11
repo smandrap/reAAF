@@ -25,6 +25,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/Users/federico/Desktop/reaper_aaf/extern/LibAAF/src/common/log.c" "CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/log.c.o" "gcc" "CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/log.c.o.d"
   "/Users/federico/Desktop/reaper_aaf/extern/LibAAF/src/common/utils.c" "CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/utils.c.o" "gcc" "CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/utils.c.o.d"
   "/Users/federico/Desktop/reaper_aaf/src/aaf_import.cpp" "CMakeFiles/reaper_aaf.dir/src/aaf_import.cpp.o" "gcc" "CMakeFiles/reaper_aaf.dir/src/aaf_import.cpp.o.d"
+  "/Users/federico/Desktop/reaper_aaf/src/aaf_markers.cpp" "CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o" "gcc" "CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o.d"
+  "/Users/federico/Desktop/reaper_aaf/src/helpers.cpp" "CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o" "gcc" "CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o.d"
   "/Users/federico/Desktop/reaper_aaf/src/main.cpp" "CMakeFiles/reaper_aaf.dir/src/main.cpp.o" "gcc" "CMakeFiles/reaper_aaf.dir/src/main.cpp.o.d"
   )
 

@@ -1,6 +1,4 @@
 #include "aaf_import.h"
-#include "reaper_plugin_functions.h"
-
 #include <libaaf.h>
 
 #include <cstdio>
@@ -8,117 +6,10 @@
 #include <cstdlib>
 #include <string>
 #include <unordered_map>
-#include <sys/stat.h>
-#include <cerrno>
 
-#ifdef _WIN32
-#  include <windows.h>
-#  include <direct.h>
-#  define PATH_SEP '\\'
-#else
-#  include <unistd.h>
-#  define PATH_SEP '/'
-#endif
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-static inline double rational_to_double(aafRational_t r) {
-    if (r.denominator == 0) return 0.0;
-    return static_cast<double>(r.numerator) / static_cast<double>(r.denominator);
-}
-
-// Convert a position in edit-rate units to seconds.
-// editRate is a POINTER — may be null, returns 0 safely.
-static inline double pos_to_seconds(const aafPosition_t pos, const aafRational_t *editRate) {
-    if (!editRate) return 0.0;
-    const double er = rational_to_double(*editRate);
-    if (er == 0.0) return 0.0;
-    return static_cast<double>(pos) / er;
-}
-
-static std::string escape_rpp_string(const char *raw) {
-    if (!raw) return {};
-    std::string out;
-    out.reserve(strlen(raw) + 8);
-    for (const char *p = raw; *p; ++p) {
-        if (*p == '\\') {
-            out += "\\\\";
-            continue;
-        }
-        if (*p == '"') {
-            out += "\\\"";
-            continue;
-        }
-        out += *p;
-    }
-    return out;
-}
-
-static inline double clamp_volume(double lin) {
-    if (lin < 0.0) lin = 0.0;
-    if (lin > 4.0) lin = 4.0;
-    return lin;
-}
-
-static inline double clamp_pan(double pan) {
-    if (pan < -1.0) pan = -1.0;
-    if (pan > 1.0) pan = 1.0;
-    return pan;
-}
-
-// Map AAFInterpolation flags to REAPER fade shape index.
-// REAPER: 0=linear, 1=quarter-sine, 2=equal power, 3=slow start, 4=fast start, 5=bezier
-static int interpol_to_reaper_shape(uint32_t flags) {
-    if (flags & AAFI_INTERPOL_LINEAR) return 0;
-    if (flags & AAFI_INTERPOL_POWER) return 4;
-    if (flags & AAFI_INTERPOL_LOG) return 3;
-    if (flags & AAFI_INTERPOL_BSPLINE) return 5;
-    return 1; // default: quarter-sine
-}
-
-static std::string build_extract_dir(const char *aaf_path) {
-    std::string p(aaf_path);
-    auto dot = p.rfind('.');
-    if (dot != std::string::npos) p.resize(dot);
-    p += "-media";
-    return p;
-}
-
-static bool ensure_dir(const std::string &path) {
-#ifdef _WIN32
-    if (_mkdir(path.c_str()) == 0 || errno == EEXIST) return true;
-#else
-    if (mkdir(path.c_str(), 0755) == 0 || errno == EEXIST) return true;
-#endif
-    return false;
-}
-
-static void rlog(const char *fmt, ...) {
-    char buf[2048];
-    va_list ap;
-    va_start(ap, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, ap);
-    va_end(ap);
-    ShowConsoleMsg(buf);
-}
-
-// ---------------------------------------------------------------------------
-// RPP writer
-// ---------------------------------------------------------------------------
-struct RppWriter {
-    ProjectStateContext *ctx;
-
-    void line(const char *fmt, ...) const {
-        char buf[8192];
-        va_list ap;
-        va_start(ap, fmt);
-        vsnprintf(buf, sizeof(buf), fmt, ap);
-        va_end(ap);
-        ctx->AddLine("%s", buf);
-    }
-};
+#include "helpers.h"
+#include "aaf_markers.h"
+#include "RppWriter.h"
 
 // ---------------------------------------------------------------------------
 // Automation envelopes
@@ -135,8 +26,8 @@ struct RppWriter {
 
 static void write_volume_envelope(const RppWriter &w,
                                   const aafiAudioGain *gain,
-                                  double seg_start_sec,
-                                  double seg_len_sec,
+                                  const double seg_start_sec,
+                                  const double seg_len_sec,
                                   const char *envTag) {
     if (!gain) return;
     if (!(gain->flags & AAFI_AUDIO_GAIN_VARIABLE)) return;
@@ -150,6 +41,7 @@ static void write_volume_envelope(const RppWriter &w,
         const double frac = rational_to_double(gain->time[i]); // 0.0 .. 1.0
         const double t = seg_start_sec + frac * seg_len_sec;
         const double val = clamp_volume(rational_to_double(gain->value[i]));
+
         w.line("PT %.10f %.10f 0", t, val);
     }
 
@@ -164,7 +56,7 @@ static void write_pan_envelope(const RppWriter &w,
     if (!(pan->flags & AAFI_AUDIO_GAIN_VARIABLE)) return;
     if (pan->pts_cnt == 0 || !pan->time || !pan->value) return;
 
-    // AAF pan: 0=left, 0.5=centre, 1=right → REAPER: -1=left, 0=centre, +1=right
+    // AAF pan: 0=left, 0.5=center, 1=right → REAPER: -1=left, 0=centre, +1=right
     w.line("<PANENV2");
     // w.line("ACT 1 -1"); //Uncomment to always active
     w.line("VIS 1 1 1");
@@ -179,38 +71,6 @@ static void write_pan_envelope(const RppWriter &w,
     }
 
     w.line(">");
-}
-
-// ---------------------------------------------------------------------------
-// Markers
-//
-// aafiMarker (from AAFIface.h):
-//   aafPosition_t  start
-//   aafPosition_t  length     — > 0 means region
-//   aafRational_t *edit_rate  — POINTER
-//   char          *name, *comment
-//   uint16_t       RGBColor[3]
-// ---------------------------------------------------------------------------
-static void write_markers(const RppWriter &w, const AAF_Iface *aafi) {
-    int id = 1;
-    const aafiMarker *m = nullptr;
-    AAFI_foreachMarker(aafi, m) {
-        // edit_rate is a pointer
-        const double t = pos_to_seconds(m->start, m->edit_rate);
-
-        if (const bool isRegion = (m->length > 0); !isRegion) {
-            w.line("MARKER %d %.10f \"%s\" 0 0 1",
-                   id++, t,
-                   m->name ? escape_rpp_string(m->name).c_str() : "");
-        } else {
-            const double end = pos_to_seconds(m->start + m->length, m->edit_rate);
-            w.line("MARKER %d %.10f \"%s\" 0 1 1",
-                   id, t, m->name ? escape_rpp_string(m->name).c_str() : "");
-            w.line("MARKER %d %.10f \"%s\" 0 1 1",
-                   id + 1, end, m->name ? escape_rpp_string(m->name).c_str() : "");
-            id += 2;
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -288,7 +148,7 @@ static void write_source(const RppWriter &w,
 // of both its predecessor (fade-out side) and its successor (fade-in side).
 // write_item then merges the xfade data with any plain fade-in/out.
 // ---------------------------------------------------------------------------
-// Per-clip xfade record: a clip can have an xfade on BOTH sides simultaneously
+// Per-clip xfade record: a clip can have a xfade on BOTH sides simultaneously
 // (it is the outgoing clip of one xfade AND the incoming clip of the next).
 // Storing a single value per clip key would silently overwrite one side.
 struct ClipXfades {
@@ -464,7 +324,7 @@ static void write_track(const RppWriter &w,
 
     // Track-level automation: use composition length as the timescale
     const double compLen = pos_to_seconds(aafi->compositionLength,
-                                    aafi->compositionLength_editRate);
+                                          aafi->compositionLength_editRate);
 
     if (track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE))
         write_volume_envelope(w, track->gain, 0.0, compLen, "VOLENV2");

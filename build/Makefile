@@ -537,6 +537,54 @@ src/aaf_import.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/reaper_aaf.dir/build.make CMakeFiles/reaper_aaf.dir/src/aaf_import.cpp.s
 .PHONY : src/aaf_import.cpp.s
 
+src/aaf_markers.o: src/aaf_markers.cpp.o
+.PHONY : src/aaf_markers.o
+
+# target to build an object file
+src/aaf_markers.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/reaper_aaf.dir/build.make CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o
+.PHONY : src/aaf_markers.cpp.o
+
+src/aaf_markers.i: src/aaf_markers.cpp.i
+.PHONY : src/aaf_markers.i
+
+# target to preprocess a source file
+src/aaf_markers.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/reaper_aaf.dir/build.make CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.i
+.PHONY : src/aaf_markers.cpp.i
+
+src/aaf_markers.s: src/aaf_markers.cpp.s
+.PHONY : src/aaf_markers.s
+
+# target to generate assembly for a file
+src/aaf_markers.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/reaper_aaf.dir/build.make CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.s
+.PHONY : src/aaf_markers.cpp.s
+
+src/helpers.o: src/helpers.cpp.o
+.PHONY : src/helpers.o
+
+# target to build an object file
+src/helpers.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/reaper_aaf.dir/build.make CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o
+.PHONY : src/helpers.cpp.o
+
+src/helpers.i: src/helpers.cpp.i
+.PHONY : src/helpers.i
+
+# target to preprocess a source file
+src/helpers.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/reaper_aaf.dir/build.make CMakeFiles/reaper_aaf.dir/src/helpers.cpp.i
+.PHONY : src/helpers.cpp.i
+
+src/helpers.s: src/helpers.cpp.s
+.PHONY : src/helpers.s
+
+# target to generate assembly for a file
+src/helpers.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/reaper_aaf.dir/build.make CMakeFiles/reaper_aaf.dir/src/helpers.cpp.s
+.PHONY : src/helpers.cpp.s
+
 src/main.o: src/main.cpp.o
 .PHONY : src/main.o
 
@@ -621,6 +669,12 @@ help:
 	@echo "... src/aaf_import.o"
 	@echo "... src/aaf_import.i"
 	@echo "... src/aaf_import.s"
+	@echo "... src/aaf_markers.o"
+	@echo "... src/aaf_markers.i"
+	@echo "... src/aaf_markers.s"
+	@echo "... src/helpers.o"
+	@echo "... src/helpers.i"
+	@echo "... src/helpers.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"

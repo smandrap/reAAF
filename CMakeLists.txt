@@ -40,12 +40,16 @@ add_library(reaper_aaf MODULE
         src/main.cpp
         src/aaf_import.cpp
         ${LIBAAF_SOURCES}
+        src/aaf_markers.cpp
+        src/helpers.cpp
+        src/RppWriter.cpp
 )
 
 # -------------------------------------------------------------------------
 # Include paths
 # -------------------------------------------------------------------------
 target_include_directories(reaper_aaf PRIVATE
+        src
         include
         ${REAPER_SDK_DIR}/sdk
         ${REAPER_SDK_DIR}/WDL

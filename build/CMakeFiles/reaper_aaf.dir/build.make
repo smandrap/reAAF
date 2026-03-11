@@ -324,6 +324,34 @@ CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/log.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/log.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /Users/federico/Desktop/reaper_aaf/extern/LibAAF/src/common/log.c -o CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/log.c.s
 
+CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o: CMakeFiles/reaper_aaf.dir/flags.make
+CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o: /Users/federico/Desktop/reaper_aaf/src/helpers.cpp
+CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o: CMakeFiles/reaper_aaf.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/federico/Desktop/reaper_aaf/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o -MF CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o.d -o CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o -c /Users/federico/Desktop/reaper_aaf/src/helpers.cpp
+
+CMakeFiles/reaper_aaf.dir/src/helpers.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/reaper_aaf.dir/src/helpers.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/federico/Desktop/reaper_aaf/src/helpers.cpp > CMakeFiles/reaper_aaf.dir/src/helpers.cpp.i
+
+CMakeFiles/reaper_aaf.dir/src/helpers.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/reaper_aaf.dir/src/helpers.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/federico/Desktop/reaper_aaf/src/helpers.cpp -o CMakeFiles/reaper_aaf.dir/src/helpers.cpp.s
+
+CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o: CMakeFiles/reaper_aaf.dir/flags.make
+CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o: /Users/federico/Desktop/reaper_aaf/src/aaf_markers.cpp
+CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o: CMakeFiles/reaper_aaf.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/federico/Desktop/reaper_aaf/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o -MF CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o.d -o CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o -c /Users/federico/Desktop/reaper_aaf/src/aaf_markers.cpp
+
+CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/federico/Desktop/reaper_aaf/src/aaf_markers.cpp > CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.i
+
+CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/federico/Desktop/reaper_aaf/src/aaf_markers.cpp -o CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.s
+
 # Object files for target reaper_aaf
 reaper_aaf_OBJECTS = \
 "CMakeFiles/reaper_aaf.dir/src/main.cpp.o" \
@@ -343,7 +371,9 @@ reaper_aaf_OBJECTS = \
 "CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/AAFIface/MediaComposer.c.o" \
 "CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/AAFIface/Resolve.c.o" \
 "CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/utils.c.o" \
-"CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/log.c.o"
+"CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/log.c.o" \
+"CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o" \
+"CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o"
 
 # External object files for target reaper_aaf
 reaper_aaf_EXTERNAL_OBJECTS =
@@ -366,9 +396,11 @@ reaper_aaf.dylib: CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/AAFIface/MediaComp
 reaper_aaf.dylib: CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/AAFIface/Resolve.c.o
 reaper_aaf.dylib: CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/utils.c.o
 reaper_aaf.dylib: CMakeFiles/reaper_aaf.dir/extern/LibAAF/src/common/log.c.o
+reaper_aaf.dylib: CMakeFiles/reaper_aaf.dir/src/helpers.cpp.o
+reaper_aaf.dylib: CMakeFiles/reaper_aaf.dir/src/aaf_markers.cpp.o
 reaper_aaf.dylib: CMakeFiles/reaper_aaf.dir/build.make
 reaper_aaf.dylib: CMakeFiles/reaper_aaf.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/federico/Desktop/reaper_aaf/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking CXX shared module reaper_aaf.dylib"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/federico/Desktop/reaper_aaf/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Linking CXX shared module reaper_aaf.dylib"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/reaper_aaf.dir/link.txt --verbose=$(VERBOSE)
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold "Copying to REAPER UserPlugins..."
 	/opt/homebrew/bin/cmake -E copy_if_different /Users/federico/Desktop/reaper_aaf/build/reaper_aaf.dylib /Users/federico/Library/Application\ Support/REAPER/UserPlugins/reaper_aaf.dylib
