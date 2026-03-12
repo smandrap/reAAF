@@ -6,7 +6,6 @@ class ProjectStateContext;
 // ---------------------------------------------------------------------------
 // RppWriter
 //
-// Two-layer design:
 //   - line()        : private raw emitter — all RPP syntax lives here
 //   - Chunk guards  : public nested RAII types, one per chunk kind
 //
@@ -18,9 +17,6 @@ class ProjectStateContext;
 //           m_writer.source("WAVE", "/audio/kick.wav");  // self-closing
 //       }  // <-- ">" emitted here for ITEM
 //   }  // <-- ">" emitted here for TRACK
-//
-// Chunks cannot be left open by accident: ">" is emitted in the guard's
-// destructor, so early returns and exceptions are always safe.
 // ---------------------------------------------------------------------------
 class RppWriter {
 public:

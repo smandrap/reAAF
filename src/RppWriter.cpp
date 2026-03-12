@@ -52,6 +52,7 @@ RppWriter::ItemChunk RppWriter::item(const char *name,
     line("NAME \"%s\"", name ? escape_rpp_string(name).c_str() : "");
     line("VOLPAN %.6f 0.000000 1.000000 -1", gainLin);
     line("SOFFS %.10f", srcOffsSec);
+    line("LOOP 0");
     return ItemChunk{*this};
 }
 

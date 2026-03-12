@@ -6,8 +6,6 @@
 #include <defines.h>
 
 // TODO: fix video support [MXF files audio is not grabbed properly]
-// TODO: avoid creating a directory when it's of no use
-// TODO: do not loop stuff
 
 
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
@@ -72,7 +70,6 @@ int AafImporter::run() {
     AAFI_foreachAudioTrack(m_aafi, track) {
         writeAudioTrack(track, trackIdx++, itemCount);
     }
-
 
     aafi_release(&m_aafi);
     return 0;
