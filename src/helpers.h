@@ -49,6 +49,13 @@ inline double clamp_pan(double pan) {
     return pan;
 }
 
+inline int aafiColorToReaper(const uint16_t rgb[3]) {
+    // const uint8_t r = rgb[0] >> 8;
+    // const uint8_t g = rgb[1] >> 8;
+    // const uint8_t b = rgb[2] >> 8;
+    return 0x1000000 | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+}
+
 
 int interpol_to_reaper_shape(uint32_t flags);
 

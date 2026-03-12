@@ -150,7 +150,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     if (track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE)) {
         // AAF pan: 0=left, 0.5=center, 1=right → REAPER −1...+1 (negated)
         processEnvelope(track->pan, compLen, "PANENV2",
-                        [](double v) { return clamp_pan((v - 0.5) * -2.0); },
+                        [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
                         /*arm=*/true);
     }
 
@@ -160,9 +160,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     AAFI_foreachTrackItem(track, ti) {
         if (aafiAudioClip *clip = aafi_timelineItemToAudioClip(ti))
             processItem_Audio(clip, ti, track->edit_rate, xFadeMap);
-        // AAFI_TRANS items are consumed via xFadeMap; nothing to emit directly.
     }
-    // 't' destructor fires here → ">"
 }
 
 void AafImporter::processTrack_Video(const aafiVideoTrack *track, int &itemCounter) {
@@ -171,7 +169,6 @@ void AafImporter::processTrack_Video(const aafiVideoTrack *track, int &itemCount
     AAFI_foreachTrackItem(track, ti) {
         if (ti->type == AAFI_VIDEO_CLIP)
             processItem_Video(static_cast<aafiVideoClip *>(ti->data), track->edit_rate);
-        //libaaf has no transitions on video items. Noooooooo
     }
 }
 
@@ -275,7 +272,6 @@ void AafImporter::processSource_Audio(const aafiAudioClip *clip) {
     const char *srcType = rppSourceTypeFromPath(filePath);
 
     auto s = m_writer.source(srcType, filePath);
-    // 's' destructor fires here ">"
 }
 
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
@@ -284,7 +280,6 @@ void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
         auto s = m_writer.source(nullptr, nullptr);
         return;
     }
-
     auto s = m_writer.source("VIDEO", ess->usable_file_path);
 }
 
@@ -295,14 +290,21 @@ void AafImporter::processMarkers() const {
     AAFI_foreachMarker(m_aafi, m) {
         const double t = pos_to_seconds(m->start, m->edit_rate);
 
+        const bool hasColor = m->RGBColor[0] || m->RGBColor[1] || m->RGBColor[2];
+        const int color = hasColor ? aafiColorToReaper(m->RGBColor) : 0;
+
+#ifdef REAAF_DEBUG
+        rlog("Marker color: %d, %d, %d\n", m->RGBColor[0], m->RGBColor[1], m->RGBColor[2]);
+#endif
+
         if (m->length == 0) {
-            m_writer.writeMarker(id++, t, m->name, false);
-        } else {
-            const double endT = pos_to_seconds(m->start + m->length, m->edit_rate);
-            m_writer.writeMarker(id, t, m->name, true);
-            m_writer.writeMarker(id + 1, endT, m->name, true);
-            id += 2;
+            m_writer.writeMarker(id++, t, m->name, false, color);
+            continue;
         }
+        // it's a region
+        const double endT = pos_to_seconds(m->start + m->length, m->edit_rate);
+        m_writer.writeMarker(id, t, m->name, true, color);
+        m_writer.writeMarker(id++, endT, "", true, color);
     }
 }
 

@@ -76,11 +76,13 @@ RppWriter::EnvChunk RppWriter::envelope(const char *tag, const bool arm) {
 }
 
 
-void RppWriter::writeMarker(int id, double timeSec, const char *name, const bool isRegionBoundary) const {
-    line("MARKER %d %.10f \"%s\" 0 %d 1",
+void RppWriter::writeMarker(const int id, const double timeSec, const char *name, const bool isRegionBoundary,
+                            const int color) const {
+    line("MARKER %d %.10f \"%s\" %d %d 1",
          id, timeSec,
          name ? escape_rpp_string(name).c_str() : "",
-         isRegionBoundary ? 1 : 0);
+         isRegionBoundary ? 1 : 0,
+         color);
 }
 
 void RppWriter::writeEnvPoint(const double timeSec, const double value) const {

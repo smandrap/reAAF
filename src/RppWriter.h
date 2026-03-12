@@ -121,7 +121,7 @@ public:
     // -----------------------------------------------------------------------
     // Flat line-level writers (no matching close needed)
     // -----------------------------------------------------------------------
-    void writeMarker(int id, double timeSec, const char *name, bool isRegionBoundary) const;
+    void writeMarker(int id, double timeSec, const char *name, bool isRegionBoundary, int color) const;
 
     void writeEnvPoint(double timeSec, double value) const;
 
