@@ -33,7 +33,7 @@ private:
     void writeMarkers() const;
 
     void writeAudioTrack(const aafiAudioTrack *track,
-                    int trackIdx, int &itemCounter);
+                         int trackIdx, int &itemCounter);
 
     void writeAudioItem(aafiAudioClip *clip,
                         const aafiTimelineItem *ti,
@@ -44,16 +44,12 @@ private:
     void writeAudioSource(const aafiAudioClip *clip);
 
     void writeVideoTrack(const aafiVideoTrack *track,
-                int trackIdx, int &itemCounter);
+                         int trackIdx, int &itemCounter);
 
     void writeVideoItem(const aafiVideoClip *clip, const aafRational_t *trackEditRate, int itemIdx);
 
     void writeVideoSource(const aafiVideoEssence *ess);
 
-    // Unified envelope emitter.
-    // `tag`       : RPP tag (e.g. "VOLENV2", "PANENV2")
-    // `transform` : maps raw AAF value → RPP value
-    // `arm`       : emit "ARM 1" inside the envelope block (needed for pan)
     void writeEnvelope(const aafiAudioGain *gain,
                        double segLenSec,
                        const char *tag,

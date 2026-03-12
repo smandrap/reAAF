@@ -46,6 +46,7 @@ add_library(reaper_aaf MODULE
         src/AafImporter.h
         src/FadeResolver.cpp
         src/FadeResolver.h
+        src/defines.h
 )
 
 # -------------------------------------------------------------------------

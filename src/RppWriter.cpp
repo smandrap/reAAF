@@ -4,9 +4,6 @@
 
 #include <cstdarg>
 
-// ---------------------------------------------------------------------------
-// Raw emitter
-// ---------------------------------------------------------------------------
 
 void RppWriter::line(const char *fmt, ...) const {
     char buf[8192];
@@ -17,22 +14,17 @@ void RppWriter::line(const char *fmt, ...) const {
     m_ctx->AddLine("%s", buf);
 }
 
-// ---------------------------------------------------------------------------
-// Project
-// ---------------------------------------------------------------------------
 
-RppWriter::ProjectChunk RppWriter::project(const double tcOffsetSec, const int fps, const unsigned samplerate) {
+RppWriter::ProjectChunk RppWriter::project(const double tcOffsetSec, const int fps, const int isDrop,
+                                           const unsigned samplerate) {
     line("<REAPER_PROJECT 0.1");
     line("PROJOFFS %.10f 0 0", tcOffsetSec);
-    line("TIMEMODE 1 5 -1 %d 0 0 -1", fps);
+    line("TIMEMODE 1 5 -1 %d %d 0 -1", fps, isDrop);
     line("SMPTESYNC 0 %d 100 40 1000 300 0 0 0 0 0", fps);
     line("SAMPLERATE %u 0 0", samplerate);
     return ProjectChunk{*this};
 }
 
-// ---------------------------------------------------------------------------
-// Track
-// ---------------------------------------------------------------------------
 
 RppWriter::TrackChunk RppWriter::track(const char *name, const double vol, const double pan,
                                        const int mute, const int solo, const int nchan) {
@@ -44,9 +36,6 @@ RppWriter::TrackChunk RppWriter::track(const char *name, const double vol, const
     return TrackChunk{*this};
 }
 
-// ---------------------------------------------------------------------------
-// Item
-// ---------------------------------------------------------------------------
 
 RppWriter::ItemChunk RppWriter::item(const char *name,
                                      const double posSec, const double lenSec,
@@ -66,9 +55,6 @@ RppWriter::ItemChunk RppWriter::item(const char *name,
     return ItemChunk{*this};
 }
 
-// ---------------------------------------------------------------------------
-// Source  (self-closing: FILE line is emitted here, ">" by the guard dtor)
-// ---------------------------------------------------------------------------
 
 RppWriter::SourceChunk RppWriter::source(const char *type, const char *filePath) {
     if (!type || !filePath || filePath[0] == '\0') {
@@ -80,9 +66,6 @@ RppWriter::SourceChunk RppWriter::source(const char *type, const char *filePath)
     return SourceChunk{*this};
 }
 
-// ---------------------------------------------------------------------------
-// Envelope
-// ---------------------------------------------------------------------------
 
 RppWriter::EnvChunk RppWriter::envelope(const char *tag, const bool arm) {
     line("<%s", tag);
@@ -91,9 +74,6 @@ RppWriter::EnvChunk RppWriter::envelope(const char *tag, const bool arm) {
     return EnvChunk{*this};
 }
 
-// ---------------------------------------------------------------------------
-// Flat line writers
-// ---------------------------------------------------------------------------
 
 void RppWriter::writeMarker(int id, double timeSec, const char *name, const bool isRegionBoundary) const {
     line("MARKER %d %.10f \"%s\" 0 %d 1",

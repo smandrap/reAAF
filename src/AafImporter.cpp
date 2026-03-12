@@ -3,15 +3,12 @@
 #include "FadeResolver.h"
 
 #include <libaaf.h>
+#include <defines.h>
 
 // TODO: fix video support [MXF files audio is not grabbed properly]
 // TODO: avoid creating a directory when it's of no use
-// TODO: fix envelopes. They're correctly exported but they don't work here.
 // TODO: do not loop stuff
 
-// ---------------------------------------------------------------------------
-// Constructor / run
-// ---------------------------------------------------------------------------
 
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
     : m_writer(ctx),
@@ -27,15 +24,11 @@ int AafImporter::run() {
     }
 
     aafi_set_debug(m_aafi, VERB_WARNING, 0, nullptr, nullptr, nullptr);
+    aafi_set_option_int(m_aafi, "protools", PROTOOLS_ALL_OPT);
 
-    aafi_set_option_int(m_aafi, "protools",
-                        PROTOOLS_ALL_OPT);
-
-    {
-        std::string dir(m_filePath);
-        if (const auto sep = dir.find_last_of("/\\"); sep != std::string::npos) dir.resize(sep);
-        aafi_set_option_str(m_aafi, "media_location", dir.c_str());
-    }
+    std::string dir(m_filePath);
+    if (const auto sep = dir.find_last_of("/\\"); sep != std::string::npos) dir.resize(sep);
+    aafi_set_option_str(m_aafi, "media_location", dir.c_str());
 
     if (aafi_load_file(m_aafi, m_filePath.c_str()) != 0) {
         rlog("ReAAF: failed to load '%s'\n", m_filePath.c_str());
@@ -52,37 +45,43 @@ int AafImporter::run() {
     const double tcOffset = pos_to_seconds(m_aafi->compositionStart,
                                            m_aafi->compositionStart_editRate);
 
-    int fps = 25;
-    if (m_aafi->Timecode) fps = m_aafi->Timecode->fps;
 
-    {
-        // Guard destroyed at end of scope → emits closing ">" for REAPER_PROJECT
-        auto proj = m_writer.project(tcOffset, fps, samplerate);
+    const int fps = m_aafi->Timecode->fps;
+    const bool isFrac = m_aafi->Timecode->edit_rate->denominator != 1;
 
-        writeMarkers();
+    // isDrop: 0 = integer fps, 1 = drop, 2 = non-drop fractional (23.976 or 29.97 ND)
+    const uint8_t isDrop = isFrac ? (fps == 24 ? 2 : (m_aafi->Timecode->drop > 0 ? 1 : 2)) : 0;
 
-        const aafiAudioTrack *track = nullptr;
-        int trackIdx = 1;
-        int itemCount = 1;
 
-        const aafiVideoTrack *vtrack = nullptr;
-        AAFI_foreachVideoTrack(m_aafi, vtrack) {
-            writeVideoTrack(vtrack, trackIdx++, itemCount);
-        }
+#ifdef REAAF_DEBUG
+    rlog(":::TIMECODE:::\nAAFI: %d, %d, %d\nRPP: %d, %d\n\n", m_aafi->Timecode->edit_rate->numerator,
+         m_aafi->Timecode->edit_rate->denominator, m_aafi->Timecode->drop, fps,
+         isDrop);
+#endif
 
-        AAFI_foreachAudioTrack(m_aafi, track) {
-            writeAudioTrack(track, trackIdx++, itemCount);
-        }
+    // Guard destroyed at end of scope → emits closing ">" for REAPER_PROJECT
+    auto proj = m_writer.project(tcOffset, fps, isDrop, samplerate);
 
+    writeMarkers();
+
+    const aafiAudioTrack *track = nullptr;
+    int trackIdx = 1;
+    int itemCount = 1;
+
+    const aafiVideoTrack *vtrack = nullptr;
+    AAFI_foreachVideoTrack(m_aafi, vtrack) {
+        writeVideoTrack(vtrack, trackIdx++, itemCount);
     }
+
+    AAFI_foreachAudioTrack(m_aafi, track) {
+        writeAudioTrack(track, trackIdx++, itemCount);
+    }
+
 
     aafi_release(&m_aafi);
     return 0;
 }
 
-// ---------------------------------------------------------------------------
-// Track
-// ---------------------------------------------------------------------------
 
 void AafImporter::writeAudioTrack(const aafiAudioTrack *track,
                                   int /*trackIdx*/,
@@ -144,9 +143,6 @@ void AafImporter::writeAudioTrack(const aafiAudioTrack *track,
     // 't' destructor fires here → ">"
 }
 
-// ---------------------------------------------------------------------------
-// Item
-// ---------------------------------------------------------------------------
 
 void AafImporter::writeAudioItem(aafiAudioClip *clip,
                                  const aafiTimelineItem *ti,
@@ -194,9 +190,6 @@ void AafImporter::writeAudioItem(aafiAudioClip *clip,
     // 'i' destructor fires here ">"
 }
 
-// ---------------------------------------------------------------------------
-// Source
-// ---------------------------------------------------------------------------
 
 void AafImporter::writeAudioSource(const aafiAudioClip *clip) {
     // Helper lambda: emit an EMPTY source and return.
@@ -278,7 +271,7 @@ void AafImporter::writeVideoItem(const aafiVideoClip *clip, const aafRational_t 
 
 void AafImporter::writeVideoSource(const aafiVideoEssence *ess) {
     if (!ess || !ess->usable_file_path || ess->usable_file_path[0] == '\0') {
-            rlog("ReAAF: WARNING: video essence has no usable path.\n");
+        rlog("ReAAF: WARNING: video essence has no usable path.\n");
         auto s = m_writer.source(nullptr, nullptr);
         return;
     }
@@ -286,10 +279,6 @@ void AafImporter::writeVideoSource(const aafiVideoEssence *ess) {
     auto s = m_writer.source("VIDEO", ess->usable_file_path);
 }
 
-
-// ---------------------------------------------------------------------------
-// Envelopes
-// ---------------------------------------------------------------------------
 
 void AafImporter::writeEnvelope(const aafiAudioGain *gain,
                                 const double segLenSec,
@@ -312,9 +301,6 @@ void AafImporter::writeEnvelope(const aafiAudioGain *gain,
     // 'env' destructor fires here ">"
 }
 
-// ---------------------------------------------------------------------------
-// Markers
-// ---------------------------------------------------------------------------
 
 void AafImporter::writeMarkers() const {
     int id = 1;
