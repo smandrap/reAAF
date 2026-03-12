@@ -49,6 +49,11 @@ add_library(reaper_aaf MODULE
         src/defines.h
 )
 
+set_target_properties(reaper_aaf PROPERTIES
+        PREFIX ""
+        OUTPUT_NAME "reaper_reAAF"
+)
+
 # -------------------------------------------------------------------------
 # Include paths
 # -------------------------------------------------------------------------

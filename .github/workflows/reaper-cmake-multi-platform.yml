@@ -1,0 +1,86 @@
+name: Build REAPER Extension
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      # 1️⃣ Checkout repo
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 2️⃣ Clone dependencies
+      - name: Clone REAPER SDK, WDL, and LibAAF
+        run: |
+          git clone --depth 1 https://github.com/justinfrankel/reaper-sdk.git extern/reaper-sdk
+          git clone --depth 1 https://github.com/justinfrankel/WDL.git extern/reaper-sdk/WDL
+          git clone --depth 1 https://github.com/agfline/LibAAF.git extern/LibAAF
+
+      # 3️⃣ Flatten WDL folder for REAPER SDK
+      - name: Flatten WDL folder
+        shell: bash
+        run: |
+          if [ -d extern/reaper-sdk/WDL/WDL ]; then
+            mv extern/reaper-sdk/WDL/WDL extern/reaper-sdk/WDL-temp
+            rm -rf extern/reaper-sdk/WDL
+            mv extern/reaper-sdk/WDL-temp extern/reaper-sdk/WDL
+          fi
+
+      # 4️⃣ Create missing LibAAF version.h
+      - name: Create LibAAF version.h
+        shell: bash
+        run: |
+          mkdir -p extern/LibAAF/include/libaaf
+          cat <<'EOF' > extern/LibAAF/include/libaaf/version.h
+          #ifndef REAPER_AAF_VERSION_H
+          #define REAPER_AAF_VERSION_H
+          #define LIBAAF_VERSION "v0.0.0-unknown"
+          #endif //REAPER_AAF_VERSION_H
+          EOF
+
+      # 5️⃣ Patch LibAAF for Windows (STGTY_* constants)
+      - name: Patch LibAAF for Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          sed -i "1i#include <windows.h>\n#include <objbase.h>" extern/LibAAF/src/LibCFB/CFBDump.c
+          sed -i "1i#ifdef _MSC_VER\n#include <windows.h>\n#include <objbase.h>\n#endif" extern/LibAAF/src/LibCFB/LibCFB.c
+
+      # 6️⃣ Setup MSVC on Windows
+      - name: Setup MSVC
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # 7️⃣ Configure CMake
+      - name: Configure
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+      # 8️⃣ Build
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: reaper-aaf-${{ matrix.os }}
+          path: |
+            build/Release/reaper_reAAF.dll
+            build/reaper_reAAF.dylib
+            build/reaper_reAAF.sox.os }}
+
+      # 🔟 Optional cleanup
+      - name: Cleanup dependencies
+        shell: bash
+        run: |
+          rm -rf extern/reaper-sdk
+          rm -rf extern/LibAAF
