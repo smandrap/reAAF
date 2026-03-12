@@ -308,7 +308,6 @@ void AafImporter::processMarkers() const {
     }
 }
 
-
 void AafImporter::processEnvelope(const aafiAudioGain *gain,
                                   const double segLenSec,
                                   const char *tag,
