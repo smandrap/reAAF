@@ -36,15 +36,11 @@ int AafImporter::run() {
         return -1;
     }
 
-    if (!ensure_dir(m_extractDir))
-        rlog("ReAAF: WARNING: could not create '%s'\n", m_extractDir.c_str());
-
     const uint32_t samplerate =
             m_aafi->Audio->samplerate > 0 ? m_aafi->Audio->samplerate : 48000u;
 
     const double tcOffset = pos_to_seconds(m_aafi->compositionStart,
                                            m_aafi->compositionStart_editRate);
-
 
     const int fps = m_aafi->Timecode->fps;
     const bool isFrac = m_aafi->Timecode->edit_rate->denominator != 1;
@@ -210,6 +206,11 @@ void AafImporter::writeAudioSource(const aafiAudioClip *clip) {
 
     // Extract embedded essence if not yet done
     if (ess->is_embedded && !ess->usable_file_path) {
+        if (!ensureExtractDir()) {
+            emitEmpty();
+            return;
+        }
+
         char *outPath = nullptr;
         const int rc = aafi_extractAudioEssenceFile(m_aafi, ess,
                                                     AAFI_EXTRACT_DEFAULT,
@@ -301,6 +302,15 @@ void AafImporter::writeEnvelope(const aafiAudioGain *gain,
     // 'env' destructor fires here ">"
 }
 
+bool AafImporter::ensureExtractDir() {
+    if (m_extractDirCreated) return true;
+    if (!ensure_dir(m_extractDir)) {
+        rlog("ReAAF: WARNING: could not create %s\n", m_extractDir.c_str());
+        return false;
+    }
+    m_extractDirCreated = true;
+    return true;
+}
 
 void AafImporter::writeMarkers() const {
     int id = 1;

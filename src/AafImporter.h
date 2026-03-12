@@ -30,6 +30,10 @@ private:
     std::string m_extractDir;
     std::string m_filePath;
 
+    bool m_extractDirCreated = false;
+
+    bool ensureExtractDir();
+
     void writeMarkers() const;
 
     void writeAudioTrack(const aafiAudioTrack *track,
