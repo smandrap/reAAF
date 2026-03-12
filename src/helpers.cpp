@@ -21,13 +21,6 @@ int interpol_to_reaper_shape(const uint32_t flags) {
     return 1; // default: quarter-sine
 }
 
-std::string build_extract_dir(const char *aaf_path) {
-    std::string p(aaf_path);
-    if (const auto dot = p.rfind('.'); dot != std::string::npos) p.resize(dot);
-    p += "-media";
-    return p;
-}
-
 bool ensure_dir(const std::string &path) {
 #ifdef _WIN32
     if (_mkdir(path.c_str()) == 0 || errno == EEXIST) return true;

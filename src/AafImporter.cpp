@@ -12,36 +12,8 @@
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
     : m_writer(ctx),
       m_aafi(aafi_alloc(nullptr)),
-      m_extractDir(build_extract_dir(filepath)),
-      m_filePath(filepath) {
-}
-
-
-void AafImporter::setMediaLocation() const {
-    std::string dir(m_filePath);
-    if (const auto sep = dir.find_last_of("/\\"); sep != std::string::npos) dir.resize(sep);
-    aafi_set_option_str(m_aafi, "media_location", dir.c_str());
-}
-
-bool AafImporter::loadFile() {
-    if (aafi_load_file(m_aafi, m_filePath.c_str()) != 0) {
-        rlog("ReAAF: failed to load '%s'\n", m_filePath.c_str());
-        aafi_release(&m_aafi);
-        return false;
-    }
-    return true;
-}
-
-const char *AafImporter::rppSourceTypeFromPath(const char *filePath) {
-    // Determine source type from extension
-    auto srcType = "WAVE";
-    if (const char *ext = strrchr(filePath, '.')) {
-        if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
-        else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
-        else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
-        // .wav / .aif / .aiff → WAVE (default)
-    }
-    return srcType;
+      m_filePath(filepath),
+      m_extractDir(buildExtractDir(filepath)) {
 }
 
 int AafImporter::run() {
@@ -86,7 +58,7 @@ int AafImporter::run() {
 
     const aafiVideoTrack *vtrack = nullptr;
     AAFI_foreachVideoTrack(m_aafi, vtrack) {
-        processTrack_Video(vtrack, trackIdx++, itemCount);
+        processTrack_Video(vtrack, itemCount);
     }
 
     AAFI_foreachAudioTrack(m_aafi, track) {
@@ -97,13 +69,57 @@ int AafImporter::run() {
     return 0;
 }
 
-double AafImporter::resolveConstantGain(const aafiAudioGain *gain, const double defaultValue = 1.0) {
+std::string AafImporter::buildExtractDir(const char *filepath) {
+    std::string p(filepath);
+    if (const auto dot = p.rfind('.'); dot != std::string::npos) p.resize(dot);
+    p += "-media";
+    return p;
+}
+
+const char *AafImporter::rppSourceTypeFromPath(const char *filePath) {
+    // Determine source type from extension
+    auto srcType = "WAVE";
+    if (const char *ext = strrchr(filePath, '.')) {
+        if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
+        else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
+        else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
+        // .wav / .aif / .aiff → WAVE (default)
+    }
+    return srcType;
+}
+
+double AafImporter::resolveConstantGain(const aafiAudioGain *gain, const double defaultValue) {
     if (gain
         && gain->flags & AAFI_AUDIO_GAIN_CONSTANT
         && gain->pts_cnt >= 1
         && gain->value)
         return rational_to_double(gain->value[0]);
     return defaultValue;
+}
+
+const char *AafImporter::resolveClipName(const aafiAudioClip *clip) {
+    const char *clipName = clip->subClipName;
+    if (!clipName || clipName[0] == '\0') {
+        if (clip->essencePointerList && clip->essencePointerList->essenceFile)
+            clipName = clip->essencePointerList->essenceFile->name;
+    }
+    return clipName;
+}
+
+void AafImporter::setMediaLocation() const {
+    std::string dir(m_filePath);
+    if (const auto sep = dir.find_last_of("/\\"); sep != std::string::npos) dir.resize(sep);
+    aafi_set_option_str(m_aafi, "media_location", dir.c_str());
+}
+
+
+bool AafImporter::loadFile() {
+    if (aafi_load_file(m_aafi, m_filePath.c_str()) != 0) {
+        rlog("ReAAF: failed to load '%s'\n", m_filePath.c_str());
+        aafi_release(&m_aafi);
+        return false;
+    }
+    return true;
 }
 
 
@@ -149,15 +165,16 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     // 't' destructor fires here → ">"
 }
 
-
-const char *AafImporter::resolveClipName(const aafiAudioClip *clip) {
-    const char *clipName = clip->subClipName;
-    if (!clipName || clipName[0] == '\0') {
-        if (clip->essencePointerList && clip->essencePointerList->essenceFile)
-            clipName = clip->essencePointerList->essenceFile->name;
+void AafImporter::processTrack_Video(const aafiVideoTrack *track, int &itemCounter) {
+    auto t = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
+    const aafiTimelineItem *ti = nullptr;
+    AAFI_foreachTrackItem(track, ti) {
+        if (ti->type == AAFI_VIDEO_CLIP)
+            processItem_Video(static_cast<aafiVideoClip *>(ti->data), track->edit_rate);
+        //libaaf has no transitions on video items. Noooooooo
     }
-    return clipName;
 }
+
 
 void AafImporter::processItem_Audio(aafiAudioClip *clip,
                                     const aafiTimelineItem *ti,
@@ -166,22 +183,13 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
     const double pos = pos_to_seconds(clip->pos, trackEditRate);
     const double len = pos_to_seconds(clip->len, trackEditRate);
     const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
-
-    // Fixed clip gain
-    double gainLin = 1.0;
-    if (clip->gain
-        && (clip->gain->flags & AAFI_AUDIO_GAIN_CONSTANT)
-        && clip->gain->pts_cnt >= 1
-        && clip->gain->value) {
-        gainLin = clamp_volume(rational_to_double(clip->gain->value[0]));
-    }
+    const double gainLin = clamp_volume(resolveConstantGain(clip->gain));
 
     const auto [fadeInLen, fadeInShape] = resolveFadeIn(clip, ti, xFadeMap, trackEditRate);
     const auto [fadeOutLen, fadeOutShape] = resolveFadeOut(clip, ti, xFadeMap, trackEditRate);
 
     const char *clipName = resolveClipName(clip);
 
-    // Guard destroyed at end of scope → emits closing ">" for ITEM
     auto i = m_writer.item(clipName,
                            pos, len,
                            fadeInLen, fadeInShape,
@@ -199,6 +207,22 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
     // 'i' destructor fires here ">"
 }
 
+void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate) {
+    const double pos = pos_to_seconds(clip->pos, trackEditRate);
+    const double len = pos_to_seconds(clip->len, trackEditRate);
+    const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
+
+    const char *clipName = clip->Essence ? clip->Essence->name : "Video";
+
+    auto i = m_writer.item(clipName,
+                           pos, len,
+                           0.0, 0,
+                           0.0, 0,
+                           1.0, srcOffset,
+                           0);
+
+    processSource_Video(clip->Essence);
+}
 
 void AafImporter::processSource_Audio(const aafiAudioClip *clip) {
     // Helper lambda: emit an EMPTY source and return.
@@ -254,33 +278,6 @@ void AafImporter::processSource_Audio(const aafiAudioClip *clip) {
     // 's' destructor fires here ">"
 }
 
-void AafImporter::processTrack_Video(const aafiVideoTrack *track, int trackIdx, int &itemCounter) {
-    auto t = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
-    const aafiTimelineItem *ti = nullptr;
-    AAFI_foreachTrackItem(track, ti) {
-        if (ti->type == AAFI_VIDEO_CLIP)
-            processItem_Video(static_cast<aafiVideoClip *>(ti->data), track->edit_rate, itemCounter++);
-        //libaaf has no transitions on video items. Noooooooo
-    }
-}
-
-void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate, int itemIdx) {
-    const double pos = pos_to_seconds(clip->pos, trackEditRate);
-    const double len = pos_to_seconds(clip->len, trackEditRate);
-    const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
-
-    const char *clipName = clip->Essence ? clip->Essence->name : "Video";
-
-    auto i = m_writer.item(clipName,
-                           pos, len,
-                           0.0, 0,
-                           0.0, 0,
-                           1.0, srcOffset,
-                           0);
-
-    processSource_Video(clip->Essence);
-}
-
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
     if (!ess || !ess->usable_file_path || ess->usable_file_path[0] == '\0') {
         rlog("ReAAF: WARNING: video essence has no usable path.\n");
@@ -289,6 +286,24 @@ void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
     }
 
     auto s = m_writer.source("VIDEO", ess->usable_file_path);
+}
+
+
+void AafImporter::processMarkers() const {
+    int id = 1;
+    const aafiMarker *m = nullptr;
+    AAFI_foreachMarker(m_aafi, m) {
+        const double t = pos_to_seconds(m->start, m->edit_rate);
+
+        if (m->length == 0) {
+            m_writer.writeMarker(id++, t, m->name, false);
+        } else {
+            const double endT = pos_to_seconds(m->start + m->length, m->edit_rate);
+            m_writer.writeMarker(id, t, m->name, true);
+            m_writer.writeMarker(id + 1, endT, m->name, true);
+            id += 2;
+        }
+    }
 }
 
 
@@ -311,22 +326,4 @@ void AafImporter::processEnvelope(const aafiAudioGain *gain,
         m_writer.writeEnvPoint(t, val);
     }
     // 'env' destructor fires here ">"
-}
-
-
-void AafImporter::processMarkers() const {
-    int id = 1;
-    const aafiMarker *m = nullptr;
-    AAFI_foreachMarker(m_aafi, m) {
-        const double t = pos_to_seconds(m->start, m->edit_rate);
-
-        if (m->length == 0) {
-            m_writer.writeMarker(id++, t, m->name, false);
-        } else {
-            const double endT = pos_to_seconds(m->start + m->length, m->edit_rate);
-            m_writer.writeMarker(id, t, m->name, true);
-            m_writer.writeMarker(id + 1, endT, m->name, true);
-            id += 2;
-        }
-    }
 }

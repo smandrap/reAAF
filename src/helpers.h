@@ -52,8 +52,6 @@ inline double clamp_pan(double pan) {
 
 int interpol_to_reaper_shape(uint32_t flags);
 
-std::string build_extract_dir(const char *aaf_path);
-
 bool ensure_dir(const std::string &path);
 
 void rlog(const char *fmt, ...);
