@@ -19,12 +19,9 @@ XFadeMap buildXFadeMap(const aafiAudioTrack *track) {
     return m;
 }
 
-
-
 static ResolvedFade resolveFromTransition(const aafiTransition *t, const aafRational_t *editRate) {
     return {pos_to_seconds(t->len, editRate), interpol_to_reaper_shape(t->flags)};
 }
-
 
 ResolvedFade resolveFadeIn(aafiAudioClip *clip, const aafiTimelineItem *ti, const XFadeMap &xFadeMap, const aafRational_t *editRate) {
     if (const aafiTransition *t = aafi_getFadeIn(clip))

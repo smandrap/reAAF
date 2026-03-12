@@ -56,7 +56,6 @@ RppWriter::ItemChunk RppWriter::item(const char *name,
     return ItemChunk{*this};
 }
 
-
 RppWriter::SourceChunk RppWriter::source(const char *type, const char *filePath) {
     if (!type || !filePath || filePath[0] == '\0') {
         line("<SOURCE EMPTY");
@@ -67,14 +66,12 @@ RppWriter::SourceChunk RppWriter::source(const char *type, const char *filePath)
     return SourceChunk{*this};
 }
 
-
 RppWriter::EnvChunk RppWriter::envelope(const char *tag, const bool arm) {
     line("<%s", tag);
     line("VIS 1 1 1");
     if (arm) line("ARM 1");
     return EnvChunk{*this};
 }
-
 
 void RppWriter::writeMarker(const int id, const double timeSec, const char *name, const bool isRegionBoundary,
                             const int color) const {

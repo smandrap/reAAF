@@ -90,7 +90,7 @@ if(WIN32)
     add_custom_command(TARGET reaper_aaf POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:reaper_aaf>
-            "${REAPER_PLUGINS_DIR}/reaper_aaf.dll"
+            "${REAPER_PLUGINS_DIR}/reaper_reAAF.dll"
             COMMENT "Copying to REAPER UserPlugins..."
     )
 
@@ -108,7 +108,7 @@ elseif(APPLE)
     add_custom_command(TARGET reaper_aaf POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:reaper_aaf>
-            "${REAPER_PLUGINS_DIR}/reaper_aaf.dylib"
+            "${REAPER_PLUGINS_DIR}/reaper_reAAF.dylib"
             COMMENT "Copying to REAPER UserPlugins..."
     )
 

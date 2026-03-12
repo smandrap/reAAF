@@ -6,7 +6,8 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include <defines.h>
 
-// TODO: fix video support [MXF files audio is not grabbed properly]
+// TODO: fix video support [MXF files audio is not grabbed properly
+// TODO: fix multichannel non-interleaved audio files
 
 
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
@@ -53,7 +54,6 @@ int AafImporter::run() {
     processMarkers();
 
     const aafiAudioTrack *track = nullptr;
-    int trackIdx = 1;
     int itemCount = 1;
 
     const aafiVideoTrack *vtrack = nullptr;
