@@ -24,6 +24,7 @@ public:
 
     int run();
 
+
 private:
     RppWriter m_writer;
     AAF_Iface *m_aafi;
@@ -32,29 +33,35 @@ private:
 
     bool m_extractDirCreated = false;
 
-    bool ensureExtractDir();
+    void setMediaLocation() const;
 
-    void writeMarkers() const;
+    bool loadFile();
 
-    void writeAudioTrack(const aafiAudioTrack *track,
-                         int trackIdx, int &itemCounter);
+    static const char *rppSourceTypeFromPath(const char *filePath);
 
-    void writeAudioItem(aafiAudioClip *clip,
-                        const aafiTimelineItem *ti,
-                        const aafRational_t *trackEditRate,
-                        int itemIdx,
-                        const XFadeMap &xFadeMap);
+    static double resolveConstantGain(const aafiAudioGain *gain, double defaultValue);
 
-    void writeAudioSource(const aafiAudioClip *clip);
+    void processMarkers() const;
 
-    void writeVideoTrack(const aafiVideoTrack *track,
-                         int trackIdx, int &itemCounter);
+    void processTrack_Audio(const aafiAudioTrack *track);
 
-    void writeVideoItem(const aafiVideoClip *clip, const aafRational_t *trackEditRate, int itemIdx);
+    static const char *resolveClipName(const aafiAudioClip *clip);
 
-    void writeVideoSource(const aafiVideoEssence *ess);
+    void processTrack_Video(const aafiVideoTrack *track,
+                            int trackIdx, int &itemCounter);
 
-    void writeEnvelope(const aafiAudioGain *gain,
+    void processItem_Audio(aafiAudioClip *clip,
+                           const aafiTimelineItem *ti,
+                           const aafRational_t *trackEditRate,
+                           const XFadeMap &xFadeMap);
+
+    void processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate, int itemIdx);
+
+    void processSource_Audio(const aafiAudioClip *clip);
+
+    void processSource_Video(const aafiVideoEssence *ess);
+
+    void processEnvelope(const aafiAudioGain *gain,
                        double segLenSec,
                        const char *tag,
                        const std::function<double(double)> &transform,
