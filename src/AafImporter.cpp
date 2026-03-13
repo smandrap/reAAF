@@ -80,7 +80,7 @@ const char *AafImporter::rppSourceTypeFromPath(const char *filePath) {
         if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
         else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
         else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
-        else if (strcasecmp(ext, ".mxf")  == 0) srcType = "VIDEO";
+        else if (strcasecmp(ext, ".mxf") == 0) srcType = "VIDEO";
     }
     return srcType;
 }
@@ -170,7 +170,11 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     }
 
     for (int trackIdx = 0; trackIdx < requiredTracks; ++trackIdx) {
-        auto t = m_writer.track(trackName, vol, pan, mute, solo,
+        std::string fullName = requiredTracks > 1
+                                   ? std::string(trackName) + "_" + std::to_string(trackIdx + 1)
+                                   : trackName;
+
+        auto t = m_writer.track(fullName.c_str(), vol, pan, mute, solo,
                                 requiredTracks == 1 ? nchan : 2);
 
         processTrackAutomation(track, compLen);
