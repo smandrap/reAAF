@@ -2,6 +2,7 @@
 #define REAPER_AAF_HELPERS_H
 
 #include <string>
+#include <cstring>
 #include "libaaf/AAFTypes.h"
 
 
