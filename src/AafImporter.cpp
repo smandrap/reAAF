@@ -3,6 +3,7 @@
 #include "FadeResolver.h"
 
 #include <libaaf.h>
+
 // ReSharper disable once CppUnusedIncludeDirective
 #include <defines.h>
 
@@ -126,40 +127,69 @@ bool AafImporter::loadFile() {
 void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     const char *trackName = track->name ? track->name : "";
 
-    // format == channel count; AAFI_TRACK_FORMAT_UNKNOWN (99) → mono
-    int nchan = track->format;
-    if (nchan <= 0 || nchan == 99) nchan = 1;
-
     const double vol = clamp_volume(resolveConstantGain(track->gain));
     const double pan = clamp_pan((resolveConstantGain(track->pan, 0.5) - 0.5) * -2.0);
+    const int mute = track->mute != 0 ? 1 : 0;
+    const int solo = track->solo != 0 ? 1 : 0;
 
-    auto t = m_writer.track(trackName, vol, pan,
-                            track->mute != 0 ? 1 : 0,
-                            track->solo != 0 ? 1 : 0,
-                            nchan);
-
-    // Track-level automation — composition length is the time base
     const double compLen = pos_to_seconds(m_aafi->compositionLength,
                                           m_aafi->compositionLength_editRate);
 
-    if (track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE)) {
-        processEnvelope(track->gain, compLen, "VOLENV2",
-                        [](const double v) { return clamp_volume(v); });
-    }
-
-    if (track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE)) {
-        // AAF pan: 0=left, 0.5=center, 1=right → REAPER −1...+1 (negated)
-        processEnvelope(track->pan, compLen, "PANENV2",
-                        [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
-                        /*arm=*/true);
-    }
-
     const XFadeMap xFadeMap = buildXFadeMap(track);
 
+    // Pre-pass: count required REAPER tracks and channel count.
+    // essenceFile->channels > 1 means interleaved — single track, break.
+    // Otherwise, each pointer is a separate mono file — one track per pointer.
+    int requiredTracks = 1;
+    int nchan = 2;
     aafiTimelineItem *ti = nullptr;
+
     AAFI_foreachTrackItem(track, ti) {
-        if (aafiAudioClip *clip = aafi_timelineItemToAudioClip(ti))
-            processItem_Audio(clip, ti, track->edit_rate, xFadeMap);
+        if (const auto *clip = aafi_timelineItemToAudioClip(ti)) {
+            int cnt = 0;
+            const aafiAudioEssencePointer *p = nullptr;
+            AAFI_foreachEssencePointer(clip->essencePointerList, p) {
+                if (p->essenceFile->channels > 1) {
+                    nchan = std::max(nchan, (int)p->essenceFile->channels);
+                    cnt = 1;
+                    break;
+                }
+                ++cnt;
+            }
+            requiredTracks = std::max(requiredTracks, cnt);
+        }
+    }
+
+    for (int trackIdx = 0; trackIdx < requiredTracks; ++trackIdx) {
+        auto t = m_writer.track(trackName, vol, pan, mute, solo,
+                                requiredTracks == 1 ? nchan : 2);
+
+        if (track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE))
+            processEnvelope(track->gain, compLen, "VOLENV2",
+                            [](const double v) { return clamp_volume(v); });
+
+        if (track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE))
+            processEnvelope(track->pan, compLen, "PANENV2",
+                            [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
+                            /*arm=*/true);
+
+        AAFI_foreachTrackItem(track, ti) {
+            auto *clip = aafi_timelineItemToAudioClip(ti);
+            if (!clip) continue;
+
+            // Find the pointer for this trackIdx.
+            // If the file is interleaved (channels > 1), only emit on trackIdx 0.
+            int idx = 0;
+            const aafiAudioEssencePointer *ptr = nullptr;
+            AAFI_foreachEssencePointer(clip->essencePointerList, ptr) {
+                if (ptr->essenceFile->channels > 1 || idx == trackIdx) break;
+                ++idx;
+            }
+
+            if (!ptr || idx != trackIdx) continue;
+
+            processItem_Audio(clip, ti, track->edit_rate, xFadeMap, ptr);
+        }
     }
 }
 
@@ -176,7 +206,8 @@ void AafImporter::processTrack_Video(const aafiVideoTrack *track, int &itemCount
 void AafImporter::processItem_Audio(aafiAudioClip *clip,
                                     const aafiTimelineItem *ti,
                                     const aafRational_t *trackEditRate,
-                                    const XFadeMap &xFadeMap) {
+                                    const XFadeMap &xFadeMap,
+                                    const aafiAudioEssencePointer *essPtr) {
     const double pos = pos_to_seconds(clip->pos, trackEditRate);
     const double len = pos_to_seconds(clip->len, trackEditRate);
     const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
@@ -200,7 +231,7 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
                         [](const double v) { return clamp_volume(v); });
     }
 
-    processSource_Audio(clip);
+    processSource_Audio(essPtr);
     // 'i' destructor fires here ">"
 }
 
@@ -221,22 +252,17 @@ void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational
     processSource_Video(clip->Essence);
 }
 
-void AafImporter::processSource_Audio(const aafiAudioClip *clip) {
-    // Helper lambda: emit an EMPTY source and return.
+void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     const auto emitEmpty = [this] {
-        auto s = m_writer.source(nullptr, nullptr); // guard closes immediately
+        auto s = m_writer.source(nullptr, nullptr);
     };
 
-    if (!clip->essencePointerList) {
+    if (!essPtr || !essPtr->essenceFile) {
         emitEmpty();
         return;
     }
 
-    aafiAudioEssenceFile *ess = clip->essencePointerList->essenceFile;
-    if (!ess) {
-        emitEmpty();
-        return;
-    }
+    aafiAudioEssenceFile *ess = essPtr->essenceFile;
 
     // Extract embedded essence if not yet done
     if (ess->is_embedded && !ess->usable_file_path) {

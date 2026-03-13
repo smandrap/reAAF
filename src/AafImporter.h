@@ -16,6 +16,7 @@ struct aafiVideoTrack;
 struct aafiVideoClip;
 struct aafiVideoEssence;
 struct aafiTimelineItem;
+struct aafiAudioEssencePointer;
 class ProjectStateContext;
 
 class AafImporter {
@@ -52,11 +53,11 @@ private:
     void processItem_Audio(aafiAudioClip *clip,
                            const aafiTimelineItem *ti,
                            const aafRational_t *trackEditRate,
-                           const XFadeMap &xFadeMap);
+                           const XFadeMap &xFadeMap, const aafiAudioEssencePointer *essPtr);
 
     void processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate);
 
-    void processSource_Audio(const aafiAudioClip *clip);
+    void processSource_Audio(const aafiAudioEssencePointer *essPtr);
 
     void processSource_Video(const aafiVideoEssence *ess);
 
