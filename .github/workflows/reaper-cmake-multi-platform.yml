@@ -14,7 +14,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, macos-latest, macos-13, ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -77,14 +77,33 @@ jobs:
         if: runner.os == 'macOS'
         run: strip -x build/reaper_reAAF.dylib
 
-      - name: Upload artifacts
+      - name: Upload artifact (Windows)
+        if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: reaper-aaf-${{ matrix.os }}
-          path: |
-            build/Release/reaper_reAAF.dll
-            build/reaper_reAAF.dylib
-            build/reaper_reAAF.so
+          name: reaper-aaf-windows
+          path: build/Release/reaper_reAAF.dll
+      
+      - name: Upload artifact (macOS ARM)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reaper-aaf-macos-arm64
+          path: build/reaper_reAAF.dylib
+      
+      - name: Upload artifact (macOS Intel)
+        if: matrix.os == 'macos-13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reaper-aaf-macos-x86_64
+          path: build/reaper_reAAF.dylib
+      
+      - name: Upload artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reaper-aaf-linux
+          path: build/reaper_reAAF.so
 
       # 🔟 Optional cleanup
       - name: Cleanup dependencies
