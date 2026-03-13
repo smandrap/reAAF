@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -76,7 +76,7 @@ jobs:
           path: |
             build/Release/reaper_reAAF.dll
             build/reaper_reAAF.dylib
-            build/reaper_reAAF.sox.os }}
+            build/reaper_reAAF.so
 
       # 🔟 Optional cleanup
       - name: Cleanup dependencies
