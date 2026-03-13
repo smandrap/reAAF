@@ -43,6 +43,9 @@ private:
 
     bool loadFile();
 
+    void processTrackAutomation(const aafiAudioTrack *track, double compLen);
+
+    static int countRequiredTracks(const aafiAudioClip *clip, int &nchan);
 
 
     void processTrack_Audio(const aafiAudioTrack *track);

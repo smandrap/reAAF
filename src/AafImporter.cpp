@@ -8,7 +8,6 @@
 #include <defines.h>
 
 // TODO: fix video support [MXF files audio is not grabbed properly
-// TODO: fix multichannel non-interleaved audio files
 
 
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
@@ -78,13 +77,11 @@ std::string AafImporter::buildExtractDir(const char *filepath) {
 }
 
 const char *AafImporter::rppSourceTypeFromPath(const char *filePath) {
-    // Determine source type from extension
     auto srcType = "WAVE";
     if (const char *ext = strrchr(filePath, '.')) {
         if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
         else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
         else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
-        // .wav / .aif / .aiff → WAVE (default)
     }
     return srcType;
 }
@@ -113,7 +110,6 @@ void AafImporter::setMediaLocation() const {
     aafi_set_option_str(m_aafi, "media_location", dir.c_str());
 }
 
-
 bool AafImporter::loadFile() {
     if (aafi_load_file(m_aafi, m_filePath.c_str()) != 0) {
         rlog("ReAAF: failed to load '%s'\n", m_filePath.c_str());
@@ -123,6 +119,30 @@ bool AafImporter::loadFile() {
     return true;
 }
 
+void AafImporter::processTrackAutomation(const aafiAudioTrack *track, const double compLen) {
+    if (track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE))
+        processEnvelope(track->gain, compLen, "VOLENV2",
+                        [](const double v) { return clamp_volume(v); });
+
+    if (track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE))
+        processEnvelope(track->pan, compLen, "PANENV2",
+                        [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
+                        /*arm=*/true);
+}
+
+int AafImporter::countRequiredTracks(const aafiAudioClip *clip, int &nchan) {
+    int cnt = 0;
+    const aafiAudioEssencePointer *p = nullptr;
+    AAFI_foreachEssencePointer(clip->essencePointerList, p) {
+        if (p->essenceFile->channels > 1) {
+            nchan = std::max(nchan, static_cast<int>(p->essenceFile->channels));
+            cnt = 1;
+            break;
+        }
+        ++cnt;
+    }
+    return cnt;
+}
 
 void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     const char *trackName = track->name ? track->name : "";
@@ -146,17 +166,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
 
     AAFI_foreachTrackItem(track, ti) {
         if (const auto *clip = aafi_timelineItemToAudioClip(ti)) {
-            int cnt = 0;
-            const aafiAudioEssencePointer *p = nullptr;
-            AAFI_foreachEssencePointer(clip->essencePointerList, p) {
-                if (p->essenceFile->channels > 1) {
-                    nchan = std::max(nchan, (int)p->essenceFile->channels);
-                    cnt = 1;
-                    break;
-                }
-                ++cnt;
-            }
-            requiredTracks = std::max(requiredTracks, cnt);
+            requiredTracks = countRequiredTracks(clip, nchan);
         }
     }
 
@@ -164,14 +174,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
         auto t = m_writer.track(trackName, vol, pan, mute, solo,
                                 requiredTracks == 1 ? nchan : 2);
 
-        if (track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE))
-            processEnvelope(track->gain, compLen, "VOLENV2",
-                            [](const double v) { return clamp_volume(v); });
-
-        if (track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE))
-            processEnvelope(track->pan, compLen, "PANENV2",
-                            [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
-                            /*arm=*/true);
+        processTrackAutomation(track, compLen);
 
         AAFI_foreachTrackItem(track, ti) {
             auto *clip = aafi_timelineItemToAudioClip(ti);
