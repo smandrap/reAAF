@@ -1,5 +1,5 @@
-#include "aaf_import.h"
 #include "AafImporter.h"
+#include "aaf_import.h"
 
 
 int ImportAAF(const char* filepath, ProjectStateContext* ctx) {
