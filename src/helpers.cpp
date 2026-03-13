@@ -5,6 +5,7 @@
 #   include <sys/stat.h>
 #endif
 
+#include <cerrno>
 #include "helpers.h"
 #include "reaper_plugin_functions.h"
 #include "libaaf/AAFIface.h"
