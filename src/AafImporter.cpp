@@ -7,8 +7,6 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include <defines.h>
 
-// TODO: fix video support [MXF files audio is not grabbed properly
-
 
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
     : m_writer(ctx),
@@ -82,6 +80,7 @@ const char *AafImporter::rppSourceTypeFromPath(const char *filePath) {
         if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
         else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
         else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
+        else if (strcasecmp(ext, ".mxf")  == 0) srcType = "VIDEO";
     }
     return srcType;
 }
