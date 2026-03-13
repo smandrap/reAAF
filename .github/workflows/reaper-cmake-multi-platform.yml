@@ -1,5 +1,8 @@
 name: Build REAPER Extension
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   #push:
   # branches: ["main"]
@@ -69,6 +72,10 @@ jobs:
       # 8️⃣ Build
       - name: Build
         run: cmake --build build --config Release
+
+      - name: Strip debug symbols (macOS)
+        if: runner.os == 'macOS'
+        run: strip -x build/reaper_reAAF.dylib
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
