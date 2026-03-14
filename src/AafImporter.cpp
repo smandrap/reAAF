@@ -281,15 +281,18 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
             m_extractDirCreated = true;
         }
 
+        // We don't care about outPath since we then use ess->usable_file_path, but the function needs it so...
         char *outPath = nullptr;
         const int rc = aafi_extractAudioEssenceFile(m_aafi.get(), ess,
                                                     AAFI_EXTRACT_DEFAULT,
                                                     m_extractDir.c_str(),
-                                                    0, 0, nullptr, &outPath);
+                                                    0, 0,
+                                                    nullptr, &outPath);
+        free(outPath);
+
         if (rc != 0)
             rlog("reaper_aaf: WARNING: failed to extract '%s'\n",
                  ess->unique_name ? ess->unique_name : "(unnamed)");
-        free(outPath);
     }
 
     const char *filePath = ess->usable_file_path;
