@@ -49,6 +49,8 @@ private:
 
     static int countRequiredTracks(const aafiAudioClip *clip, int &nchan);
 
+    static const aafiAudioEssencePointer *getAudioEssencePtr(const aafiAudioClip *clip, int trackIdx);
+
 
     void processTrack_Audio(const aafiAudioTrack *track);
 

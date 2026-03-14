@@ -141,6 +141,18 @@ int AafImporter::countRequiredTracks(const aafiAudioClip *clip, int &nchan) {
     return cnt;
 }
 
+// Find the pointer for the provided trackIdx.
+// If the file is interleaved (channels > 1), only emit on trackIdx 0.
+const aafiAudioEssencePointer *AafImporter::getAudioEssencePtr(const aafiAudioClip *clip, const int trackIdx) {
+    int idx = 0;
+    const aafiAudioEssencePointer *ptr = nullptr;
+    AAFI_foreachEssencePointer(clip->essencePointerList, ptr) {
+        if (ptr->essenceFile->channels > 1 || idx == trackIdx) return ptr;
+        ++idx;
+    }
+    return nullptr;
+}
+
 void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     const char *trackName = track->name ? track->name : "";
 
@@ -181,16 +193,8 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
             auto *clip = aafi_timelineItemToAudioClip(ti);
             if (!clip) continue;
 
-            // Find the pointer for this trackIdx.
-            // If the file is interleaved (channels > 1), only emit on trackIdx 0.
-            int idx = 0;
-            const aafiAudioEssencePointer *ptr = nullptr;
-            AAFI_foreachEssencePointer(clip->essencePointerList, ptr) {
-                if (ptr->essenceFile->channels > 1 || idx == trackIdx) break;
-                ++idx;
-            }
-
-            if (!ptr || idx != trackIdx) continue;
+            const auto ptr = getAudioEssencePtr(clip, trackIdx);
+            if (!ptr) continue;
 
             processItem_Audio(clip, ti, track->edit_rate, xFadeMap, ptr);
         }
@@ -306,7 +310,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
     if (!ess || !ess->usable_file_path || ess->usable_file_path[0] == '\0') {
         rlog("ReAAF: WARNING: video essence has no usable path.\n");
-        auto w_src = m_writer.source(nullptr, nullptr);
+        m_writer.emptySource();
         return;
     }
     auto w_src = m_writer.source("VIDEO", ess->usable_file_path);
