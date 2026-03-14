@@ -12,6 +12,15 @@ Most of what you expect from an AAF importer. In particular, most of what LibAAF
 
 ---
 
+## Install
+
+[Reapack](https://reapack.com) repository:
+```
+https://raw.githubusercontent.com/smandrap/reAAF/refs/heads/main/index.xml
+```
+
+---
+
 ## Dependencies
 
 - [justinfrankel/reaper-sdk](https://github.com/justinfrankel/reaper-sdk) + [WDL](https://github.com/justinfrankel/WDL)
@@ -19,7 +28,7 @@ Most of what you expect from an AAF importer. In particular, most of what LibAAF
 
 ---
 
-## Building
+## Build
 
 ```bash
 git clone --recurse-submodules https://github.com/smandrap/reAAF.git
