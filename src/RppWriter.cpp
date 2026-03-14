@@ -1,4 +1,7 @@
 #include "RppWriter.h"
+
+#include <cassert>
+
 #include "helpers.h"
 #include "reaper_plugin_functions.h"
 
@@ -57,14 +60,17 @@ RppWriter::ItemChunk RppWriter::item(const char *name,
 }
 
 RppWriter::SourceChunk RppWriter::source(const char *type, const char *filePath) {
-    if (!type || !filePath || filePath[0] == '\0') {
-        line("<SOURCE EMPTY");
-    } else {
-        line("<SOURCE %s", type);
-        line("FILE \"%s\"", escape_rpp_string(filePath).c_str());
-    }
+    assert(type && filePath && filePath != '\0');
+    line("<SOURCE %s", type);
+    line("FILE \"%s\"", escape_rpp_string(filePath).c_str());
     return SourceChunk{*this};
 }
+
+RppWriter::SourceChunk RppWriter::emptySource() {
+    line("<SOURCE EMPTY");
+    return SourceChunk{*this};
+}
+
 
 RppWriter::EnvChunk RppWriter::envelope(const char *tag, const bool arm) {
     line("<%s", tag);
@@ -85,3 +91,4 @@ void RppWriter::writeMarker(const int id, const double timeSec, const char *name
 void RppWriter::writeEnvPoint(const double timeSec, const double value) const {
     line("PT %.10f %.10f 0", timeSec, value);
 }
+

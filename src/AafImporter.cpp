@@ -9,7 +9,6 @@
 #include <defines.h>
 
 
-
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
     : m_writer(ctx),
       m_aafi(AafiHandle(aafi_alloc(nullptr))),
@@ -258,12 +257,8 @@ void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational
 }
 
 void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
-    const auto emitEmpty = [this] {
-        auto s = m_writer.source(nullptr, nullptr);
-    };
-
     if (!essPtr || !essPtr->essenceFile) {
-        emitEmpty();
+        m_writer.emptySource();
         return;
     }
 
@@ -275,7 +270,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
         if (!m_extractDirCreated) {
             if (!ensure_dir(m_extractDir)) {
                 rlog("ReAAF: could not create %s\n", m_extractDir.c_str());
-                emitEmpty();
+                m_writer.emptySource();
                 return;
             }
             m_extractDirCreated = true;
@@ -299,7 +294,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     if (!filePath || filePath[0] == '\0') {
         rlog("reaper_aaf: WARNING: no usable path for '%s'\n",
              ess->unique_name ? ess->unique_name : "(unnamed)");
-        emitEmpty();
+        m_writer.emptySource();
         return;
     }
 
@@ -311,10 +306,10 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
     if (!ess || !ess->usable_file_path || ess->usable_file_path[0] == '\0') {
         rlog("ReAAF: WARNING: video essence has no usable path.\n");
-        auto s = m_writer.source(nullptr, nullptr);
+        auto w_src = m_writer.source(nullptr, nullptr);
         return;
     }
-    auto s = m_writer.source("VIDEO", ess->usable_file_path);
+    auto w_src = m_writer.source("VIDEO", ess->usable_file_path);
 }
 
 

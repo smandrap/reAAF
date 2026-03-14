@@ -118,6 +118,10 @@ public:
 
     [[nodiscard]] EnvChunk envelope(const char *tag, bool arm = false);
 
+    // this can be discarded, it's a clean <SOURCE EMPTY> block
+    SourceChunk emptySource();
+
+
     // -----------------------------------------------------------------------
     // Flat line-level writers (no matching close needed)
     // -----------------------------------------------------------------------
