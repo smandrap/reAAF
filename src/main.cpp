@@ -20,6 +20,9 @@
 #include "reaper_plugin.h"
 #include "aaf_import.h"
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include "version.h"
+
 #ifdef _WIN32
 #  define strcasecmp _stricmp
 #endif

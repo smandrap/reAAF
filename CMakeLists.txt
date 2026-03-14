@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
-project(reaper_aaf VERSION 0.1.0 LANGUAGES C CXX)
+project(reAAF VERSION 0.1.0 LANGUAGES C CXX)
+
+configure_file(src/version.h.in ${CMAKE_BINARY_DIR}/generated/version.h)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -61,6 +63,7 @@ set_target_properties(reaper_aaf PROPERTIES
 target_include_directories(reaper_aaf PRIVATE
         src
         include
+        ${CMAKE_BINARY_DIR}/generated/
         ${REAPER_SDK_DIR}/sdk
         ${REAPER_SDK_DIR}/WDL
         ${LIBAAF_DIR}/include
