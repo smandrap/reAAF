@@ -6,5 +6,5 @@
 	path = extern/LibAAF
 	url = https://github.com/agfline/LibAAF.git
 [submodule "extern/WDL"]
-	path = extern/WDL
+	path = extern/reaper-sdk/WDL
 	url = https://github.com/justinfrankel/WDL.git
