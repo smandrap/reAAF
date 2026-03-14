@@ -1,19 +1,20 @@
 #ifndef REAPER_AAF_HELPERS_H
 #define REAPER_AAF_HELPERS_H
 
-#include <string>
 #include <cstring>
+#include <string>
+
 #include "libaaf/AAFTypes.h"
 
 
-inline double rational_to_double(const aafRational_t r) {
+[[nodiscard]] constexpr double rational_to_double(const aafRational_t r) noexcept {
     if (r.denominator == 0) return 0.0;
     return static_cast<double>(r.numerator) / static_cast<double>(r.denominator);
 }
 
 // Convert a position in edit-rate units to seconds.
 // editRate is a POINTER — may be null, returns 0 safely.
-inline double pos_to_seconds(const aafPosition_t pos, const aafRational_t *editRate) {
+inline double pos_to_seconds(const aafPosition_t pos, const aafRational_t *editRate) noexcept {
     if (!editRate) return 0.0;
     const double er = rational_to_double(*editRate);
     if (er == 0.0) return 0.0;
@@ -23,34 +24,28 @@ inline double pos_to_seconds(const aafPosition_t pos, const aafRational_t *editR
 inline std::string escape_rpp_string(const char *raw) {
     if (!raw) return {};
     std::string out;
-    out.reserve(strlen(raw) + 8);
+    out.reserve(strlen(raw) + 8); // Do I really need to preallocate those 8 bytes?
     for (const char *p = raw; *p; ++p) {
-        if (*p == '\\') {
-            out += "\\\\";
-            continue;
-        }
-        if (*p == '"') {
-            out += "\\\"";
-            continue;
-        }
+        if (*p == '\\') { out += "\\\\"; continue; } // Escape backslash
+        if (*p == '"') { out += "\\\""; continue; } // Escape quotes
         out += *p;
     }
     return out;
 }
 
-inline double clamp_volume(double lin) {
+[[nodiscard]] constexpr double clamp_volume(double lin) noexcept {
     if (lin < 0.0) lin = 0.0;
     if (lin > 4.0) lin = 4.0;
     return lin;
 }
 
-inline double clamp_pan(double pan) {
+[[nodiscard]] constexpr double clamp_pan(double pan) noexcept {
     if (pan < -1.0) pan = -1.0;
     if (pan > 1.0) pan = 1.0;
     return pan;
 }
 
-inline int aafiColorToReaper(const uint16_t rgb[3]) {
+[[nodiscard]] constexpr int aafiColorToReaper(const uint16_t rgb[3]) noexcept {
     return 0x1000000 | (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
 }
 

@@ -26,7 +26,6 @@ public:
 
     int run();
 
-
 private:
     RppWriter m_writer;
     AAF_Iface *m_aafi;
@@ -35,8 +34,11 @@ private:
     bool m_extractDirCreated = false;
 
     static std::string buildExtractDir(const char *filepath);
+
     static const char *rppSourceTypeFromPath(const char *filePath);
+
     static double resolveConstantGain(const aafiAudioGain *gain, double defaultValue = 1.0);
+
     static const char *resolveClipName(const aafiAudioClip *clip);
 
     void setMediaLocation() const;
@@ -56,7 +58,8 @@ private:
     void processItem_Audio(aafiAudioClip *clip,
                            const aafiTimelineItem *ti,
                            const aafRational_t *trackEditRate,
-                           const XFadeMap &xFadeMap, const aafiAudioEssencePointer *essPtr);
+                           const XFadeMap &xFadeMap,
+                           const aafiAudioEssencePointer *essPtr);
 
     void processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate);
 
@@ -67,10 +70,10 @@ private:
     void processMarkers() const;
 
     void processEnvelope(const aafiAudioGain *gain,
-                       double segLenSec,
-                       const char *tag,
-                       const std::function<double(double)> &transform,
-                       bool arm = false);
+                         double segLenSec,
+                         const char *tag,
+                         const std::function<double(double)> &transform,
+                         bool arm = false);
 };
 
 #endif // REAPER_AAF_AAFIMPORTER_H

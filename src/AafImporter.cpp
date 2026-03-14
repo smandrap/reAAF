@@ -46,7 +46,7 @@ int AafImporter::run() {
          isDrop);
 #endif
 
-    // Guard destroyed at end of scope → emits closing ">" for REAPER_PROJECT
+    // Guard destroyed at end of scope, emits closing ">" for REAPER_PROJECT
     auto proj = m_writer.project(tcOffset, fps, isDrop, samplerate);
 
     processMarkers();
