@@ -30,18 +30,15 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # 1️⃣ Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # 2️⃣ Clone dependencies
       - name: Clone REAPER SDK, WDL, and LibAAF
         run: |
           git clone --depth 1 https://github.com/justinfrankel/reaper-sdk.git extern/reaper-sdk
           git clone --depth 1 https://github.com/justinfrankel/WDL.git extern/reaper-sdk/WDL
           git clone --depth 1 https://github.com/agfline/LibAAF.git extern/LibAAF
 
-      # 3️⃣ Flatten WDL folder for REAPER SDK
       - name: Flatten WDL folder
         shell: bash
         run: |
@@ -51,19 +48,6 @@ jobs:
             mv extern/reaper-sdk/WDL-temp extern/reaper-sdk/WDL
           fi
 
-      # 4️⃣ Create missing LibAAF version.h
-      - name: Create LibAAF version.h
-        shell: bash
-        run: |
-          mkdir -p extern/LibAAF/include/libaaf
-          cat <<'EOF' > extern/LibAAF/include/libaaf/version.h
-          #ifndef REAPER_AAF_VERSION_H
-          #define REAPER_AAF_VERSION_H
-          #define LIBAAF_VERSION "v0.0.0-unknown"
-          #endif //REAPER_AAF_VERSION_H
-          EOF
-
-      # 5️⃣ Patch LibAAF for Windows (STGTY_* constants)
       - name: Patch LibAAF for Windows
         if: runner.os == 'Windows'
         shell: bash
@@ -71,25 +55,16 @@ jobs:
           sed -i "1i#include <windows.h>\n#include <objbase.h>" extern/LibAAF/src/LibCFB/CFBDump.c
           sed -i "1i#ifdef _MSC_VER\n#include <windows.h>\n#include <objbase.h>\n#endif" extern/LibAAF/src/LibCFB/LibCFB.c
 
-      # 6️⃣ Setup MSVC on Windows
       - name: Setup MSVC
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # 7️⃣ Configure CMake
       - name: Configure
         run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_arch_flag }}
 
-      # 8️⃣ Build
       - name: Build
         run: cmake --build build --config Release
 
-      # 9️⃣ Strip debug symbols (macOS)
-      - name: Strip debug symbols (macOS)
-        if: runner.os == 'macOS'
-        run: strip -x build/reaper_reAAF.dylib
-
-      # 🔟 Upload artifacts
       - name: Upload artifact (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
@@ -111,7 +86,6 @@ jobs:
           name: reaper-aaf-linux-x86_64
           path: build/reaper_reAAF.so
 
-      # Cleanup
       - name: Cleanup dependencies
         shell: bash
         run: |
