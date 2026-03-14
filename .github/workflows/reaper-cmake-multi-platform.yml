@@ -48,12 +48,7 @@ jobs:
             mv extern/reaper-sdk/WDL-temp extern/reaper-sdk/WDL
           fi
 
-      - name: Patch LibAAF for Windows
-        if: runner.os == 'Windows'
-        shell: bash
-        run: |
-          sed -i "1i#include <windows.h>\n#include <objbase.h>" extern/LibAAF/src/LibCFB/CFBDump.c
-          sed -i "1i#ifdef _MSC_VER\n#include <windows.h>\n#include <objbase.h>\n#endif" extern/LibAAF/src/LibCFB/LibCFB.c
+    
 
       - name: Setup MSVC
         if: matrix.os == 'windows-latest'
