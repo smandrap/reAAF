@@ -174,7 +174,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
                                    ? std::string(trackName) + "_" + std::to_string(trackIdx + 1)
                                    : trackName;
 
-        auto t = m_writer.track(fullName.c_str(), vol, pan, mute, solo,
+        auto w_trk = m_writer.track(fullName.c_str(), vol, pan, mute, solo,
                                 requiredTracks == 1 ? nchan : 2);
 
         processTrackAutomation(track, compLen);
@@ -200,7 +200,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
 }
 
 void AafImporter::processTrack_Video(const aafiVideoTrack *track, int &itemCounter) {
-    auto t = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
+    auto w_trk = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
     const aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
         if (ti->type == AAFI_VIDEO_CLIP)
@@ -224,7 +224,7 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
 
     const char *clipName = resolveClipName(clip);
 
-    auto i = m_writer.item(clipName,
+    auto w_itm = m_writer.item(clipName,
                            pos, len,
                            fadeInLen, fadeInShape,
                            fadeOutLen, fadeOutShape,
@@ -238,7 +238,7 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
     }
 
     processSource_Audio(essPtr);
-    // 'i' destructor fires here ">"
+    // 'w_itm' destructor fires here ">"
 }
 
 void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate) {
@@ -248,7 +248,7 @@ void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational
 
     const char *clipName = clip->Essence ? clip->Essence->name : "Video";
 
-    auto i = m_writer.item(clipName,
+    auto w_itm = m_writer.item(clipName,
                            pos, len,
                            0.0, 0,
                            0.0, 0,
@@ -303,7 +303,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 
     const char *srcType = rppSourceTypeFromPath(filePath);
 
-    auto s = m_writer.source(srcType, filePath);
+    auto w_src = m_writer.source(srcType, filePath);
 }
 
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
@@ -349,8 +349,7 @@ void AafImporter::processEnvelope(const aafiAudioGain *gain,
     if (!(gain->flags & AAFI_AUDIO_GAIN_VARIABLE)) return;
     if (gain->pts_cnt == 0 || !gain->time || !gain->value) return;
 
-    // Guard destroyed at end of scope → emits closing ">" for envelope
-    auto env = m_writer.envelope(tag, arm);
+    auto w_env = m_writer.envelope(tag, arm);
 
     for (unsigned int i = 0; i < gain->pts_cnt; ++i) {
         const double frac = rational_to_double(gain->time[i]); // 0.0 .. 1.0
