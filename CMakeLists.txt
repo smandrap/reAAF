@@ -59,6 +59,7 @@ target_include_directories(reaper_aaf PRIVATE
         src
         include
         ${CMAKE_BINARY_DIR}/generated
+        ${LIBAAF_DIR}/include
         ${REAPER_SDK_DIR}/sdk
         ${REAPER_SDK_DIR}/WDL
 )
