@@ -9,5 +9,5 @@
 @provides
   [darwin-arm64] reaper_reAAF-arm64.dylib    https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-arm64.dylib
   [darwin64]     reaper_reAAF-x86_64.dylib   https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-x86_64.dylib
-  [win64]        reaper_reAAF-windows-x86_64.dll https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-windows-x86_64.dll
-  [linux64]      reaper_reAAF-linux-x86_64.so    https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-linux-x86_64.so
+  [win64]        reaper_reAAF-windows-x86_64.dll https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-x86_64.dll
+  [linux64]      reaper_reAAF-linux-x86_64.so    https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-x86_64.so
