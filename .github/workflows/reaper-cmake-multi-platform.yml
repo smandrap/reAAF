@@ -56,6 +56,14 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
+      - name: Strip debug symbols (MacOS)
+        if: matrix.os == 'macos-latest'
+        run: strip -x build/reaper_reAAF.dylib
+
+      - name: Strip debug symbols (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: strip build/reaper_reAAF.so
+
       - name: Upload artifact (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
