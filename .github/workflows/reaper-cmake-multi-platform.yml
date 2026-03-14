@@ -41,7 +41,7 @@ jobs:
           git clone --depth 1 https://github.com/justinfrankel/reaper-sdk.git extern/reaper-sdk
           cd extern/reaper-sdk
           git remote add wdl https://github.com/justinfrankel/WDL.git
-          git fetch --all
+          git fetch wdl
           git merge --allow-unrelated-histories wdl/main
 
       - name: Setup MSVC
