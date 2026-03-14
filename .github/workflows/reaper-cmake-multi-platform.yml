@@ -42,6 +42,8 @@ jobs:
           cd extern/reaper-sdk
           git remote add wdl https://github.com/justinfrankel/WDL.git
           git fetch wdl
+          git config user.email "ci@reaaF"
+          git config user.name "CI"
           git merge --allow-unrelated-histories wdl/main
 
       - name: Setup MSVC
