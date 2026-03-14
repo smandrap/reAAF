@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 
+#include "AafiHandle.h"
 #include "RppWriter.h"
 #include "FadeResolver.h"
 
@@ -23,12 +24,11 @@ class AafImporter {
 public:
     AafImporter(ProjectStateContext *ctx, const char *filepath);
 
-
     int run();
 
 private:
     RppWriter m_writer;
-    AAF_Iface *m_aafi;
+    AafiHandle m_aafi;
     std::string m_filePath;
     std::string m_extractDir;
     bool m_extractDirCreated = false;
@@ -43,7 +43,7 @@ private:
 
     void setMediaLocation() const;
 
-    bool loadFile();
+    [[nodiscard]] bool loadFile() const;
 
     void processTrackAutomation(const aafiAudioTrack *track, double compLen);
 

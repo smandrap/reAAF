@@ -1,6 +1,7 @@
 #include "AafImporter.h"
 #include "helpers.h"
 #include "FadeResolver.h"
+#include "AafiHandle.h"
 
 #include <libaaf.h>
 
@@ -8,12 +9,12 @@
 #include <defines.h>
 
 
+
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
     : m_writer(ctx),
-      m_aafi(aafi_alloc(nullptr)),
+      m_aafi(AafiHandle(aafi_alloc(nullptr))),
       m_filePath(filepath),
-      m_extractDir(buildExtractDir(filepath)) {
-}
+      m_extractDir(buildExtractDir(filepath)) {}
 
 int AafImporter::run() {
     if (!m_aafi) {
@@ -21,8 +22,8 @@ int AafImporter::run() {
         return -1;
     }
 
-    aafi_set_debug(m_aafi, VERB_WARNING, 0, nullptr, nullptr, nullptr);
-    aafi_set_option_int(m_aafi, "protools", PROTOOLS_ALL_OPT);
+    aafi_set_debug(m_aafi.get(), VERB_WARNING, 0, nullptr, nullptr, nullptr);
+    aafi_set_option_int(m_aafi.get(), "protools", PROTOOLS_ALL_OPT);
 
     setMediaLocation();
     if (!loadFile()) return -1;
@@ -63,7 +64,6 @@ int AafImporter::run() {
         processTrack_Audio(track);
     }
 
-    aafi_release(&m_aafi);
     return 0;
 }
 
@@ -106,13 +106,12 @@ const char *AafImporter::resolveClipName(const aafiAudioClip *clip) {
 void AafImporter::setMediaLocation() const {
     std::string dir(m_filePath);
     if (const auto sep = dir.find_last_of("/\\"); sep != std::string::npos) dir.resize(sep);
-    aafi_set_option_str(m_aafi, "media_location", dir.c_str());
+    aafi_set_option_str(m_aafi.get(), "media_location", dir.c_str());
 }
 
-bool AafImporter::loadFile() {
-    if (aafi_load_file(m_aafi, m_filePath.c_str()) != 0) {
+bool AafImporter::loadFile() const {
+    if (aafi_load_file(m_aafi.get(), m_filePath.c_str()) != 0) {
         rlog("ReAAF: failed to load '%s'\n", m_filePath.c_str());
-        aafi_release(&m_aafi);
         return false;
     }
     return true;
@@ -175,7 +174,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
                                    : trackName;
 
         auto w_trk = m_writer.track(fullName.c_str(), vol, pan, mute, solo,
-                                requiredTracks == 1 ? nchan : 2);
+                                    requiredTracks == 1 ? nchan : 2);
 
         processTrackAutomation(track, compLen);
 
@@ -225,11 +224,11 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
     const char *clipName = resolveClipName(clip);
 
     auto w_itm = m_writer.item(clipName,
-                           pos, len,
-                           fadeInLen, fadeInShape,
-                           fadeOutLen, fadeOutShape,
-                           gainLin, srcOffset,
-                           clip->mute != 0 ? 1 : 0);
+                               pos, len,
+                               fadeInLen, fadeInShape,
+                               fadeOutLen, fadeOutShape,
+                               gainLin, srcOffset,
+                               clip->mute != 0 ? 1 : 0);
 
     // Per-clip varying gain automation
     if (clip->automation && (clip->automation->flags & AAFI_AUDIO_GAIN_VARIABLE)) {
@@ -249,11 +248,11 @@ void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational
     const char *clipName = clip->Essence ? clip->Essence->name : "Video";
 
     auto w_itm = m_writer.item(clipName,
-                           pos, len,
-                           0.0, 0,
-                           0.0, 0,
-                           1.0, srcOffset,
-                           0);
+                               pos, len,
+                               0.0, 0,
+                               0.0, 0,
+                               1.0, srcOffset,
+                               0);
 
     processSource_Video(clip->Essence);
 }
@@ -283,7 +282,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
         }
 
         char *outPath = nullptr;
-        const int rc = aafi_extractAudioEssenceFile(m_aafi, ess,
+        const int rc = aafi_extractAudioEssenceFile(m_aafi.get(), ess,
                                                     AAFI_EXTRACT_DEFAULT,
                                                     m_extractDir.c_str(),
                                                     0, 0, nullptr, &outPath);

@@ -47,6 +47,7 @@ add_library(reaper_aaf MODULE
         src/FadeResolver.cpp
         src/FadeResolver.h
         src/defines.h
+        src/AafiHandle.h
 )
 
 set_target_properties(reaper_aaf PROPERTIES
