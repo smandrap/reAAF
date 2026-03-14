@@ -109,10 +109,10 @@ jobs:
         shell: bash
         run: |
           mkdir release-files
-          cp artifacts/reaper-aaf-windows-x86_64/reaper_reAAF.dll   release-files/reaper_reAAF-windows-x86_64.dll
+          cp artifacts/reaper-aaf-windows-x86_64/reaper_reAAF.dll   release-files/reaper_reAAF-x86_64.dll
           cp artifacts/reaper-aaf-macos-arm64/reaper_reAAF.dylib     release-files/reaper_reAAF-arm64.dylib
           cp artifacts/reaper-aaf-macos-x86_64/reaper_reAAF.dylib    release-files/reaper_reAAF-x86_64.dylib
-          cp artifacts/reaper-aaf-linux-x86_64/reaper_reAAF.so       release-files/reaper_reAAF-linux-x86_64.so
+          cp artifacts/reaper-aaf-linux-x86_64/reaper_reAAF.so       release-files/reaper_reAAF-x86_64.so
 
       - name: Create draft release
         uses: softprops/action-gh-release@v2
