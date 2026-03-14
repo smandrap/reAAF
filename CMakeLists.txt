@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(reAAF VERSION 0.1.0 LANGUAGES C CXX)
 
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -97,7 +98,7 @@ if(WIN32)
 elseif(APPLE)
     set_target_properties(reaper_aaf PROPERTIES
             SUFFIX ".dylib"
-            OSX_ARCHITECTURES "arm64;x86_64"
+            OSX_ARCHITECTURES "${CMAKE_OSX_ARCHITECTURES}"
     )
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE "-framework CoreFoundation")
