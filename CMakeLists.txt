@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(reAAF VERSION 0.1.0 LANGUAGES C CXX)
 
-
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,26 +17,23 @@ set(LIBAAF_DIR     "${CMAKE_SOURCE_DIR}/extern/LibAAF"     CACHE PATH "Path to a
 configure_file(src/version.h.in ${CMAKE_BINARY_DIR}/generated/version.h)
 
 # -------------------------------------------------------------------------
-# LibAAF sources
+# LibAAF — use its own build system, static only, no tools/docs/tests
+# Save and restore output dirs so LibAAF doesn't redirect our plugin binary
 # -------------------------------------------------------------------------
-set(LIBAAF_SOURCES
-        ${LIBAAF_DIR}/src/LibCFB/LibCFB.c
-        ${LIBAAF_DIR}/src/LibCFB/CFBDump.c
-        ${LIBAAF_DIR}/src/AAFCore/AAFCore.c
-        ${LIBAAF_DIR}/src/AAFCore/AAFClass.c
-        ${LIBAAF_DIR}/src/AAFCore/AAFToText.c
-        ${LIBAAF_DIR}/src/AAFCore/AAFDump.c
-        ${LIBAAF_DIR}/src/AAFIface/AAFIface.c
-        ${LIBAAF_DIR}/src/AAFIface/AAFIParser.c
-        ${LIBAAF_DIR}/src/AAFIface/AAFIEssenceFile.c
-        ${LIBAAF_DIR}/src/AAFIface/RIFFParser.c
-        ${LIBAAF_DIR}/src/AAFIface/URIParser.c
-        ${LIBAAF_DIR}/src/AAFIface/ProTools.c
-        ${LIBAAF_DIR}/src/AAFIface/MediaComposer.c
-        ${LIBAAF_DIR}/src/AAFIface/Resolve.c
-        ${LIBAAF_DIR}/src/common/utils.c
-        ${LIBAAF_DIR}/src/common/log.c
-)
+set(_SAVE_ARCHIVE_DIR ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+set(_SAVE_LIBRARY_DIR ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+set(_SAVE_RUNTIME_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+set(BUILD_STATIC_LIB ON  CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIB OFF CACHE BOOL "" FORCE)
+set(BUILD_TOOLS      OFF CACHE BOOL "" FORCE)
+set(BUILD_DOC        OFF CACHE BOOL "" FORCE)
+set(BUILD_UNIT_TEST  OFF CACHE BOOL "" FORCE)
+add_subdirectory(${LIBAAF_DIR} extern/LibAAF)
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${_SAVE_ARCHIVE_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${_SAVE_LIBRARY_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_SAVE_RUNTIME_DIR})
 
 # -------------------------------------------------------------------------
 # Plugin sources
@@ -49,7 +45,6 @@ add_library(reaper_aaf MODULE
         src/RppWriter.cpp
         src/AafImporter.cpp
         src/FadeResolver.cpp
-        ${LIBAAF_SOURCES}
 )
 
 set_target_properties(reaper_aaf PROPERTIES
@@ -66,8 +61,12 @@ target_include_directories(reaper_aaf PRIVATE
         ${CMAKE_BINARY_DIR}/generated
         ${REAPER_SDK_DIR}/sdk
         ${REAPER_SDK_DIR}/WDL
-        ${LIBAAF_DIR}/include
 )
+
+# -------------------------------------------------------------------------
+# Link LibAAF static lib — its PUBLIC include dirs propagate automatically
+# -------------------------------------------------------------------------
+target_link_libraries(reaper_aaf PRIVATE aaf-static)
 
 # -------------------------------------------------------------------------
 # REAPER API — only what we actually call
