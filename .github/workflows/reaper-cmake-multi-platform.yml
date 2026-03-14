@@ -32,23 +32,17 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Clone REAPER SDK, WDL, and LibAAF
-        run: |
-          git clone --depth 1 https://github.com/justinfrankel/reaper-sdk.git extern/reaper-sdk
-          git clone --depth 1 https://github.com/justinfrankel/WDL.git extern/reaper-sdk/WDL
-          git clone --depth 1 https://github.com/agfline/LibAAF.git extern/LibAAF
-
-      - name: Flatten WDL folder
+      - name: Clone REAPER SDK and WDL
         shell: bash
         run: |
-          if [ -d extern/reaper-sdk/WDL/WDL ]; then
-            mv extern/reaper-sdk/WDL/WDL extern/reaper-sdk/WDL-temp
-            rm -rf extern/reaper-sdk/WDL
-            mv extern/reaper-sdk/WDL-temp extern/reaper-sdk/WDL
-          fi
-
-    
+          git clone --depth 1 https://github.com/justinfrankel/reaper-sdk.git extern/reaper-sdk
+          cd extern/reaper-sdk
+          git remote add wdl https://github.com/justinfrankel/WDL.git
+          git fetch --all
+          git merge --allow-unrelated-histories wdl/main
 
       - name: Setup MSVC
         if: matrix.os == 'windows-latest'
@@ -85,7 +79,6 @@ jobs:
         shell: bash
         run: |
           rm -rf extern/reaper-sdk
-          rm -rf extern/LibAAF
 
   release:
     # Only run when triggered by a version tag, after all builds succeed
@@ -107,8 +100,8 @@ jobs:
         run: |
           mkdir release-files
           cp artifacts/reaper-aaf-windows-x86_64/reaper_reAAF.dll   release-files/reaper_reAAF-windows-x86_64.dll
-          cp artifacts/reaper-aaf-macos-arm64/reaper_reAAF.dylib     release-files/reaper_reAAF-arm64.dylib
-          cp artifacts/reaper-aaf-macos-x86_64/reaper_reAAF.dylib    release-files/reaper_reAAF-x86_64.dylib
+          cp artifacts/reaper-aaf-macos-arm64/reaper_reAAF.dylib     release-files/reaper_reAAF-macos-arm64.dylib
+          cp artifacts/reaper-aaf-macos-x86_64/reaper_reAAF.dylib    release-files/reaper_reAAF-macos-x86_64.dylib
           cp artifacts/reaper-aaf-linux-x86_64/reaper_reAAF.so       release-files/reaper_reAAF-linux-x86_64.so
 
       - name: Create draft release
