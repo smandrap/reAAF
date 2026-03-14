@@ -12,6 +12,12 @@ Most of what you expect from an AAF importer. In particular, most of what LibAAF
 
 ---
 
+## Usage
+
+Drag/Drop AAF files in REAPER, or use File > Open dialog.
+
+---
+
 ## Install
 
 [Reapack](https://reapack.com) repository:
