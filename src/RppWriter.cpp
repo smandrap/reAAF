@@ -77,7 +77,7 @@ RppWriter::ItemChunk RppWriter::item(const char *name,
 }
 
 RppWriter::SourceChunk RppWriter::source(const char *type, const char *filePath) {
-    assert(type && filePath && filePath != '\0');
+    assert(type && filePath && *filePath != '\0');
     line("<SOURCE %s", type);
     line("FILE \"%s\"", escape_rpp_string(filePath).c_str());
     return SourceChunk{*this};

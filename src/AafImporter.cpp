@@ -312,7 +312,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     }
 
     const char *filePath = ess->usable_file_path;
-    if (!filePath || filePath[0] == '\0') {
+    if (!filePath || *filePath == '\0') {
         rlog("reaper_aaf: WARNING: no usable path for '%s'\n",
              ess->unique_name ? ess->unique_name : "(unnamed)");
         m_writer.emptySource();
@@ -325,7 +325,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 }
 
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
-    if (!ess || !ess->usable_file_path || ess->usable_file_path[0] == '\0') {
+    if (!ess || !ess->usable_file_path || *ess->usable_file_path == '\0') {
         rlog("ReAAF: WARNING: video essence has no usable path.\n");
         m_writer.emptySource();
         return;
