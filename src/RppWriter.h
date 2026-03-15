@@ -37,8 +37,7 @@ class ProjectStateContext;
 // ---------------------------------------------------------------------------
 class RppWriter {
 public:
-    explicit RppWriter(ProjectStateContext *ctx) : m_ctx(ctx) {
-    }
+    explicit RppWriter(ProjectStateContext *ctx) : m_ctx(ctx) {}
 
     // Non-copyable — guards hold a reference back to the writer.
     RppWriter(const RppWriter &) = delete;
@@ -71,8 +70,7 @@ public:
         Chunk &operator=(const Chunk &) = delete;
 
     protected:
-        explicit Chunk(RppWriter &w) : m_writer(w), m_closed(false) {
-        }
+        explicit Chunk(RppWriter &w) : m_writer(w), m_closed(false) {}
 
         RppWriter &m_writer;
 
@@ -85,30 +83,15 @@ public:
     // Distinct types prevent accidentally using a TrackChunk where an
     // ItemChunk is expected — if you ever want to add chunk-specific helpers.
     // -----------------------------------------------------------------------
-    struct ProjectChunk : Chunk {
-        explicit ProjectChunk(RppWriter &w) : Chunk(w) {
-        }
-    };
+    struct ProjectChunk : Chunk { explicit ProjectChunk(RppWriter &w) : Chunk(w) {} };
 
-    struct TrackChunk : Chunk {
-        explicit TrackChunk(RppWriter &w) : Chunk(w) {
-        }
-    };
+    struct TrackChunk : Chunk { explicit TrackChunk(RppWriter &w) : Chunk(w) {} };
 
-    struct ItemChunk : Chunk {
-        explicit ItemChunk(RppWriter &w) : Chunk(w) {
-        }
-    };
+    struct ItemChunk : Chunk { explicit ItemChunk(RppWriter &w) : Chunk(w) {} };
 
-    struct SourceChunk : Chunk {
-        explicit SourceChunk(RppWriter &w) : Chunk(w) {
-        }
-    };
+    struct SourceChunk : Chunk { explicit SourceChunk(RppWriter &w) : Chunk(w) {} };
 
-    struct EnvChunk : Chunk {
-        explicit EnvChunk(RppWriter &w) : Chunk(w) {
-        }
-    };
+    struct EnvChunk : Chunk { explicit EnvChunk(RppWriter &w) : Chunk(w) {} };
 
     // -----------------------------------------------------------------------
     // Factory methods — open the chunk and return its RAII guard.
@@ -118,9 +101,7 @@ public:
 
     [[nodiscard]] ProjectChunk project(double tcOffsetSec, int fps, int isDrop, unsigned samplerate);
 
-    [[nodiscard]] TrackChunk track(const char *name,
-                                   double vol, double pan,
-                                   int mute, int solo, int nchan);
+    [[nodiscard]] TrackChunk track(const char *name, double vol, double pan, int mute, int solo, int nchan);
 
     [[nodiscard]] ItemChunk item(const char *name,
                                  double posSec, double lenSec,

@@ -29,8 +29,13 @@ void RppWriter::line(const char *fmt, ...) const {
     char buf[8192];
     std::va_list ap;
     va_start(ap, fmt);
-    vsnprintf(buf, sizeof(buf), fmt, ap);
+    const int written = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
+
+    if (written < 0 || written >= sizeof(buf)) {
+        rlog("reAAF: line truncated (need %d bytes, buffer is %zu. Output may be corrupt.", written, sizeof(buf));
+    }
+
     m_ctx->AddLine("%s", buf);
 }
 
