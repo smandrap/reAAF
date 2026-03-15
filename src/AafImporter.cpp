@@ -73,7 +73,7 @@ int AafImporter::run() {
 
     const aafiVideoTrack *vtrack = nullptr;
     AAFI_foreachVideoTrack(m_aafi, vtrack) {
-        processTrack_Video(vtrack, itemCount);
+        processTrack_Video(vtrack);
     }
 
     AAFI_foreachAudioTrack(m_aafi, track) {
@@ -218,7 +218,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     }
 }
 
-void AafImporter::processTrack_Video(const aafiVideoTrack *track, int &itemCounter) {
+void AafImporter::processTrack_Video(const aafiVideoTrack *track)  {
     auto w_trk = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
     const aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {

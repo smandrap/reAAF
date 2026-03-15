@@ -71,8 +71,7 @@ private:
 
     void processTrack_Audio(const aafiAudioTrack *track);
 
-    void processTrack_Video(const aafiVideoTrack *track,
-                            int &itemCounter);
+    void processTrack_Video(const aafiVideoTrack *track);
 
     void processItem_Audio(aafiAudioClip *clip,
                            const aafiTimelineItem *ti,
