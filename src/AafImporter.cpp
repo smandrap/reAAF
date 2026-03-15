@@ -19,6 +19,7 @@
 #include "helpers.h"
 #include "FadeResolver.h"
 #include "AafiHandle.h"
+#include "LogBuffer.h"
 
 #include <libaaf.h>
 
@@ -26,11 +27,30 @@
 #include <defines.h>
 
 
-AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath)
+void libaafLogCallback(aafLog*, void*, int /*lib*/, int type,
+                       const char*, const char*, int,
+                       const char* msg, void* user)
+{
+    if (!msg || !user) return;
+    auto* self = static_cast<AafImporter*>(user);
+    if (!self->m_logBuffer) return;
+
+    LogEntry::Severity sev;
+    switch (type) {
+        case VERB_ERROR:   sev = LogEntry::ERROR; break;
+        case VERB_WARNING: sev = LogEntry::WARN;  break;
+        default:           sev = LogEntry::INFO;  break;
+    }
+    self->m_logBuffer->push(sev, msg, self->m_currentClipName.c_str());
+}
+
+
+AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuffer *logBuffer)
     : m_writer(ctx),
       m_aafi(AafiHandle(aafi_alloc(nullptr))),
       m_filePath(filepath),
-      m_extractDir(buildExtractDir(filepath)) {}
+      m_extractDir(buildExtractDir(filepath)),
+      m_logBuffer(logBuffer) {}
 
 int AafImporter::run() {
     if (!m_aafi) {
@@ -38,7 +58,7 @@ int AafImporter::run() {
         return -1;
     }
 
-    aafi_set_debug(m_aafi.get(), VERB_WARNING, 0, nullptr, nullptr, nullptr);
+    aafi_set_debug(m_aafi.get(), VERB_WARNING, 0, nullptr, libaafLogCallback, this);
     aafi_set_option_int(m_aafi.get(), "protools", PROTOOLS_ALL_OPT);
 
     setMediaLocation();
@@ -218,7 +238,9 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
             const auto ptr = getAudioEssencePtr(clip, trackIdx);
             if (!ptr) continue;
 
+            m_currentClipName = resolveClipName(clip) ? resolveClipName(clip) : "";
             processItem_Audio(clip, ti, track->edit_rate, xFadeMap, ptr);
+            m_currentClipName.clear();
         }
     }
 }

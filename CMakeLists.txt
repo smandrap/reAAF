@@ -66,6 +66,7 @@ add_library(reaper_aaf MODULE
         src/RppWriter.cpp
         src/AafImporter.cpp
         src/FadeResolver.cpp
+        src/LogBuffer.cpp
 )
 
 set_target_properties(reaper_aaf PROPERTIES

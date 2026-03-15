@@ -22,6 +22,7 @@
 #include <string>
 
 #include "AafiHandle.h"
+#include "LogBuffer.h"
 #include "RppWriter.h"
 #include "FadeResolver.h"
 
@@ -39,7 +40,7 @@ class ProjectStateContext;
 
 class AafImporter {
 public:
-    AafImporter(ProjectStateContext *ctx, const char *filepath);
+    AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuffer *logBuffer);
 
     int run();
 
@@ -49,6 +50,12 @@ private:
     std::string m_filePath;
     std::string m_extractDir;
     bool m_extractDirCreated = false;
+    LogBuffer*  m_logBuffer = nullptr;
+    std::string m_currentClipName;
+
+    friend void libaafLogCallback(struct aafLog*, void*, int, int,
+                                  const char*, const char*, int,
+                                  const char*, void*);
 
     static std::string buildExtractDir(const char *filepath);
 
