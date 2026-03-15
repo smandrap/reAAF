@@ -1,6 +1,27 @@
 cmake_minimum_required(VERSION 3.15)
 project(reAAF VERSION 0.1.2 LANGUAGES C CXX)
 
+# -------------------------------------------------------------------------
+# LogBuffer standalone test binary (no REAPER SDK required)
+# -------------------------------------------------------------------------
+add_executable(test_logbuffer
+        tests/test_logbuffer.cpp
+        src/LogBuffer.cpp
+)
+target_include_directories(test_logbuffer PRIVATE
+        src
+        ${CMAKE_SOURCE_DIR}/extern/reaper-sdk/WDL
+)
+set_target_properties(test_logbuffer PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+)
+if(UNIX AND NOT APPLE)
+    target_link_libraries(test_logbuffer PRIVATE pthread)
+elseif(UNIX AND APPLE)
+    # pthread is provided by libSystem on macOS — no explicit link needed
+endif()
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
