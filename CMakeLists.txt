@@ -106,7 +106,7 @@ elseif(APPLE)
     add_custom_command(TARGET reaper_aaf POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:reaper_aaf>
-            "${REAPER_PLUGINS_DIR}/reaper_reAAF.dylib"
+            "${REAPER_PLUGINS_DIR}/reaper_reAAF-${CMAKE_SYSTEM_PROCESSOR}.dylib"
             COMMENT "Copying to REAPER UserPlugins..."
     )
 
