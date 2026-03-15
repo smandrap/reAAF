@@ -69,7 +69,6 @@ int AafImporter::run() {
     processMarkers();
 
     const aafiAudioTrack *track = nullptr;
-    int itemCount = 1;
 
     const aafiVideoTrack *vtrack = nullptr;
     AAFI_foreachVideoTrack(m_aafi, vtrack) {
