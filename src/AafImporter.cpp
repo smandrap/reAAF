@@ -27,12 +27,12 @@
 #include <defines.h>
 
 
-void libaafLogCallback(aafLog*, void*, int /*lib*/, int type,
+void libaafLogCallback(aafLog*, void*, int /*lib*/, const int type,
                        const char*, const char*, int,
                        const char* msg, void* user)
 {
     if (!msg || !user) return;
-    auto* self = static_cast<AafImporter*>(user);
+    const auto* self = static_cast<AafImporter*>(user);
     if (!self->m_logBuffer) return;
 
     LogEntry::Severity sev;

@@ -28,8 +28,8 @@
 // Constants
 // ---------------------------------------------------------------------------
 
-static constexpr const char *kSection = "reaper_aaf";
-static constexpr const char *kKeyVerb = "verbosity";
+static constexpr auto kSection = "reaper_aaf";
+static constexpr auto kKeyVerb = "verbosity";
 
 // ---------------------------------------------------------------------------
 // External declarations
@@ -71,7 +71,7 @@ void PrefsPage::registerPage(const reaper_plugin_info_t *rec) {
     rec->Register("prefpage", &g_prefs_reg);
 }
 
-void PrefsPage::unregisterPage_static(RegisterFn fn) {
+void PrefsPage::unregisterPage_static(const RegisterFn fn) {
     if (fn) fn("-prefpage", &g_prefs_reg);
 }
 
@@ -85,7 +85,7 @@ int PrefsPage::getVerbosity() {
     return atoi(GetExtState(kSection, kKeyVerb));
 }
 
-void PrefsPage::setVerbosity(int v) {
+void PrefsPage::setVerbosity(const int v) {
     char buf[4];
     snprintf(buf, sizeof(buf), "%d", v);
     SetExtState(kSection, kKeyVerb, buf, /*persist=*/true);
@@ -102,7 +102,7 @@ static constexpr int IDC_PREFS_APPLY = 0x478;
 // Dialog procedure
 // ---------------------------------------------------------------------------
 
-static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPARAM wParam, LPARAM lParam) {
     switch (msg) {
         case WM_INITDIALOG: {
             HWND combo = GetDlgItem(hwnd, IDC_COMBO_VERBOSITY);

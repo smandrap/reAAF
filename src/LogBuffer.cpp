@@ -21,7 +21,7 @@
 #include <cstring>  // strlen
 
 // ---------------------------------------------------------------------------
-// push() — the core operation;
+// push() — the core operation; must be correct under concurrent access.
 //
 // Verbosity thresholds (enforced at write time, before any storage):
 //   0 = None:    drop all (increment m_dropped, return)
@@ -29,7 +29,7 @@
 //   2 = Verbose: keep everything
 //
 // Overflow path (m_count == kCapacity):
-//   1. Evict the oldest entry by advancing m_head (overwrites it).
+//   1. Evict oldest entry by advancing m_head (overwrites it).
 //   2. Build sentinel with severity=WARN and text="<m_dropped+1> earlier
 //      entries were dropped (buffer full)".  clipName is empty.
 //   3. Write sentinel at m_head; advance m_head; reset m_dropped = 0;
@@ -37,7 +37,10 @@
 //   4. Now one slot remains free; write the new entry normally.
 // ---------------------------------------------------------------------------
 
-void LogBuffer::push(const LogEntry::Severity sev, const char *msg, const char *clipName) {
+void LogBuffer::push(const LogEntry::Severity sev, const char* msg, const char* clipName)
+{
+    WDL_MutexLock lk(&m_mutex);
+
     // --- verbosity gate ---------------------------------------------------
     bool pass = false;
     switch (m_verbosity) {
@@ -72,9 +75,9 @@ void LogBuffer::push(const LogEntry::Severity sev, const char *msg, const char *
                  m_dropped + 1);
 
         // Write sentinel at m_head (the evicted slot).
-        LogEntry &sentinel = m_entries[m_head];
+        LogEntry& sentinel = m_entries[m_head];
         sentinel.severity = LogEntry::WARN;
-        sentinel.text = sentinelText;
+        sentinel.text     = sentinelText;
         sentinel.clipName = "";
         m_head = (m_head + 1) % kCapacity;
         // m_count stays at kCapacity (evicted one, wrote sentinel → net zero)
@@ -82,9 +85,9 @@ void LogBuffer::push(const LogEntry::Severity sev, const char *msg, const char *
 
         // Now write the new entry at the next position (evicts another oldest).
         // m_count is still kCapacity so we advance m_head past the next oldest.
-        LogEntry &entry = m_entries[m_head];
+        LogEntry& entry = m_entries[m_head];
         entry.severity = sev;
-        entry.text = msg ? msg : "";
+        entry.text     = msg ? msg : "";
         entry.clipName = (clipName && *clipName) ? clipName : "";
         m_head = (m_head + 1) % kCapacity;
         // m_count unchanged — still kCapacity.
@@ -92,9 +95,9 @@ void LogBuffer::push(const LogEntry::Severity sev, const char *msg, const char *
     }
 
     // --- normal path (buffer not full) ------------------------------------
-    LogEntry &entry = m_entries[m_head];
+    LogEntry& entry = m_entries[m_head];
     entry.severity = sev;
-    entry.text = msg ? msg : "";
+    entry.text     = msg ? msg : "";
     entry.clipName = (clipName && *clipName) ? clipName : "";
     m_head = (m_head + 1) % kCapacity;
     ++m_count;
@@ -104,11 +107,15 @@ void LogBuffer::push(const LogEntry::Severity sev, const char *msg, const char *
 // setVerbosity / getVerbosity
 // ---------------------------------------------------------------------------
 
-void LogBuffer::setVerbosity(const int v) {
+void LogBuffer::setVerbosity(const int v)
+{
+    WDL_MutexLock lk(&m_mutex);
     m_verbosity = v;
 }
 
-int LogBuffer::getVerbosity() const {
+int LogBuffer::getVerbosity() const
+{
+    WDL_MutexLock lk(&m_mutex);
     return m_verbosity;
 }
 
@@ -116,15 +123,31 @@ int LogBuffer::getVerbosity() const {
 // Test-only accessors
 // ---------------------------------------------------------------------------
 
-int LogBuffer::size() const {
+int LogBuffer::size() const
+{
+    WDL_MutexLock lk(&m_mutex);
     return m_count;
 }
 
-LogEntry LogBuffer::at(const int idx) const {
+LogEntry LogBuffer::at(const int idx) const
+{
+    WDL_MutexLock lk(&m_mutex);
     // idx 0 = oldest, idx m_count-1 = newest.
     // The oldest entry lives at (m_head - m_count + kCapacity) % kCapacity.
     const int oldest = (m_head - m_count + kCapacity) % kCapacity;
-    const int ring = (oldest + idx) % kCapacity;
+    const int ring   = (oldest + idx) % kCapacity;
+    return m_entries[ring];
+}
+
+// ---------------------------------------------------------------------------
+// at_nolock — ring index math without mutex acquisition.
+// Caller MUST hold m_mutex. Behavior is undefined if idx is out of [0, m_count).
+// ---------------------------------------------------------------------------
+
+LogEntry LogBuffer::at_nolock(const int idx) const
+{
+    const int oldest = (m_head - m_count + kCapacity) % kCapacity;
+    const int ring   = (oldest + idx) % kCapacity;
     return m_entries[ring];
 }
 
@@ -141,13 +164,15 @@ LogEntry LogBuffer::at(const int idx) const {
 // Returns the new read position (always == total after drain completes).
 // ---------------------------------------------------------------------------
 
-size_t LogBuffer::drainNew(size_t readPos, std::vector<LogEntry> &out) const {
+size_t LogBuffer::drainNew(size_t readPos, std::vector<LogEntry>& out) const
+{
+    WDL_MutexLock lk(&m_mutex);
     const int total = m_count;
     // Clamp stale cursor: if overflow evicted entries before readPos, skip to
     // the oldest surviving entry.
     if (const int minPos = (total > kCapacity) ? (total - kCapacity) : 0; static_cast<int>(readPos) < minPos)
         readPos = static_cast<size_t>(minPos);
     for (int i = static_cast<int>(readPos); i < total; ++i)
-        out.push_back(at(i));
+        out.push_back(at_nolock(i));
     return static_cast<size_t>(total);
 }

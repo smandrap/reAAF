@@ -40,8 +40,8 @@ void RppWriter::line(const char *fmt, ...) const {
 }
 
 
-RppWriter::ProjectChunk RppWriter::project(const double tcOffsetSec, const int fps, const int isDrop,
-                                           const unsigned samplerate) {
+auto RppWriter::project(const double tcOffsetSec, const int fps, const int isDrop,
+                        const unsigned samplerate) -> ProjectChunk {
     line("<REAPER_PROJECT 0.1");
     line("PROJOFFS %.10f 0 0", tcOffsetSec);
     line("TIMEMODE 1 5 -1 %d %d 0 -1", fps, isDrop);
@@ -51,8 +51,8 @@ RppWriter::ProjectChunk RppWriter::project(const double tcOffsetSec, const int f
 }
 
 
-RppWriter::TrackChunk RppWriter::track(const char *name, const double vol, const double pan,
-                                       const int mute, const int solo, const int nchan) {
+auto RppWriter::track(const char *name, const double vol, const double pan,
+                      const int mute, const int solo, const int nchan) -> TrackChunk {
     line("<TRACK");
     line("NAME \"%s\"", name ? escape_rpp_string(name).c_str() : "");
     line("VOLPAN %.6f %.6f -1 -1 1", vol, pan);
@@ -62,12 +62,12 @@ RppWriter::TrackChunk RppWriter::track(const char *name, const double vol, const
 }
 
 
-RppWriter::ItemChunk RppWriter::item(const char *name,
-                                     const double posSec, const double lenSec,
-                                     const double fadeInLen, const int fadeInShape,
-                                     const double fadeOutLen, const int fadeOutShape,
-                                     const double gainLin, const double srcOffsSec,
-                                     const int mute) {
+auto RppWriter::item(const char *name,
+                     const double posSec, const double lenSec,
+                     const double fadeInLen, const int fadeInShape,
+                     const double fadeOutLen, const int fadeOutShape,
+                     const double gainLin, const double srcOffsSec,
+                     const int mute) -> ItemChunk {
     line("<ITEM");
     line("POSITION %.10f", posSec);
     line("LENGTH %.10f", lenSec);
@@ -81,20 +81,20 @@ RppWriter::ItemChunk RppWriter::item(const char *name,
     return ItemChunk{*this};
 }
 
-RppWriter::SourceChunk RppWriter::source(const char *type, const char *filePath) {
+auto RppWriter::source(const char *type, const char *filePath) -> SourceChunk {
     assert(type && filePath && *filePath != '\0');
     line("<SOURCE %s", type);
     line("FILE \"%s\"", escape_rpp_string(filePath).c_str());
     return SourceChunk{*this};
 }
 
-RppWriter::SourceChunk RppWriter::emptySource() {
+auto RppWriter::emptySource() -> SourceChunk {
     line("<SOURCE EMPTY");
     return SourceChunk{*this};
 }
 
 
-RppWriter::EnvChunk RppWriter::envelope(const char *tag, const bool arm) {
+auto RppWriter::envelope(const char *tag, const bool arm) -> EnvChunk {
     line("<%s", tag);
     line("VIS 1 1 1");
     if (arm) line("ARM 1");

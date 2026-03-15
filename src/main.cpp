@@ -18,6 +18,7 @@
 #include "AafImporter.h"
 #include "LogBuffer.h"
 #include "PrefsPage.h"
+#include "ProgressDialog.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "version.h"
@@ -92,6 +93,22 @@ extern "C"
 
         rec->Register("projectimport", &g_import_reg);
 
+#ifdef REAPER_AAF_DEBUG_STUB
+        // --- Phase 2 debug stub: open dialog with synthetic entries ---
+        // REMOVE or keep guarded before Phase 3. Use cmake -DREAPER_AAF_DEBUG_STUB=1
+        // (or add it to target_compile_definitions) to activate.
+        g_logBuffer.setVerbosity(2); // Verbose — capture all entries in stub
+        g_logBuffer.push(LogEntry::INFO,  "Starting AAF import...",        nullptr);
+        g_logBuffer.push(LogEntry::CLIP,  "OK",                            "Kick_01");
+        g_logBuffer.push(LogEntry::WARN,  "missing media file",            "Snare_02");
+        g_logBuffer.push(LogEntry::CLIP,  "media found",                   "HiHat_03");
+        g_logBuffer.push(LogEntry::ERROR, "unrecognised clip type",        nullptr);
+        g_logBuffer.push(LogEntry::INFO,  "3 clips processed",             nullptr);
+        ProgressDialog_Open();
+        // Uncomment the next line to also test MarkComplete:
+        // ProgressDialog_MarkComplete(3, 1, 1);
+#endif // REAPER_AAF_DEBUG_STUB
+
         // Register the AAF Import preferences page
         PrefsPage::registerPage(rec);
 
@@ -101,7 +118,7 @@ extern "C"
         // Store the Register fn pointer for the atexit callback.
         // The lambda captures nothing — g_registerFn is module-scope.
         g_registerFn = rec->Register;
-        rec->Register("atexit", reinterpret_cast<void*>(+[](){
+        rec->Register("atexit", reinterpret_cast<void*>(+[] {
             PrefsPage::unregisterPage_static(g_registerFn);
         }));
 

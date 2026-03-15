@@ -19,7 +19,6 @@
 #define REAPER_AAF_LOGBUFFER_H
 
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "mutex.h"
@@ -30,7 +29,6 @@
 
 struct LogEntry {
     enum Severity { ERROR, WARN, INFO, CLIP } severity;
-
     std::string text;
     std::string clipName; // empty if not clip-specific
 };
@@ -77,14 +75,20 @@ public:
     // Incremental drain: copies entries from logical index readPos to end into out.
     // Returns the new read position (== size() after drain).
     // Clamps stale readPos when buffer overflow has evicted old entries.
-    size_t drainNew(size_t readPos, std::vector<LogEntry> &out) const;
+    // Thread-safe (acquires mutex internally). Do NOT call at() from the callback.
+    size_t drainNew(size_t readPos, std::vector<LogEntry>& out) const;
 
 private:
+    mutable WDL_Mutex m_mutex;
     LogEntry m_entries[kCapacity] = {};
-    int m_head = 0; // next write position (ring index)
-    int m_count = 0; // entries currently stored (max kCapacity)
+    int m_head     = 0; // next write position (ring index)
+    int m_count    = 0; // entries currently stored (max kCapacity)
     int m_verbosity = 1; // 0=None, 1=Normal, 2=Verbose
-    int m_dropped = 0; // verbosity-filtered drops since last sentinel
+    int m_dropped  = 0; // verbosity-filtered drops since last sentinel
+
+    // No-lock variant — caller MUST hold m_mutex. Used by drainNew() to avoid
+    // deadlock (WDL_Mutex is non-reentrant; at() acquires the lock internally).
+    LogEntry at_nolock(int idx) const;
 };
 
 #endif // REAPER_AAF_LOGBUFFER_H

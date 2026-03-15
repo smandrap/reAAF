@@ -53,7 +53,7 @@ private:
     LogBuffer*  m_logBuffer = nullptr;
     std::string m_currentClipName;
 
-    friend void libaafLogCallback(struct aafLog*, void*, int, int,
+    friend void libaafLogCallback(aafLog*, void*, int, int,
                                   const char*, const char*, int,
                                   const char*, void*);
 

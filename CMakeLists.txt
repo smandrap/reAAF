@@ -16,10 +16,30 @@ set_target_properties(test_logbuffer PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED ON
 )
+
 if(UNIX AND NOT APPLE)
     target_link_libraries(test_logbuffer PRIVATE pthread)
 elseif(UNIX AND APPLE)
     # pthread is provided by libSystem on macOS — no explicit link needed
+endif()
+
+# -------------------------------------------------------------------------
+# test_progressdialog_format: formatEntry() + drainNew() unit tests
+# -------------------------------------------------------------------------
+add_executable(test_progressdialog_format
+        tests/test_progressdialog_format.cpp
+        src/LogBuffer.cpp
+)
+target_include_directories(test_progressdialog_format PRIVATE
+        src
+        ${CMAKE_SOURCE_DIR}/extern/reaper-sdk/WDL
+)
+set_target_properties(test_progressdialog_format PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+)
+if(UNIX AND NOT APPLE)
+    target_link_libraries(test_progressdialog_format PRIVATE pthread)
 endif()
 
 set(CMAKE_C_STANDARD 11)
@@ -68,6 +88,7 @@ add_library(reaper_aaf MODULE
         src/FadeResolver.cpp
         src/LogBuffer.cpp
         src/PrefsPage.cpp
+        src/ProgressDialog.cpp
 )
 
 set_target_properties(reaper_aaf PROPERTIES
@@ -96,11 +117,13 @@ target_link_libraries(reaper_aaf PRIVATE aaf-static)
 # REAPER API — only what we actually call
 # -------------------------------------------------------------------------
 target_compile_definitions(reaper_aaf PRIVATE
+        REAPER_AAF_DEBUG_STUB=1
         REAPERAPI_MINIMAL
         REAPERAPI_WANT_ShowConsoleMsg
         REAPERAPI_WANT_SetExtState
         REAPERAPI_WANT_GetExtState
         REAPERAPI_WANT_HasExtState
+        REAPERAPI_WANT_GetMainHwnd
 )
 
 # -------------------------------------------------------------------------
