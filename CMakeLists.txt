@@ -67,6 +67,7 @@ add_library(reaper_aaf MODULE
         src/AafImporter.cpp
         src/FadeResolver.cpp
         src/LogBuffer.cpp
+        src/PrefsPage.cpp
 )
 
 set_target_properties(reaper_aaf PROPERTIES
@@ -97,6 +98,9 @@ target_link_libraries(reaper_aaf PRIVATE aaf-static)
 target_compile_definitions(reaper_aaf PRIVATE
         REAPERAPI_MINIMAL
         REAPERAPI_WANT_ShowConsoleMsg
+        REAPERAPI_WANT_SetExtState
+        REAPERAPI_WANT_GetExtState
+        REAPERAPI_WANT_HasExtState
 )
 
 # -------------------------------------------------------------------------
@@ -109,6 +113,7 @@ if(WIN32)
             WIN32_LEAN_AND_MEAN
             NOMINMAX
     )
+    target_sources(reaper_aaf PRIVATE src/resource.rc)
     set(REAPER_PLUGINS_DIR "$ENV{APPDATA}/REAPER/UserPlugins")
     add_custom_command(TARGET reaper_aaf POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -124,6 +129,13 @@ elseif(APPLE)
     )
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE "-framework CoreFoundation")
+    # swell-modstub.mm defines SWELL_curmodule_dialogresource_head and populates
+    # SWELL function pointers at startup (required for any SWELL UI call)
+    target_sources(reaper_aaf PRIVATE
+            ${REAPER_SDK_DIR}/WDL/swell/swell-modstub.mm
+            src/resource_swell.cpp
+    )
+    target_link_libraries(reaper_aaf PRIVATE "-framework Cocoa")
     set(REAPER_PLUGINS_DIR "$ENV{HOME}/Library/Application Support/REAPER/UserPlugins")
     add_custom_command(TARGET reaper_aaf POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -136,4 +148,9 @@ else()  # Linux
     set_target_properties(reaper_aaf PROPERTIES SUFFIX ".so")
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE dl)
+    # swell-modstub-generic.cpp defines SWELL_curmodule_dialogresource_head on Linux
+    target_sources(reaper_aaf PRIVATE
+            ${REAPER_SDK_DIR}/WDL/swell/swell-modstub-generic.cpp
+            src/resource_swell.cpp
+    )
 endif()

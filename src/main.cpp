@@ -16,6 +16,8 @@
  */
 
 #include "AafImporter.h"
+#include "LogBuffer.h"
+#include "PrefsPage.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "version.h"
@@ -28,6 +30,14 @@
 #ifdef _WIN32
 #  define strcasecmp _stricmp
 #endif
+
+// Module-scope (not static) so PrefsPage.cpp can declare it with extern.
+LogBuffer g_logBuffer;
+REAPER_PLUGIN_HINSTANCE g_hInst = nullptr;
+
+// Stored Register fn pointer — used by the atexit callback to unregister
+// the preferences page after REAPER has finished calling into the plugin.
+static RegisterFn g_registerFn = nullptr;
 
 // ---------------------------------------------------------------------------
 // projectimport callbacks
@@ -51,7 +61,7 @@ static const char* aaf_EnumFileExtensions(const int i, char** descptr)
 static int aaf_ImportProject(const char* fn, ProjectStateContext* ctx)
 {
     if (!fn || !ctx) return -1;
-    return AafImporter(ctx, fn).run();
+    return AafImporter(ctx, fn, &g_logBuffer).run();
 }
 
 // project_import_register_t is defined in reaper_plugin.h.
@@ -71,15 +81,29 @@ static project_import_register_t g_import_reg = {
 extern "C"
 {
     REAPER_PLUGIN_DLL_EXPORT
-    int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE /*hInstance*/,
+    int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance,
                                  const reaper_plugin_info_t* rec)
     {
+        g_hInst = hInstance;
         if (!rec) return 0;
 
         if (rec->caller_version != REAPER_PLUGIN_VERSION) return 0;
         if (REAPERAPI_LoadAPI(rec->GetFunc) != 0) return 0;
 
         rec->Register("projectimport", &g_import_reg);
+
+        // Register the AAF Import preferences page
+        PrefsPage::registerPage(rec);
+
+        // Sync the persisted verbosity into the runtime LogBuffer at startup
+        g_logBuffer.setVerbosity(PrefsPage::getVerbosity());
+
+        // Store the Register fn pointer for the atexit callback.
+        // The lambda captures nothing — g_registerFn is module-scope.
+        g_registerFn = rec->Register;
+        rec->Register("atexit", reinterpret_cast<void*>(+[](){
+            PrefsPage::unregisterPage_static(g_registerFn);
+        }));
 
         return 1;
     }

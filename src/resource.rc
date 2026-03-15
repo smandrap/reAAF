@@ -1,0 +1,12 @@
+#include "resource.h"
+
+IDD_AAF_PREFS DIALOGEX 0, 0, 300, 42
+STYLE WS_CHILD
+CAPTION "AAF Import Prefs"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX "AAF Import",       IDC_STATIC,           4,  4, 292, 32
+    LTEXT    "Log verbosity:",   IDC_STATIC,          13, 17,  68, 10
+    COMBOBOX                     IDC_COMBO_VERBOSITY,  84, 15, 205, 50,
+                                 CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
