@@ -1,13 +1,15 @@
-name: Build REAPER Extension
+name: Build & Release REAPER Extension
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
-  push:
-    tags:
-      - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. v0.1.0). Leave empty for build-only, no release.'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -56,8 +58,8 @@ jobs:
       - name: Build
         run: cmake --build build --config Release
 
-      - name: Strip debug symbols (MacOS)
-        if: matrix.os == 'macos-latest'
+      - name: Strip debug symbols (macOS)
+        if: runner.os == 'macOS'
         run: strip -x build/reaper_reAAF.dylib
 
       - name: Strip debug symbols (Linux)
@@ -91,8 +93,7 @@ jobs:
           rm -rf extern/reaper-sdk
 
   release:
-    # Only run when triggered by a version tag, after all builds succeed
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: inputs.version != ''
     needs: build
     runs-on: ubuntu-latest
 
@@ -100,6 +101,14 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Create tag
+        run: |
+          git tag ${{ inputs.version }}
+          git push origin ${{ inputs.version }}
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -114,10 +123,11 @@ jobs:
           cp artifacts/reaper-aaf-macos-x86_64/reaper_reAAF.dylib    release-files/reaper_reAAF-x86_64.dylib
           cp artifacts/reaper-aaf-linux-x86_64/reaper_reAAF.so       release-files/reaper_reAAF-x86_64.so
 
-      - name: Create draft release
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.version }}
           draft: false
           generate_release_notes: false
-          name: ${{ github.ref_name }}
+          name: ${{ inputs.version }}
           files: release-files/*
