@@ -15,13 +15,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "AafImporter.h"
+
+// ReSharper disable once CppUnusedIncludeDirective
+#include "version.h"
+
 #define REAPERAPI_IMPLEMENT
 #include "reaper_plugin_functions.h"
 #include "reaper_plugin.h"
 
-#include "AafImporter.h"
-// ReSharper disable once CppUnusedIncludeDirective
-#include "version.h"
 
 #ifdef _WIN32
 #  define strcasecmp _stricmp
