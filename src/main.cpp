@@ -18,8 +18,8 @@
 #define REAPERAPI_IMPLEMENT
 #include "reaper_plugin_functions.h"
 #include "reaper_plugin.h"
-#include "aaf_import.h"
 
+#include "AafImporter.h"
 // ReSharper disable once CppUnusedIncludeDirective
 #include "version.h"
 
@@ -48,7 +48,8 @@ static const char* aaf_EnumFileExtensions(const int i, char** descptr)
 
 static int aaf_ImportProject(const char* fn, ProjectStateContext* ctx)
 {
-    return ImportAAF(fn, ctx);
+    if (!fn || !ctx) return -1;
+    return AafImporter(ctx, fn).run();
 }
 
 // project_import_register_t is defined in reaper_plugin.h.

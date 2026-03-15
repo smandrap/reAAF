@@ -41,7 +41,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_SAVE_RUNTIME_DIR})
 # -------------------------------------------------------------------------
 add_library(reaper_aaf MODULE
         src/main.cpp
-        src/aaf_import.cpp
         src/helpers.cpp
         src/RppWriter.cpp
         src/AafImporter.cpp
