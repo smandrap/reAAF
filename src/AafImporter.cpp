@@ -115,6 +115,7 @@ double AafImporter::resolveConstantGain(const aafiAudioGain *gain, const double 
 }
 
 const char *AafImporter::resolveClipName(const aafiAudioClip *clip) {
+    if (!clip) return "";
     const char *clipName = clip->subClipName;
     if (!clipName || clipName[0] == '\0') {
         if (clip->essencePointerList && clip->essencePointerList->essenceFile)
@@ -310,11 +311,13 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
                                                     nullptr, &outPath);
         free(outPath);
 
+        // TODO: log to the interface, don't use reaper console
         if (rc != 0)
             rlog("reaper_aaf: WARNING: failed to extract '%s'\n",
                  ess->unique_name ? ess->unique_name : "(unnamed)");
     }
 
+    // TODO: sanitize path, might contain invalid chars
     const char *filePath = ess->usable_file_path;
     if (!filePath || *filePath == '\0') {
         rlog("reaper_aaf: WARNING: no usable path for '%s'\n",
