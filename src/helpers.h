@@ -25,7 +25,7 @@
 
 
 [[nodiscard]] constexpr double rational_to_double(const aafRational_t r) noexcept {
-    if (r.denominator == 0) return 0.0;
+    if (r.denominator < 1e-10) return 0.0;
     return static_cast<double>(r.numerator) / static_cast<double>(r.denominator);
 }
 
@@ -34,7 +34,7 @@
 inline double pos_to_seconds(const aafPosition_t pos, const aafRational_t *editRate) noexcept {
     if (!editRate) return 0.0;
     const double er = rational_to_double(*editRate);
-    if (er == 0.0) return 0.0;
+    if (er < 1e-10) return 0.0;
     return static_cast<double>(pos) / er;
 }
 
