@@ -1,5 +1,8 @@
 # Changelog
 
+## [0.1.2] - 2026-03-14
+
+- fix possible crash in case libaaf returns nullptr in clips and timecode structs
 
 ## [0.1.1] - 2026-03-14
 
