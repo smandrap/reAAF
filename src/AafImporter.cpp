@@ -50,12 +50,17 @@ int AafImporter::run() {
     const double tcOffset = pos_to_seconds(m_aafi->compositionStart,
                                            m_aafi->compositionStart_editRate);
 
-    const int fps = m_aafi->Timecode->fps;
+    int fps = 25;
+    uint8_t isDrop = 0;
 
-    // Determine fractional timecode and/or drop frame rate.
-    // isDrop: 0 = integer fps, 1 = drop, 2 = non-drop fractional (23.976 or 29.97 ND)
-    const bool isFrac = m_aafi->Timecode->edit_rate->denominator != 1;
-    const uint8_t isDrop = isFrac ? (fps == 24 ? 2 : (m_aafi->Timecode->drop > 0 ? 1 : 2)) : 0;
+    if (m_aafi->Timecode) {
+        fps = m_aafi->Timecode->fps;
+
+        // Determine fractional timecode and/or drop frame rate.
+        // isDrop: 0 = integer fps, 1 = drop, 2 = non-drop fractional (23.976 or 29.97 ND)
+        const bool isFrac = m_aafi->Timecode->edit_rate->denominator != 1;
+        isDrop = isFrac ? (fps == 24 ? 2 : (m_aafi->Timecode->drop > 0 ? 1 : 2)) : 0;
+    }
 
 #ifdef REAAF_DEBUG
     rlog(":::TIMECODE:::\nAAFI: %d, %d, %d\nRPP: %d, %d\n\n", m_aafi->Timecode->edit_rate->numerator,
