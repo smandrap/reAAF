@@ -84,6 +84,7 @@ private:
     int m_dropped = 0; // verbosity-filtered drops since last sentinel
 
     [[nodiscard]] bool shouldLogEntry(const LogEntry &entry) const;
+
     void push(const LogEntry &entry);
 };
 

@@ -38,8 +38,8 @@
 
 bool LogBuffer::shouldLogEntry(const LogEntry &entry) const {
     switch (m_verbosity) {
-        case 0:  return false;
-        case 1:  return entry.severity == LogEntry::ERROR || entry.severity == LogEntry::WARN;
+        case 0: return false;
+        case 1: return entry.severity == LogEntry::ERROR || entry.severity == LogEntry::WARN;
         default: return true;
     }
 }

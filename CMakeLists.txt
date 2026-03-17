@@ -24,7 +24,7 @@ elseif(UNIX AND APPLE)
 endif()
 
 # -------------------------------------------------------------------------
-# test_progressdialog_format: formatEntry() + drainNew() unit tests
+# test_progressdialog_format: formatEntry() unit tests
 # -------------------------------------------------------------------------
 add_executable(test_progressdialog_format
         tests/test_progressdialog_format.cpp
@@ -89,6 +89,7 @@ add_library(reaper_aaf MODULE
         src/LogBuffer.cpp
         src/PrefsPage.cpp
         src/ProgressDialog.cpp
+        ${REAPER_SDK_DIR}/WDL/wingui/wndsize.cpp
 )
 
 set_target_properties(reaper_aaf PROPERTIES
@@ -117,7 +118,6 @@ target_link_libraries(reaper_aaf PRIVATE aaf-static)
 # REAPER API — only what we actually call
 # -------------------------------------------------------------------------
 target_compile_definitions(reaper_aaf PRIVATE
-        REAPER_AAF_DEBUG_STUB=1
         REAPERAPI_MINIMAL
         REAPERAPI_WANT_ShowConsoleMsg
         REAPERAPI_WANT_SetExtState

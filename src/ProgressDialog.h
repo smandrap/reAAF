@@ -10,14 +10,12 @@
 #ifndef REAPER_AAF_PROGRESSDIALOG_H
 #define REAPER_AAF_PROGRESSDIALOG_H
 
-// Opens the modeless progress dialog (creates it if not already open).
-// If already open, brings it to the foreground.
-// Parent is GetMainHwnd() — requires REAPERAPI_WANT_GetMainHwnd in CMakeLists.
-void ProgressDialog_Open();
+#include "LogBuffer.h"
 
-// Signals import completion: appends summary line, updates label.
-// clips / warnings / errors are the final counts.
-// Call from main thread only (all dialog interaction must stay on main thread).
-void ProgressDialog_MarkComplete(int clips, int warnings, int errors);
+// Opens the modeless progress dialog and bulk-loads all entries from buf.
+// If already open, brings it to the foreground.
+// buf must remain valid for the lifetime of the dialog.
+// Call from main thread only.
+void ProgressDialog_Open(LogBuffer *buf);
 
 #endif // REAPER_AAF_PROGRESSDIALOG_H

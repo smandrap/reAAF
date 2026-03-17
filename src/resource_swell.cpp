@@ -20,11 +20,11 @@ SWELL_DEFINE_DIALOG_RESOURCE_END(IDD_AAF_PREFS)
 
 SWELL_DEFINE_DIALOG_RESOURCE_BEGIN(IDD_AAF_PROGRESS,
     SWELL_DLG_WS_RESIZABLE | SWELL_DLG_WS_FLIPPED,
-    "AAF Import", 278, 167, 1.8)
+    "AAF Import Log", 278, 164, 1.8)
 BEGIN
-    LTEXT      "Ready",   IDC_PROGRESS_LABEL,  4,   4, 270,   8
-    LISTBOX               IDC_LOG_LIST,         4,  16, 270, 136,
+    LTEXT      "Ready to have a great time yayyy, very long random text yahoo",   IDC_PROGRESS_LABEL,  4,   4, 700,   8
+    LISTBOX               IDC_LOG_LIST,         4,  16, 270, 126,
                LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
-    PUSHBUTTON "Close",   IDC_CLOSE_BTN,      228, 156,  46,  14
+    PUSHBUTTON "Close",   IDC_CLOSE_BTN,      228, 146,  46,  14
 END
 SWELL_DEFINE_DIALOG_RESOURCE_END(IDD_AAF_PROGRESS)

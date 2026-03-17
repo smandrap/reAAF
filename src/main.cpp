@@ -60,23 +60,8 @@ static const char *aaf_EnumFileExtensions(const int i, char **descptr) {
 static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
     if (!fn || !ctx) return -1;
     const int ok = AafImporter(ctx, fn, &g_logBuffer).run();
-
-#ifdef REAPER_AAF_DEBUG_STUB
-    // --- Phase 2 debug stub: open dialog with synthetic entries ---
-    // REMOVE or keep guarded before Phase 3. Use cmake -DREAPER_AAF_DEBUG_STUB=1
-    // (or add it to target_compile_definitions) to activate.
-    g_logBuffer.setVerbosity(2); // Verbose — capture all entries in stub
-    g_logBuffer.log(LogEntry::INFO, "Starting AAF import...", nullptr);
-    g_logBuffer.log(LogEntry::CLIP, "OK", "Kick_01");
-    g_logBuffer.log(LogEntry::WARN, "missing media file", "Snare_02");
-    g_logBuffer.log(LogEntry::CLIP, "media found", "HiHat_03");
-    g_logBuffer.log(LogEntry::ERROR, "unrecognised clip type", nullptr);
-    g_logBuffer.log(LogEntry::INFO, "3 clips processed", nullptr);
-    ProgressDialog_Open();
-    // Uncomment the next line to also test MarkComplete:
-    // ProgressDialog_MarkComplete(3, 1, 1);
-#endif // REAPER_AAF_DEBUG_STUB
-
+    if (g_logBuffer.getVerbosity() != 0)
+        ProgressDialog_Open(&g_logBuffer);
     return ok;
 }
 
