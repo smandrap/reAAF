@@ -41,7 +41,7 @@ void libaafLogCallback(aafLog*, void*, int /*lib*/, const int type,
         case VERB_WARNING: sev = LogEntry::WARN;  break;
         default:           sev = LogEntry::INFO;  break;
     }
-    self->m_logBuffer->push(sev, msg, self->m_currentClipName.c_str());
+    self->m_logBuffer->log(sev, msg, self->m_currentClipName.c_str());
 }
 
 

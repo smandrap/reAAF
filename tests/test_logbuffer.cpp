@@ -66,7 +66,7 @@ static void test_verbosity_normal_passes_warn()
     // push(WARN, "msg") with verbosity=1 (Normal): entry stored
     TestableLogBuffer buf;
     buf.setVerbosity(1);
-    buf.push(LogEntry::WARN, "warn message");
+    buf.log(LogEntry::WARN, "warn message");
     check(buf.count() == 1, "Normal verbosity: WARN is stored");
 }
 
@@ -75,7 +75,7 @@ static void test_verbosity_normal_drops_info()
     // push(INFO, "msg") with verbosity=1 (Normal): entry NOT stored
     TestableLogBuffer buf;
     buf.setVerbosity(1);
-    buf.push(LogEntry::INFO, "info message");
+    buf.log(LogEntry::INFO, "info message");
     check(buf.count() == 0, "Normal verbosity: INFO is dropped");
 }
 
@@ -84,7 +84,7 @@ static void test_verbosity_normal_drops_clip()
     // push(CLIP, "msg") with verbosity=1 (Normal): entry NOT stored
     TestableLogBuffer buf;
     buf.setVerbosity(1);
-    buf.push(LogEntry::CLIP, "clip message");
+    buf.log(LogEntry::CLIP, "clip message");
     check(buf.count() == 0, "Normal verbosity: CLIP is dropped");
 }
 
@@ -93,7 +93,7 @@ static void test_verbosity_none_drops_error()
     // push(ERROR, "msg") with verbosity=0 (None): entry NOT stored
     TestableLogBuffer buf;
     buf.setVerbosity(0);
-    buf.push(LogEntry::ERROR, "error message");
+    buf.log(LogEntry::ERROR, "error message");
     check(buf.count() == 0, "None verbosity: ERROR is dropped");
 }
 
@@ -102,10 +102,10 @@ static void test_verbosity_verbose_stores_all()
     // push(any, "msg") with verbosity=2 (Verbose): entry stored regardless
     TestableLogBuffer buf;
     buf.setVerbosity(2);
-    buf.push(LogEntry::INFO,  "info");
-    buf.push(LogEntry::CLIP,  "clip");
-    buf.push(LogEntry::WARN,  "warn");
-    buf.push(LogEntry::ERROR, "error");
+    buf.log(LogEntry::INFO,  "info");
+    buf.log(LogEntry::CLIP,  "clip");
+    buf.log(LogEntry::WARN,  "warn");
+    buf.log(LogEntry::ERROR, "error");
     check(buf.count() == 4, "Verbose verbosity: all severities stored");
 }
 
@@ -114,7 +114,7 @@ static void test_clip_name_stored()
     // push() with clipName="Kick_01": stored entry has clipName=="Kick_01"
     TestableLogBuffer buf;
     buf.setVerbosity(2);
-    buf.push(LogEntry::WARN, "kick warn", "Kick_01");
+    buf.log(LogEntry::WARN, "kick warn", "Kick_01");
     check(buf.count() == 1, "clipName: entry stored");
     check(buf.entryAt(0).clipName == "Kick_01", "clipName: value is Kick_01");
 }
@@ -124,7 +124,7 @@ static void test_clip_name_empty_when_not_provided()
     // push() with no clipName arg: stored entry has clipName==""
     TestableLogBuffer buf;
     buf.setVerbosity(2);
-    buf.push(LogEntry::WARN, "no clip");
+    buf.log(LogEntry::WARN, "no clip");
     check(buf.count() == 1, "no clipName: entry stored");
     check(buf.entryAt(0).clipName.empty(), "no clipName: clipName is empty string");
 }
@@ -135,7 +135,7 @@ static void test_buffer_full_at_capacity()
     TestableLogBuffer buf;
     buf.setVerbosity(2);
     for (int i = 0; i < LogBuffer::kCapacity; ++i) {
-        buf.push(LogEntry::INFO, "fill");
+        buf.log(LogEntry::INFO, "fill");
     }
     check(buf.count() == LogBuffer::kCapacity, "Buffer: count == kCapacity after kCapacity pushes");
 }
@@ -150,11 +150,11 @@ static void test_ring_overflow_eviction_and_sentinel()
 
     // Fill to capacity
     for (int i = 0; i < LogBuffer::kCapacity; ++i) {
-        buf.push(LogEntry::INFO, "fill");
+        buf.log(LogEntry::INFO, "fill");
     }
 
     // Push one more — triggers overflow sentinel
-    buf.push(LogEntry::ERROR, "overflow entry");
+    buf.log(LogEntry::ERROR, "overflow entry");
 
     check(buf.count() == LogBuffer::kCapacity, "Overflow: count stays at kCapacity");
 
@@ -188,16 +188,16 @@ static void test_sentinel_counts_multiple_drops()
     // Fill to capacity with WARN (Normal verbosity stores WARN)
     buf.setVerbosity(1); // Normal
     for (int i = 0; i < LogBuffer::kCapacity; ++i) {
-        buf.push(LogEntry::WARN, "fill");
+        buf.log(LogEntry::WARN, "fill");
     }
     // Now push 2 INFO entries — they are filtered by verbosity → m_dropped += 2
-    buf.push(LogEntry::INFO, "dropped1");
-    buf.push(LogEntry::INFO, "dropped2");
+    buf.log(LogEntry::INFO, "dropped1");
+    buf.log(LogEntry::INFO, "dropped2");
     check(buf.count() == LogBuffer::kCapacity,
           "After verbosity drops, count still kCapacity");
 
     // Now push a WARN (passes verbosity=1) → buffer full → evict + sentinel
-    buf.push(LogEntry::WARN, "trigger overflow");
+    buf.log(LogEntry::WARN, "trigger overflow");
     check(buf.count() == LogBuffer::kCapacity,
           "After overflow trigger, count stays kCapacity");
 
