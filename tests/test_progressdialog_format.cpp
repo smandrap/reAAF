@@ -18,10 +18,7 @@ static std::string formatEntry(const LogEntry& e)
         case LogEntry::ERROR: prefix = "[ERROR]"; break;
         case LogEntry::WARN:  prefix = "[WARN]";  break;
         case LogEntry::INFO:  prefix = "[INFO]";  break;
-        case LogEntry::CLIP:  prefix = "[CLIP]";  break;
     }
-    if (e.severity == LogEntry::CLIP && !e.clipName.empty())
-        return std::string(prefix) + " " + e.clipName + ": " + e.text;
     return std::string(prefix) + " " + e.text;
 }
 
@@ -43,38 +40,20 @@ static void CHECK(bool cond, const char* msg)
 
 static void test_format_error()
 {
-    LogEntry e; e.severity = LogEntry::ERROR; e.text = "disk error"; e.clipName = "";
+    LogEntry e; e.severity = LogEntry::ERROR; e.text = "disk error";
     CHECK(formatEntry(e) == "[ERROR] disk error", "ERROR prefix");
 }
 
 static void test_format_warn()
 {
-    LogEntry e; e.severity = LogEntry::WARN; e.text = "missing file"; e.clipName = "";
+    LogEntry e; e.severity = LogEntry::WARN; e.text = "missing file";
     CHECK(formatEntry(e) == "[WARN] missing file", "WARN prefix");
 }
 
 static void test_format_info()
 {
-    LogEntry e; e.severity = LogEntry::INFO; e.text = "Starting import..."; e.clipName = "";
+    LogEntry e; e.severity = LogEntry::INFO; e.text = "Starting import...";
     CHECK(formatEntry(e) == "[INFO] Starting import...", "INFO prefix");
-}
-
-static void test_format_clip_no_name()
-{
-    LogEntry e; e.severity = LogEntry::CLIP; e.text = "OK"; e.clipName = "";
-    CHECK(formatEntry(e) == "[CLIP] OK", "CLIP no clipName");
-}
-
-static void test_format_clip_with_name()
-{
-    LogEntry e; e.severity = LogEntry::CLIP; e.text = "OK"; e.clipName = "Kick_01";
-    CHECK(formatEntry(e) == "[CLIP] Kick_01: OK", "CLIP with clipName");
-}
-
-static void test_format_clip_warn_with_name()
-{
-    LogEntry e; e.severity = LogEntry::CLIP; e.text = "missing media file"; e.clipName = "Snare_02";
-    CHECK(formatEntry(e) == "[CLIP] Snare_02: missing media file", "CLIP Snare_02");
 }
 
 // ---------------------------------------------------------------------------
@@ -86,9 +65,6 @@ int main()
     test_format_error();
     test_format_warn();
     test_format_info();
-    test_format_clip_no_name();
-    test_format_clip_with_name();
-    test_format_clip_warn_with_name();
     fprintf(stderr, "All tests passed.\n");
     return 0;
 }

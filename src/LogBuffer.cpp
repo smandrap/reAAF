@@ -17,20 +17,21 @@
 
 #include "LogBuffer.h"
 
-#include <cstdio>   // snprintf
+#include <cstdio>   // snprintf, vsnprintf
+#include <cstdarg>  // va_list
 
 // ---------------------------------------------------------------------------
 // push() — the core operation;
 //
 // Verbosity thresholds (enforced at write time, before any storage):
 //   0 = None:    drop all (increment m_dropped, return)
-//   1 = Normal:  keep ERROR (0) and WARN (1) only; drop INFO (2) and CLIP (3)
+//   1 = Normal:  keep ERROR and WARN only; drop INFO
 //   2 = Verbose: keep everything
 //
 // Overflow path (m_count == kCapacity):
 //   1. Evict the oldest entry by advancing m_head (overwrites it).
 //   2. Build sentinel with severity=WARN and text="<m_dropped+1> earlier
-//      entries were dropped (buffer full)".  clipName is empty.
+//      entries were dropped (buffer full)".
 //   3. Write sentinel at m_head; advance m_head; reset m_dropped = 0;
 //      do NOT change m_count (we just freed then immediately re-used a slot).
 //   4. Now one slot remains free; write the new entry normally.
@@ -44,9 +45,17 @@ bool LogBuffer::shouldLogEntry(const LogEntry &entry) const {
     }
 }
 
-// Entry point
-void LogBuffer::log(const LogEntry::Severity sev, const char *msg, const char *clipName) {
-    push(LogEntry(sev, msg, clipName));
+void LogBuffer::log(const LogEntry::Severity sev, const char *msg) {
+    push(LogEntry(sev, msg));
+}
+
+void LogBuffer::logf(const LogEntry::Severity sev, const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    char buf[512];
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    push(LogEntry(sev, buf));
 }
 
 void LogBuffer::push(const LogEntry &entry) {

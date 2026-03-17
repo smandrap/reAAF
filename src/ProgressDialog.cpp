@@ -44,24 +44,15 @@ static WDL_WndSizer s_resizer;
 
 // ---------------------------------------------------------------------------
 // formatEntry — build the display string for one LogEntry.
-// Severity prefix mapping: ERROR→[ERROR], WARN→[WARN], INFO→[INFO], CLIP→[CLIP].
-// Clip entries with a non-empty clipName: "[CLIP] {clipName}: {text}"
 // ---------------------------------------------------------------------------
 
 static std::string formatEntry(const LogEntry &e) {
-    auto prefix = "";
+    const char *prefix = "";
     switch (e.severity) {
-        case LogEntry::ERROR: prefix = "[ERROR]";
-            break;
-        case LogEntry::WARN: prefix = "[WARN]";
-            break;
-        case LogEntry::INFO: prefix = "[INFO]";
-            break;
-        case LogEntry::CLIP: prefix = "[CLIP]";
-            break;
+        case LogEntry::ERROR: prefix = "[ERROR]"; break;
+        case LogEntry::WARN:  prefix = "[WARN]";  break;
+        case LogEntry::INFO:  prefix = "[INFO]";  break;
     }
-    if (e.severity == LogEntry::CLIP && !e.clipName.empty())
-        return std::string(prefix) + " " + e.clipName + ": " + e.text;
     return std::string(prefix) + " " + e.text;
 }
 
@@ -75,19 +66,15 @@ static WDL_DLGRET CALLBACK progressDialogProc(HWND hwnd, const UINT msg, const W
             HWND hwndList = GetDlgItem(hwnd, IDC_LOG_LIST);
 
             // Bulk-load all entries and compute summary counts in one pass.
-            int clips = 0, warnings = 0, errors = 0;
+            int warnings = 0, errors = 0;
             const int n = s_logBuffer->size();
             for (int i = 0; i < n; ++i) {
                 const LogEntry e = s_logBuffer->at(i);
                 std::string line = formatEntry(e);
                 SendMessage(hwndList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(line.c_str()));
                 switch (e.severity) {
-                    case LogEntry::CLIP: clips++;
-                        break;
-                    case LogEntry::WARN: warnings++;
-                        break;
-                    case LogEntry::ERROR: errors++;
-                        break;
+                    case LogEntry::WARN:  warnings++; break;
+                    case LogEntry::ERROR: errors++;   break;
                     default: break;
                 }
             }
@@ -95,8 +82,8 @@ static WDL_DLGRET CALLBACK progressDialogProc(HWND hwnd, const UINT msg, const W
             // Set summary label.
             char buf[128];
             snprintf(buf, sizeof(buf),
-                     "Import complete: %d clips, %d warnings, %d errors",
-                     clips, warnings, errors);
+                     "Import complete: %d warnings, %d errors",
+                     warnings, errors);
             SetDlgItemText(hwnd, IDC_PROGRESS_LABEL, buf);
 
             // Scroll to bottom.

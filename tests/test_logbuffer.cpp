@@ -79,15 +79,6 @@ static void test_verbosity_normal_drops_info()
     check(buf.count() == 0, "Normal verbosity: INFO is dropped");
 }
 
-static void test_verbosity_normal_drops_clip()
-{
-    // push(CLIP, "msg") with verbosity=1 (Normal): entry NOT stored
-    TestableLogBuffer buf;
-    buf.setVerbosity(1);
-    buf.log(LogEntry::CLIP, "clip message");
-    check(buf.count() == 0, "Normal verbosity: CLIP is dropped");
-}
-
 static void test_verbosity_none_drops_error()
 {
     // push(ERROR, "msg") with verbosity=0 (None): entry NOT stored
@@ -103,30 +94,9 @@ static void test_verbosity_verbose_stores_all()
     TestableLogBuffer buf;
     buf.setVerbosity(2);
     buf.log(LogEntry::INFO,  "info");
-    buf.log(LogEntry::CLIP,  "clip");
     buf.log(LogEntry::WARN,  "warn");
     buf.log(LogEntry::ERROR, "error");
-    check(buf.count() == 4, "Verbose verbosity: all severities stored");
-}
-
-static void test_clip_name_stored()
-{
-    // push() with clipName="Kick_01": stored entry has clipName=="Kick_01"
-    TestableLogBuffer buf;
-    buf.setVerbosity(2);
-    buf.log(LogEntry::WARN, "kick warn", "Kick_01");
-    check(buf.count() == 1, "clipName: entry stored");
-    check(buf.entryAt(0).clipName == "Kick_01", "clipName: value is Kick_01");
-}
-
-static void test_clip_name_empty_when_not_provided()
-{
-    // push() with no clipName arg: stored entry has clipName==""
-    TestableLogBuffer buf;
-    buf.setVerbosity(2);
-    buf.log(LogEntry::WARN, "no clip");
-    check(buf.count() == 1, "no clipName: entry stored");
-    check(buf.entryAt(0).clipName.empty(), "no clipName: clipName is empty string");
+    check(buf.count() == 3, "Verbose verbosity: all severities stored");
 }
 
 static void test_buffer_full_at_capacity()
@@ -232,11 +202,8 @@ int main()
 
     test_verbosity_normal_passes_warn();
     test_verbosity_normal_drops_info();
-    test_verbosity_normal_drops_clip();
     test_verbosity_none_drops_error();
     test_verbosity_verbose_stores_all();
-    test_clip_name_stored();
-    test_clip_name_empty_when_not_provided();
     test_buffer_full_at_capacity();
     test_ring_overflow_eviction_and_sentinel();
     test_sentinel_counts_multiple_drops();

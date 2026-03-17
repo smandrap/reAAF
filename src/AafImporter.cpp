@@ -27,21 +27,13 @@
 #include <defines.h>
 
 
-void libaafLogCallback(aafLog*, void*, int /*lib*/, const int type,
-                       const char*, const char*, int,
-                       const char* msg, void* user)
-{
+void libaafLogCallback(aafLog *, void *, const int lib, const int type,
+                       const char *, const char *, int,
+                       const char *msg, void *user) {
+    if (lib != LOG_SRC_ID_AAF_IFACE || type != VERB_WARNING) return;
     if (!msg || !user) return;
-    const auto* self = static_cast<AafImporter*>(user);
-    if (!self->m_logBuffer) return;
-
-    LogEntry::Severity sev;
-    switch (type) {
-        case VERB_ERROR:   sev = LogEntry::ERROR; break;
-        case VERB_WARNING: sev = LogEntry::WARN;  break;
-        default:           sev = LogEntry::INFO;  break;
-    }
-    self->m_logBuffer->log(sev, msg, self->m_currentClipName.c_str());
+    if (const auto *self = static_cast<AafImporter *>(user); self->m_logBuffer)
+        self->m_logBuffer->log(LogEntry::WARN, msg);
 }
 
 
@@ -55,6 +47,11 @@ AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuff
 int AafImporter::run() {
     if (!m_aafi) {
         rlog("ReAAF: aafi_alloc() failed\n");
+        return -1;
+    }
+
+    if (!m_logBuffer) {
+        rlog("ReAAF: Can't allocate log buffer\n");
         return -1;
     }
 
@@ -81,12 +78,6 @@ int AafImporter::run() {
         const bool isFrac = m_aafi->Timecode->edit_rate->denominator != 1;
         isDrop = isFrac ? (fps == 24 ? 2 : (m_aafi->Timecode->drop > 0 ? 1 : 2)) : 0;
     }
-
-#ifdef REAAF_DEBUG
-    rlog(":::TIMECODE:::\nAAFI: %d, %d, %d\nRPP: %d, %d\n\n", m_aafi->Timecode->edit_rate->numerator,
-         m_aafi->Timecode->edit_rate->denominator, m_aafi->Timecode->drop, fps,
-         isDrop);
-#endif
 
     // Guard destroyed at end of scope, emits closing ">" for REAPER_PROJECT
     auto proj = m_writer.project(tcOffset, fps, isDrop, samplerate);
@@ -238,14 +229,12 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
             const auto ptr = getAudioEssencePtr(clip, trackIdx);
             if (!ptr) continue;
 
-            m_currentClipName = resolveClipName(clip) ? resolveClipName(clip) : "";
             processItem_Audio(clip, ti, track->edit_rate, xFadeMap, ptr);
-            m_currentClipName.clear();
         }
     }
 }
 
-void AafImporter::processTrack_Video(const aafiVideoTrack *track)  {
+void AafImporter::processTrack_Video(const aafiVideoTrack *track) {
     auto w_trk = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
     const aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
@@ -317,7 +306,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
         // Create a media folder if it's not there already.
         if (!m_extractDirCreated) {
             if (!ensure_dir(m_extractDir)) {
-                rlog("ReAAF: could not create %s\n", m_extractDir.c_str());
+                m_logBuffer->logf(LogEntry::ERROR, "could not create extract dir: %s", m_extractDir.c_str());
                 m_writer.emptySource();
                 return;
             }
@@ -333,17 +322,19 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
                                                     nullptr, &outPath);
         free(outPath);
 
-        // TODO: log to the interface, don't use reaper console
-        if (rc != 0)
-            rlog("reaper_aaf: WARNING: failed to extract '%s'\n",
-                 ess->unique_name ? ess->unique_name : "(unnamed)");
+        if (rc != 0) {
+            m_logBuffer->logf(LogEntry::ERROR, "failed to extract '%s'",
+                              ess->unique_name ? ess->unique_name : "(unnamed)");
+            return;
+        }
+        m_logBuffer->logf(LogEntry::INFO, "Extracted '%s'", ess->unique_name);
     }
 
     // TODO: sanitize path, might contain invalid chars
     const char *filePath = ess->usable_file_path;
     if (!filePath || *filePath == '\0') {
-        rlog("reaper_aaf: WARNING: no usable path for '%s'\n",
-             ess->unique_name ? ess->unique_name : "(unnamed)");
+        m_logBuffer->logf(LogEntry::WARN, "no usable path for '%s'",
+                          ess->unique_name ? ess->unique_name : "(unnamed)");
         m_writer.emptySource();
         return;
     }
@@ -355,10 +346,11 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
     if (!ess || !ess->usable_file_path || *ess->usable_file_path == '\0') {
-        rlog("ReAAF: WARNING: video essence has no usable path.\n");
+        m_logBuffer->log(LogEntry::WARN, "video essence has no usable path");
         m_writer.emptySource();
         return;
     }
+    m_logBuffer->logf(LogEntry::INFO, "Processed video: '%s'", ess->usable_file_path);
     auto w_src = m_writer.source("VIDEO", ess->usable_file_path);
 }
 
@@ -372,12 +364,9 @@ void AafImporter::processMarkers() const {
         const bool hasColor = m->RGBColor[0] || m->RGBColor[1] || m->RGBColor[2];
         const int color = hasColor ? aafiColorToReaper(m->RGBColor) : 0;
 
-#ifdef REAAF_DEBUG
-        rlog("Marker color: %d, %d, %d\n", m->RGBColor[0], m->RGBColor[1], m->RGBColor[2]);
-#endif
-
         if (m->length == 0) {
             m_writer.writeMarker(id++, t, m->name, false, color);
+
             continue;
         }
         // it's a region

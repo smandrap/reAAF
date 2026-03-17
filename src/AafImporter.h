@@ -51,7 +51,6 @@ private:
     std::string m_extractDir;
     bool m_extractDirCreated = false;
     LogBuffer*  m_logBuffer = nullptr;
-    std::string m_currentClipName;
 
     friend void libaafLogCallback(aafLog*, void*, int, int,
                                   const char*, const char*, int,

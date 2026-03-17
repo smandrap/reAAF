@@ -18,6 +18,7 @@
 #ifndef REAPER_AAF_LOGBUFFER_H
 #define REAPER_AAF_LOGBUFFER_H
 
+#include <cstdarg>
 #include <string>
 
 
@@ -26,15 +27,14 @@
 // ---------------------------------------------------------------------------
 
 struct LogEntry {
-    enum Severity { ERROR, WARN, INFO, CLIP } severity = INFO;
+    enum Severity { ERROR, WARN, INFO } severity = INFO;
 
     std::string text;
-    std::string clipName; // empty if not clip-specific
 
     LogEntry() = default;
 
-    LogEntry(const Severity sev, const char *msg, const char *clipName = nullptr)
-        : severity(sev), text(msg ? msg : ""), clipName(clipName && *clipName ? clipName : "") {}
+    LogEntry(const Severity sev, const char *msg)
+        : severity(sev), text(msg ? msg : "") {}
 };
 
 // ---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ struct LogEntry {
 //
 // Verbosity levels:
 //   0 = None    -- drops everything; push() stores nothing
-//   1 = Normal  -- stores ERROR and WARN only; drops INFO and CLIP
+//   1 = Normal  -- stores ERROR and WARN only; drops INFO
 //   2 = Verbose -- stores all severities
 //
 // Overflow behaviour: when the buffer is at capacity (kCapacity entries),
@@ -61,8 +61,9 @@ class LogBuffer {
 public:
     static constexpr int kCapacity = 2000;
 
-    // clipName may be nullptr (stored as empty string).
-    void log(LogEntry::Severity sev, const char *msg, const char *clipName = nullptr);
+    void log(LogEntry::Severity sev, const char *msg);
+    void logf(LogEntry::Severity sev, const char *fmt, ...)
+        __attribute__((format(printf, 3, 4)));
 
     void setVerbosity(int v);
 
