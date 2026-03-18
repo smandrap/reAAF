@@ -62,7 +62,7 @@ static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
 
     const int ok = AafImporter(ctx, fn, &logBuffer).run();
     if (PrefsPage::getVerbosity() != 0)
-        LogDialog::open(&logBuffer);
+        LogDialog::open(std::move(logBuffer));
 
     return ok;
 }

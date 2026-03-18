@@ -22,6 +22,7 @@
 
 #include <cstdio>    // snprintf
 #include <string>
+#include <utility>   // std::move
 
 // ---------------------------------------------------------------------------
 // External declarations (defined in main.cpp)
@@ -39,14 +40,14 @@ LogDialog *LogDialog::s_instance = nullptr;
 // Constructor
 // ---------------------------------------------------------------------------
 
-LogDialog::LogDialog(LogBuffer *buf) : m_buf(buf) {}
+LogDialog::LogDialog(LogBuffer buf) : m_buf(std::move(buf)) {}
 
 // ---------------------------------------------------------------------------
 // Private: formatEntry
 // ---------------------------------------------------------------------------
 
 std::string LogDialog::formatEntry(const LogEntry &e) {
-    const char *prefix = "";
+    auto prefix = "";
     switch (e.severity) {
         case LogEntry::ERROR: prefix = "[ERROR]"; break;
         case LogEntry::WARN:  prefix = "[WARN]";  break;
@@ -108,9 +109,8 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
 
         case WM_DESTROY: {
             plugin_register("-accelerator", &self->m_accel);
-            const LogDialog *dlg = s_instance;
             s_instance = nullptr;
-            delete dlg;
+            delete self;
             return 0;
         }
 
@@ -131,9 +131,9 @@ void LogDialog::populate() const {
 
     // Bulk-load all entries and compute summary counts in one pass.
     int warnings = 0, errors = 0;
-    const int n = m_buf->size();
+    const int n = m_buf.size();
     for (int i = 0; i < n; ++i) {
-        const LogEntry e = m_buf->at(i);
+        const LogEntry e = m_buf.at(i);
         std::string line = formatEntry(e);
         SendMessage(hwndList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(line.c_str()));
         switch (e.severity) {
@@ -159,14 +159,14 @@ void LogDialog::populate() const {
 // Public: open
 // ---------------------------------------------------------------------------
 
-void LogDialog::open(LogBuffer *buf) {
+void LogDialog::open(LogBuffer buf) {
     if (s_instance) {
-        s_instance->m_buf = buf;
+        s_instance->m_buf = std::move(buf);
         s_instance->populate();
         SetForegroundWindow(s_instance->m_hwnd);
         return;
     }
-    s_instance = new LogDialog(buf);
+    s_instance = new LogDialog(std::move(buf));
     HWND parent = GetMainHwnd();
     HWND hwnd = CreateDialogParam(g_hInst,
                                   MAKEINTRESOURCE(IDD_AAF_PROGRESS),
@@ -181,12 +181,14 @@ void LogDialog::open(LogBuffer *buf) {
     ShowWindow(hwnd, SW_SHOW);
 }
 
+// ---------------------------------------------------------------------------
+// Public: HandleKey / close
+// ---------------------------------------------------------------------------
+
 int LogDialog::HandleKey(MSG *msg, accelerator_register_t *accel) {
     const auto dlg = static_cast<LogDialog *>(accel->user);
-    if (!dlg) {
-        // handle focus here too
+    if (!dlg)
         return 0;
-    }
     accel->isLocal = true;
 
     if (const int key = static_cast<int>(msg->wParam); key == VK_ESCAPE) {
@@ -199,4 +201,3 @@ int LogDialog::HandleKey(MSG *msg, accelerator_register_t *accel) {
 void LogDialog::close() const {
     DestroyWindow(m_hwnd);
 }
-

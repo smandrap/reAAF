@@ -25,36 +25,31 @@
 #include "wingui/wndsize.h"
 
 // Modeless dialog that displays log entries collected during an AAF import.
-// At most one instance exists at a time (singleton). The caller retains
-// ownership of the LogBuffer — LogDialog never frees it.
+// At most one instance exists at a time. The dialog owns its LogBuffer by
+// value. Call from main thread only.
 class LogDialog {
 public:
-    // Opens the dialog and bulk-loads all entries from buf.
-    // If already open, refreshes the list with the new buffer and brings it to the foreground.
-    // buf must remain valid for the lifetime of the dialog.
-    // Call from main thread only.
-    static void open(LogBuffer *buf);
-
-    static int HandleKey(MSG *msg, accelerator_register_t *accel);
-
-    void close() const;
+    // Opens the dialog with a fresh buffer. If already open, refreshes the
+    // list with the new data and brings the window to the foreground.
+    static void open(LogBuffer buf);
 
 private:
-    explicit LogDialog(LogBuffer *buf);
-    ~LogDialog() = default; // m_buf is not owned — never freed here
+    explicit LogDialog(LogBuffer buf);
+    ~LogDialog() = default;
 
-    static std::string     formatEntry(const LogEntry &e);
-    static WDL_DLGRET CALLBACK dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-    // Clears the listbox and summary label, then repopulates from m_buf.
+    void close() const;
     void populate() const;
 
-    LogBuffer              *m_buf;             // not owned
+    static int HandleKey(MSG *msg, accelerator_register_t *accel);
+    static std::string formatEntry(const LogEntry &e);
+    static WDL_DLGRET CALLBACK dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+    LogBuffer               m_buf;
     HWND                    m_hwnd = nullptr;
     WDL_WndSizer            m_resizer;
     accelerator_register_t  m_accel = {};
 
-    static LogDialog *s_instance;  // nullptr when no dialog is open
+    static LogDialog *s_instance;
 };
 
 #endif // REAPER_AAF_LOGDIALOG_H
