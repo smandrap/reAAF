@@ -94,6 +94,8 @@ int AafImporter::run() {
     AAFI_foreachAudioTrack(m_aafi, track) {
         processTrack_Audio(track);
     }
+    m_logBuffer->log(LogEntry::ERROR, "TEST ERROR");
+    m_logBuffer->log(LogEntry::WARN, "TEST WARN");
 
     return 0;
 }

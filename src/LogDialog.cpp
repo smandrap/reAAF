@@ -18,6 +18,19 @@
 #include "LogDialog.h"
 #include "resource.h"
 #include "reaper_plugin_functions.h"
+
+#ifndef CDRF_DODEFAULT
+#  define CDRF_DODEFAULT        0x00000000
+#endif
+#ifndef CDRF_NOTIFYITEMDRAW
+#  define CDRF_NOTIFYITEMDRAW   0x00000020
+#endif
+#ifndef CDIS_SELECTED
+#  define CDIS_SELECTED         0x0001
+#endif
+#ifndef COLOR_WINDOWTEXT
+#  define COLOR_WINDOWTEXT      8
+#endif
 #include "reaper_plugin.h"
 
 #include <cstdio>    // snprintf
@@ -43,23 +56,6 @@ LogDialog *LogDialog::s_instance = nullptr;
 LogDialog::LogDialog(LogBuffer buf) : m_buf(std::move(buf)) {}
 
 // ---------------------------------------------------------------------------
-// Private: formatEntry
-// ---------------------------------------------------------------------------
-
-std::string LogDialog::formatEntry(const LogEntry &e) {
-    auto prefix = "";
-    switch (e.severity) {
-        case LogEntry::ERROR: prefix = "[ERROR]";
-            break;
-        case LogEntry::WARN: prefix = "[WARN]";
-            break;
-        case LogEntry::INFO: prefix = "[INFO]";
-            break;
-    }
-    return std::string(prefix) + " " + e.text;
-}
-
-// ---------------------------------------------------------------------------
 // Private: dialogProc
 // ---------------------------------------------------------------------------
 
@@ -74,6 +70,24 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
         case WM_INITDIALOG: {
             SetWindowLongPtr(hwnd, GWLP_USERDATA, lParam);
             self->m_hwnd = hwnd;
+
+            // Set up ListView extended styles and columns.
+            HWND hwndList = GetDlgItem(hwnd, IDC_LOG_LIST);
+            ListView_SetExtendedListViewStyleEx(hwndList,
+                                                LVS_EX_FULLROWSELECT,
+                                                LVS_EX_FULLROWSELECT);
+
+            LVCOLUMN col = {};
+            col.mask = LVCF_TEXT | LVCF_WIDTH;
+            col.pszText = const_cast<char *>("Level");
+            col.cx = 55;
+            ListView_InsertColumn(hwndList, 0, &col);
+
+            col.pszText = const_cast<char *>("Message");
+            RECT listRc;
+            GetClientRect(hwndList, &listRc);
+            col.cx = listRc.right;
+            ListView_InsertColumn(hwndList, 1, &col);
 
             self->populate();
 
@@ -122,8 +136,48 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
             return 0;
         }
 
+        case WM_NOTIFY: {
+            const auto *hdr = reinterpret_cast<NMHDR *>(lParam);
+            if (hdr->idFrom != IDC_LOG_LIST || hdr->code != NM_CUSTOMDRAW)
+                return 0;
+            auto *nmcd = reinterpret_cast<NMLVCUSTOMDRAW *>(lParam);
+            return self->onCustomDraw(nmcd);
+        }
+
         default:
             return 0;
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Private: onCustomDraw
+// ---------------------------------------------------------------------------
+
+LRESULT LogDialog::onCustomDraw(NMLVCUSTOMDRAW *nmcd) const {
+    switch (nmcd->nmcd.dwDrawStage) {
+        case CDDS_PREPAINT:
+            return CDRF_NOTIFYITEMDRAW;
+
+        case CDDS_ITEMPREPAINT: {
+            // Let the system render selected rows naturally
+            if (nmcd->nmcd.uItemState & CDIS_SELECTED)
+                return CDRF_DODEFAULT;
+
+            const int idx = static_cast<int>(nmcd->nmcd.dwItemSpec);
+            if (idx < 0 || idx >= m_buf.size())
+                return CDRF_DODEFAULT;
+
+            const LogEntry &e = m_buf.at(idx);
+            switch (e.severity) {
+                case LogEntry::ERROR: nmcd->clrText = RGB(220, 0,   0);                  break;
+                case LogEntry::WARN:  nmcd->clrText = RGB(180, 180, 0);                  break;
+                default:              nmcd->clrText = GetSysColor(COLOR_WINDOWTEXT);     break;
+            }
+            return CDRF_DODEFAULT;
+        }
+
+        default:
+            return CDRF_DODEFAULT;
     }
 }
 
@@ -134,35 +188,48 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
 void LogDialog::populate() const {
     HWND hwndList = GetDlgItem(m_hwnd, IDC_LOG_LIST);
 
-    // Clear any existing content.
-    SendMessage(hwndList, LB_RESETCONTENT, 0, 0);
+    SendMessage(hwndList, WM_SETREDRAW, FALSE, 0);
+    ListView_DeleteAllItems(hwndList);
 
-    // Bulk-load all entries and compute summary counts in one pass.
     int warnings = 0, errors = 0;
     const int n = m_buf.size();
     for (int i = 0; i < n; ++i) {
         const LogEntry e = m_buf.at(i);
-        std::string line = formatEntry(e);
-        SendMessage(hwndList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(line.c_str()));
+
+        auto level = "";
         switch (e.severity) {
-            case LogEntry::WARN: warnings++;
+            case LogEntry::ERROR: level = "ERROR";
+                errors++;
                 break;
-            case LogEntry::ERROR: errors++;
+            case LogEntry::WARN: level = "WARN";
+                warnings++;
                 break;
-            default: break;
+            case LogEntry::INFO: level = "INFO";
+                break;
         }
+
+        LVITEM item = {};
+        item.mask = LVIF_TEXT;
+        item.iItem = i;
+        item.pszText = const_cast<char *>(level);
+        ListView_InsertItem(hwndList, &item);
+
+        ListView_SetItemText(hwndList, i, 1,
+                             const_cast<char *>(e.text.c_str()));
     }
 
-    // Set summary label.
+    SendMessage(hwndList, WM_SETREDRAW, TRUE, 0);
+    InvalidateRect(hwndList, nullptr, TRUE);
+
+    // Summary label
     char label[128];
     snprintf(label, sizeof(label),
-             "Import complete: %d warnings, %d errors",
-             warnings, errors);
+             "Import complete: %d warnings, %d errors", warnings, errors);
     SetDlgItemText(m_hwnd, IDC_PROGRESS_LABEL, label);
 
-    // Scroll to bottom.
-    if (const int count = static_cast<int>(SendMessage(hwndList, LB_GETCOUNT, 0, 0)); count > 0)
-        SendMessage(hwndList, LB_SETCURSEL, static_cast<WPARAM>(count - 1), 0);
+    // Scroll to last row
+    if (n > 0)
+        ListView_EnsureVisible(hwndList, n - 1, FALSE);
 }
 
 // ---------------------------------------------------------------------------
@@ -191,9 +258,6 @@ void LogDialog::open(LogBuffer buf) {
     ShowWindow(hwnd, SW_SHOW);
 }
 
-// ---------------------------------------------------------------------------
-// Public: HandleKey / close
-// ---------------------------------------------------------------------------
 
 int LogDialog::HandleKey(MSG *msg, accelerator_register_t *accel) {
     const auto dlg = static_cast<LogDialog *>(accel->user);

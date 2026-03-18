@@ -42,9 +42,9 @@ private:
 
     void populate() const;
 
-    static int HandleKey(MSG *msg, accelerator_register_t *accel);
+    LRESULT onCustomDraw(NMLVCUSTOMDRAW *nmcd) const;
 
-    static std::string formatEntry(const LogEntry &e);
+    static int HandleKey(MSG *msg, accelerator_register_t *accel);
 
     static WDL_DLGRET CALLBACK dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
