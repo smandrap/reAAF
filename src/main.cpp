@@ -18,7 +18,7 @@
 #include "AafImporter.h"
 #include "LogBuffer.h"
 #include "PrefsPage.h"
-#include "ProgressDialog.h"
+#include "LogDialog.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "version.h"
@@ -36,7 +36,7 @@ REAPER_PLUGIN_HINSTANCE g_hInst = nullptr;
 
 // Stored Register fn pointer — used by the atexit callback to unregister
 // the preferences page after REAPER has finished calling into the plugin.
-static RegisterFn g_registerFn = nullptr;
+RegisterFn g_registerFn = nullptr;
 
 // ---------------------------------------------------------------------------
 // projectimport callbacks
@@ -62,7 +62,7 @@ static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
 
     const int ok = AafImporter(ctx, fn, &logBuffer).run();
     if (PrefsPage::getVerbosity() != 0)
-        ProgressDialog_Open(&logBuffer);
+        LogDialog::open(&logBuffer);
 
     return ok;
 }
@@ -91,15 +91,12 @@ int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance,
     if (rec->caller_version != REAPER_PLUGIN_VERSION) return 0;
     if (REAPERAPI_LoadAPI(rec->GetFunc) != 0) return 0;
 
-    rec->Register("projectimport", &g_import_reg);
+    plugin_register("projectimport", &g_import_reg);
 
     // Register the AAF Import preferences page
     PrefsPage::registerPage(rec);
 
-    // Store the Register fn pointer for the atexit callback.
-    // The lambda captures nothing — g_registerFn is module-scope.
-    g_registerFn = rec->Register;
-    rec->Register("atexit", reinterpret_cast<void *>(+[] {
+    plugin_register("atexit", reinterpret_cast<void *>(+[] {
         PrefsPage::unregisterPage_static(g_registerFn);
     }));
 

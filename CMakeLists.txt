@@ -88,7 +88,7 @@ add_library(reaper_aaf MODULE
         src/FadeResolver.cpp
         src/LogBuffer.cpp
         src/PrefsPage.cpp
-        src/ProgressDialog.cpp
+        src/LogDialog.cpp
         ${REAPER_SDK_DIR}/WDL/wingui/wndsize.cpp
 )
 
@@ -119,6 +119,7 @@ target_link_libraries(reaper_aaf PRIVATE aaf-static)
 # -------------------------------------------------------------------------
 target_compile_definitions(reaper_aaf PRIVATE
         REAPERAPI_MINIMAL
+        REAPERAPI_WANT_plugin_register
         REAPERAPI_WANT_ShowConsoleMsg
         REAPERAPI_WANT_SetExtState
         REAPERAPI_WANT_GetExtState
