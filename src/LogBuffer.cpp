@@ -29,12 +29,14 @@
 //   2 = Verbose: keep everything
 //
 // Overflow path (m_count == kCapacity):
-//   1. Evict the oldest entry by advancing m_head (overwrites it).
-//   2. Build sentinel with severity=WARN and text="<m_dropped+1> earlier
-//      entries were dropped (buffer full)".
-//   3. Write sentinel at m_head; advance m_head; reset m_dropped = 0;
-//      do NOT change m_count (we just freed then immediately re-used a slot).
-//   4. Now one slot remains free; write the new entry normally.
+//   First overflow (m_overflowing == false):
+//     1. Evict the oldest entry; write a sentinel WARN at that slot:
+//        "<m_dropped+1> earlier entries were dropped (buffer full)".
+//     2. Advance m_head; reset m_dropped = 0; set m_overflowing = true.
+//     3. Fall through to the pure-ring write below.
+//   Subsequent overflows (m_overflowing == true):
+//     Just evict the oldest entry and store the new one. No sentinel spam.
+//   m_count never exceeds kCapacity.
 // ---------------------------------------------------------------------------
 
 bool LogBuffer::shouldLogEntry(const LogEntry &entry) const {
@@ -65,15 +67,17 @@ void LogBuffer::push(const LogEntry &entry) {
     }
 
     if (m_count == kCapacity) {
-        char buf[80];
-        snprintf(buf, sizeof(buf), "%d earlier entries were dropped (buffer full)", m_dropped + 1);
-        m_entries[m_head] = LogEntry(LogEntry::WARN, buf);
-        m_head = (m_head + 1) % kCapacity;
-        m_dropped = 0;
-
+        if (!m_overflowing) {
+            char buf[80];
+            snprintf(buf, sizeof(buf), "%d earlier entries were dropped (buffer full)", m_dropped + 1);
+            m_entries[m_head] = LogEntry(LogEntry::WARN, buf);
+            m_head = (m_head + 1) % kCapacity;
+            m_dropped = 0;
+            m_overflowing = true;
+        }
+        // Pure ring: evict oldest, store new entry. m_count stays at kCapacity.
         m_entries[m_head] = entry;
         m_head = (m_head + 1) % kCapacity;
-        // m_count unchanged — still kCapacity
         return;
     }
 

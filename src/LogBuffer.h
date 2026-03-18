@@ -50,16 +50,16 @@ struct LogEntry {
 //   1 = Normal  -- stores ERROR and WARN only; drops INFO
 //   2 = Verbose -- stores all severities
 //
-// Overflow behaviour: when the buffer is at capacity (kCapacity entries),
-// push() evicts the oldest entry, inserts a sentinel [WARN] entry whose text
-// is "N earlier entries were dropped (buffer full)" (N = m_dropped + 1 where
-// m_dropped counts verbosity-filtered drops since the last sentinel), then
-// stores the new entry. Count never exceeds kCapacity.
+// Overflow behaviour: on the first overflow push() evicts the oldest entry
+// and inserts a one-time sentinel [WARN] "N earlier entries were dropped
+// (buffer full)" (N = m_dropped + 1), then stores the new entry.  All
+// subsequent overflows silently evict the oldest entry and store the new one
+// (pure ring-buffer behaviour). Count never exceeds kCapacity.
 // ---------------------------------------------------------------------------
 
 class LogBuffer {
 public:
-    static constexpr int kCapacity = 2000;
+    static constexpr int kCapacity = 10000;
 
     void log(LogEntry::Severity sev, const char *msg);
     void logf(LogEntry::Severity sev, const char *fmt, ...)
@@ -83,6 +83,7 @@ private:
     int m_count = 0; // entries currently stored (max kCapacity)
     int m_verbosity = 1; // 0=None, 1=Normal, 2=Verbose
     int m_dropped = 0; // verbosity-filtered drops since last sentinel
+    bool m_overflowing = false; // true after the first capacity overflow
 
     [[nodiscard]] bool shouldLogEntry(const LogEntry &entry) const;
 

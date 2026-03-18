@@ -199,17 +199,17 @@ void LogDialog::populate() const {
     for (int i = 0; i < n; ++i) {
         const LogEntry &e = m_buf.at(i);
 
-        char level[8];
+        const char *level;
         switch (e.severity) {
-            case LogEntry::ERROR: strcpy(level, "ERROR"); ++errors;   break;
-            case LogEntry::WARN:  strcpy(level, "WARN");  ++warnings; break;
-            default:              strcpy(level, "INFO");              break;
+            case LogEntry::ERROR: level = "ERROR"; ++errors;   break;
+            case LogEntry::WARN:  level = "WARN";  ++warnings; break;
+            default:              level = "INFO";              break;
         }
 
         LVITEM item = {};
         item.mask = LVIF_TEXT;
         item.iItem = i;
-        item.pszText = level;
+        item.pszText = const_cast<char *>(level);
         ListView_InsertItem(hwndList, &item);
 
         std::string rowText = e.text;

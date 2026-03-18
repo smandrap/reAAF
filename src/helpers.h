@@ -45,7 +45,10 @@ inline std::string escape_rpp_string(const char *raw) {
     out.reserve(strlen(raw) + 8); // Do I really need to preallocate those 8 bytes?
     for (const char *p = raw; *p; ++p) {
         if (*p == '\\') { out += "\\\\"; continue; } // Escape backslash
-        if (*p == '"') { out += "\\\""; continue; } // Escape quotes
+        if (*p == '"')  { out += "\\\""; continue; } // Escape quotes
+        if (*p == '\n') { out += "\\n";  continue; } // Escape newline (RPP line injection vector)
+        if (*p == '\r') { out += "\\r";  continue; } // Escape carriage return
+        if (static_cast<unsigned char>(*p) < 0x20) { out += ' '; continue; } // Strip other control chars
         out += *p;
     }
     return out;

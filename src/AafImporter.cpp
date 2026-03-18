@@ -55,6 +55,14 @@ int AafImporter::run() {
         return -1;
     }
 
+    m_writer.setErrorHandler([this](RppWriter::ErrorKind kind, const char *msg) {
+        switch (kind) {
+            case RppWriter::ErrorKind::LineTruncated:
+                m_logBuffer->logf(LogEntry::ERROR, "%s", msg);
+                break;
+        }
+    });
+
     aafi_set_debug(m_aafi.get(), VERB_WARNING, 0, nullptr, &AafImporter::libaafLogCallback, this);
     aafi_set_option_int(m_aafi.get(), "protools", PROTOOLS_ALL_OPT);
 
@@ -165,6 +173,7 @@ AafImporter::TrackLayout AafImporter::countRequiredTracks(const aafiAudioClip *c
     int nchan = 2;
     const aafiAudioEssencePointer *p = nullptr;
     AAFI_foreachEssencePointer(clip->essencePointerList, p) {
+        if (!p->essenceFile) { ++cnt; continue; }
         if (p->essenceFile->channels > 1) {
             nchan = std::max(nchan, static_cast<int>(p->essenceFile->channels));
             cnt = 1;
