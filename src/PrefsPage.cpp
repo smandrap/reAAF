@@ -16,7 +16,6 @@
  */
 
 #include "PrefsPage.h"
-#include "LogBuffer.h"
 #include "reaper_plugin_functions.h"
 #include "resource.h"
 #include "wdltypes.h"
@@ -31,12 +30,6 @@
 static constexpr auto kSection = "reaper_aaf";
 static constexpr auto kKeyVerb = "verbosity";
 
-// ---------------------------------------------------------------------------
-// External declarations
-// ---------------------------------------------------------------------------
-
-// g_logBuffer is defined in main.cpp (module-scope, not static)
-extern LogBuffer g_logBuffer;
 
 // ---------------------------------------------------------------------------
 // Forward declarations
@@ -90,7 +83,6 @@ void PrefsPage::setVerbosity(const int v) {
     snprintf(buf, sizeof(buf), "%d", v);
     SetExtState(kSection, kKeyVerb, buf, /*persist=*/true);
     // Sync the runtime LogBuffer so the new verbosity takes effect immediately
-    g_logBuffer.setVerbosity(v);
 }
 
 // REAPER sends this message to the active prefs page when Apply is clicked.

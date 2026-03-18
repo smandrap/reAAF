@@ -32,8 +32,6 @@
 #  define strcasecmp _stricmp
 #endif
 
-// Module-scope (not static) so PrefsPage.cpp can declare it with extern.
-LogBuffer g_logBuffer;
 REAPER_PLUGIN_HINSTANCE g_hInst = nullptr;
 
 // Stored Register fn pointer — used by the atexit callback to unregister
@@ -59,9 +57,13 @@ static const char *aaf_EnumFileExtensions(const int i, char **descptr) {
 
 static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
     if (!fn || !ctx) return -1;
-    const int ok = AafImporter(ctx, fn, &g_logBuffer).run();
-    if (g_logBuffer.getVerbosity() != 0)
-        ProgressDialog_Open(&g_logBuffer);
+    LogBuffer logBuffer;
+    logBuffer.setVerbosity(PrefsPage::getVerbosity());
+
+    const int ok = AafImporter(ctx, fn, &logBuffer).run();
+    if (PrefsPage::getVerbosity() != 0)
+        ProgressDialog_Open(&logBuffer);
+
     return ok;
 }
 
@@ -93,9 +95,6 @@ int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance,
 
     // Register the AAF Import preferences page
     PrefsPage::registerPage(rec);
-
-    // Sync the persisted verbosity into the runtime LogBuffer at startup
-    g_logBuffer.setVerbosity(PrefsPage::getVerbosity());
 
     // Store the Register fn pointer for the atexit callback.
     // The lambda captures nothing — g_registerFn is module-scope.
