@@ -35,19 +35,24 @@ public:
 
 private:
     explicit LogDialog(LogBuffer buf);
+
     ~LogDialog() = default;
 
     void close() const;
+
     void populate() const;
 
     static int HandleKey(MSG *msg, accelerator_register_t *accel);
+
     static std::string formatEntry(const LogEntry &e);
+
     static WDL_DLGRET CALLBACK dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-    LogBuffer               m_buf;
-    HWND                    m_hwnd = nullptr;
-    WDL_WndSizer            m_resizer;
-    accelerator_register_t  m_accel = {};
+    LogBuffer m_buf;
+    HWND m_hwnd = nullptr;
+    WDL_WndSizer m_resizer;
+    accelerator_register_t m_accel = {};
+    bool m_isFocused = false;
 
     static LogDialog *s_instance;
 };

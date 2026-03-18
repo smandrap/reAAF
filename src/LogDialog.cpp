@@ -49,9 +49,12 @@ LogDialog::LogDialog(LogBuffer buf) : m_buf(std::move(buf)) {}
 std::string LogDialog::formatEntry(const LogEntry &e) {
     auto prefix = "";
     switch (e.severity) {
-        case LogEntry::ERROR: prefix = "[ERROR]"; break;
-        case LogEntry::WARN:  prefix = "[WARN]";  break;
-        case LogEntry::INFO:  prefix = "[INFO]";  break;
+        case LogEntry::ERROR: prefix = "[ERROR]";
+            break;
+        case LogEntry::WARN: prefix = "[WARN]";
+            break;
+        case LogEntry::INFO: prefix = "[INFO]";
+            break;
     }
     return std::string(prefix) + " " + e.text;
 }
@@ -76,16 +79,16 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
 
             // Register keyboard accelerator so REAPER routes keys to HandleKey.
             self->m_accel.translateAccel = HandleKey;
-            self->m_accel.isLocal        = true;
-            self->m_accel.user           = self;
+            self->m_accel.isLocal = true;
+            self->m_accel.user = self;
             plugin_register("accelerator", &self->m_accel);
 
             // Set up resizer — anchors are (left, top, right, bottom).
             // 0.0 = anchored to that edge of the dialog, 1.0 = moves with the opposite edge.
             self->m_resizer.init(hwnd);
             self->m_resizer.init_item(IDC_PROGRESS_LABEL, 0.0f, 0.0f, 1.0f, 0.0f); // stretches right, fixed top
-            self->m_resizer.init_item(IDC_LOG_LIST,        0.0f, 0.0f, 1.0f, 1.0f); // stretches both axes
-            self->m_resizer.init_item(IDC_CLOSE_BTN,       1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
+            self->m_resizer.init_item(IDC_LOG_LIST, 0.0f, 0.0f, 1.0f, 1.0f); // stretches both axes
+            self->m_resizer.init_item(IDC_CLOSE_BTN, 1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
 
             return 1;
         }
@@ -98,7 +101,12 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
 
         case WM_COMMAND: {
             if (LOWORD(wParam) == IDC_CLOSE_BTN)
-               self->close();
+                self->close();
+            return 0;
+        }
+
+        case WM_ACTIVATE: {
+            self->m_isFocused = LOWORD(wParam) == WA_ACTIVE;
             return 0;
         }
 
@@ -137,8 +145,10 @@ void LogDialog::populate() const {
         std::string line = formatEntry(e);
         SendMessage(hwndList, LB_ADDSTRING, 0, reinterpret_cast<LPARAM>(line.c_str()));
         switch (e.severity) {
-            case LogEntry::WARN:  warnings++; break;
-            case LogEntry::ERROR: errors++;   break;
+            case LogEntry::WARN: warnings++;
+                break;
+            case LogEntry::ERROR: errors++;
+                break;
             default: break;
         }
     }
@@ -187,9 +197,8 @@ void LogDialog::open(LogBuffer buf) {
 
 int LogDialog::HandleKey(MSG *msg, accelerator_register_t *accel) {
     const auto dlg = static_cast<LogDialog *>(accel->user);
-    if (!dlg)
+    if (!dlg || !dlg->m_isFocused)
         return 0;
-    accel->isLocal = true;
 
     if (const int key = static_cast<int>(msg->wParam); key == VK_ESCAPE) {
         dlg->close();
