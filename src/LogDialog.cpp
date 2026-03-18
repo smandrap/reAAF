@@ -34,6 +34,7 @@
 #include "reaper_plugin.h"
 
 #include <cstdio>    // snprintf
+#include <cstring>   // strcpy
 #include <string>
 #include <utility>   // std::move
 
@@ -79,11 +80,13 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
 
             LVCOLUMN col = {};
             col.mask = LVCF_TEXT | LVCF_WIDTH;
-            col.pszText = const_cast<char *>("Level");
+            char colLevel[] = "Level";
+            col.pszText = colLevel;
             col.cx = 55;
             ListView_InsertColumn(hwndList, 0, &col);
 
-            col.pszText = const_cast<char *>("Message");
+            char colMessage[] = "Message";
+            col.pszText = colMessage;
             RECT listRc;
             GetClientRect(hwndList, &listRc);
             col.cx = listRc.right;
@@ -194,28 +197,23 @@ void LogDialog::populate() const {
     int warnings = 0, errors = 0;
     const int n = m_buf.size();
     for (int i = 0; i < n; ++i) {
-        const LogEntry e = m_buf.at(i);
+        const LogEntry &e = m_buf.at(i);
 
-        auto level = "";
+        char level[8];
         switch (e.severity) {
-            case LogEntry::ERROR: level = "ERROR";
-                errors++;
-                break;
-            case LogEntry::WARN: level = "WARN";
-                warnings++;
-                break;
-            case LogEntry::INFO: level = "INFO";
-                break;
+            case LogEntry::ERROR: strcpy(level, "ERROR"); ++errors;   break;
+            case LogEntry::WARN:  strcpy(level, "WARN");  ++warnings; break;
+            default:              strcpy(level, "INFO");              break;
         }
 
         LVITEM item = {};
         item.mask = LVIF_TEXT;
         item.iItem = i;
-        item.pszText = const_cast<char *>(level);
+        item.pszText = level;
         ListView_InsertItem(hwndList, &item);
 
-        ListView_SetItemText(hwndList, i, 1,
-                             const_cast<char *>(e.text.c_str()));
+        std::string rowText = e.text;
+        ListView_SetItemText(hwndList, i, 1, rowText.data());
     }
 
     SendMessage(hwndList, WM_SETREDRAW, TRUE, 0);

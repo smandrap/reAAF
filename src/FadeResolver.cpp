@@ -17,7 +17,6 @@
 
 #include "FadeResolver.h"
 #include <libaaf.h>
-#include <sys/stat.h>
 
 #include "helpers.h"
 

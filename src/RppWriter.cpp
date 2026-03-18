@@ -41,24 +41,24 @@ void RppWriter::line(const char *fmt, ...) const {
 
 
 auto RppWriter::project(const double tcOffsetSec, const int fps, const int isDrop,
-                        const unsigned samplerate) -> ProjectChunk {
+                        const unsigned samplerate) -> Chunk {
     line("<REAPER_PROJECT 0.1");
     line("PROJOFFS %.10f 0 0", tcOffsetSec);
     line("TIMEMODE 1 5 -1 %d %d 0 -1", fps, isDrop);
     line("SMPTESYNC 0 %d 100 40 1000 300 0 0 0 0 0", fps);
     line("SAMPLERATE %u 0 0", samplerate);
-    return ProjectChunk{*this};
+    return Chunk{*this};
 }
 
 
 auto RppWriter::track(const char *name, const double vol, const double pan,
-                      const int mute, const int solo, const int nchan) -> TrackChunk {
+                      const int mute, const int solo, const int nchan) -> Chunk {
     line("<TRACK");
     line("NAME \"%s\"", name ? escape_rpp_string(name).c_str() : "");
     line("VOLPAN %.6f %.6f -1 -1 1", vol, pan);
     line("MUTESOLO %d %d 0", mute, solo);
     line("NCHAN %d", nchan);
-    return TrackChunk{*this};
+    return Chunk{*this};
 }
 
 
@@ -67,7 +67,7 @@ auto RppWriter::item(const char *name,
                      const double fadeInLen, const int fadeInShape,
                      const double fadeOutLen, const int fadeOutShape,
                      const double gainLin, const double srcOffsSec,
-                     const int mute) -> ItemChunk {
+                     const int mute) -> Chunk {
     line("<ITEM");
     line("POSITION %.10f", posSec);
     line("LENGTH %.10f", lenSec);
@@ -78,27 +78,27 @@ auto RppWriter::item(const char *name,
     line("VOLPAN %.6f 0.000000 1.000000 -1", gainLin);
     line("SOFFS %.10f", srcOffsSec);
     line("LOOP 0");
-    return ItemChunk{*this};
+    return Chunk{*this};
 }
 
-auto RppWriter::source(const char *type, const char *filePath) -> SourceChunk {
+auto RppWriter::source(const char *type, const char *filePath) -> Chunk {
     assert(type && filePath && *filePath != '\0');
     line("<SOURCE %s", type);
     line("FILE \"%s\"", escape_rpp_string(filePath).c_str());
-    return SourceChunk{*this};
+    return Chunk{*this};
 }
 
-auto RppWriter::emptySource() -> SourceChunk {
+auto RppWriter::emptySource() -> Chunk {
     line("<SOURCE EMPTY");
-    return SourceChunk{*this};
+    return Chunk{*this};
 }
 
 
-auto RppWriter::envelope(const char *tag, const bool arm) -> EnvChunk {
+auto RppWriter::envelope(const char *tag, const bool arm) -> Chunk {
     line("<%s", tag);
     line("VIS 1 1 1");
     if (arm) line("ARM 1");
-    return EnvChunk{*this};
+    return Chunk{*this};
 }
 
 void RppWriter::writeMarker(const int id, const double timeSec, const char *name, const bool isRegionBoundary,

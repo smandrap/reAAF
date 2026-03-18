@@ -18,6 +18,7 @@
 #ifndef REAPER_AAF_HELPERS_H
 #define REAPER_AAF_HELPERS_H
 
+#include <algorithm>
 #include <cstring>
 #include <string>
 
@@ -50,16 +51,12 @@ inline std::string escape_rpp_string(const char *raw) {
     return out;
 }
 
-[[nodiscard]] constexpr double clamp_volume(double lin) noexcept {
-    if (lin < 0.0) lin = 0.0;
-    if (lin > 4.0) lin = 4.0;
-    return lin;
+[[nodiscard]] constexpr double clamp_volume(const double lin) noexcept {
+    return std::clamp(lin, 0.0, 4.0);
 }
 
-[[nodiscard]] constexpr double clamp_pan(double pan) noexcept {
-    if (pan < -1.0) pan = -1.0;
-    if (pan > 1.0) pan = 1.0;
-    return pan;
+[[nodiscard]] constexpr double clamp_pan(const double pan) noexcept {
+    return std::clamp(pan, -1.0, 1.0);
 }
 
 [[nodiscard]] constexpr int aafiColorToReaper(const uint16_t rgb[3]) noexcept {

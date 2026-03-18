@@ -49,7 +49,8 @@ static bool aaf_WantProjectFile(const char *fn) {
 
 static const char *aaf_EnumFileExtensions(const int i, char **descptr) {
     if (i == 0) {
-        if (descptr) *descptr = const_cast<char *>("Advanced Authoring Format (*.aaf)");
+        static char kAafFileDesc[] = "Advanced Authoring Format (*.aaf)";
+        if (descptr) *descptr = kAafFileDesc;
         return "aaf";
     }
     return nullptr;

@@ -21,7 +21,7 @@
 #include "wdltypes.h"
 
 #include <cstdio>    // snprintf
-#include <cstdlib>   // atoi
+#include <cstdlib>   // strtol
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -74,8 +74,12 @@ void PrefsPage::unregisterPage_static(const RegisterFn fn) {
 
 int PrefsPage::getVerbosity() {
     if (!HasExtState(kSection, kKeyVerb)) return 1; // default: Normal
-    // atoi immediately — do NOT store the pointer from GetExtState
-    return atoi(GetExtState(kSection, kKeyVerb));
+    // strtol immediately — do NOT store the pointer from GetExtState
+    const char *s = GetExtState(kSection, kKeyVerb);
+    char *end;
+    const long v = strtol(s, &end, 10);
+    if (end == s || v < 0 || v > 2) return 1; // unparseable or out of range
+    return static_cast<int>(v);
 }
 
 void PrefsPage::setVerbosity(const int v) {

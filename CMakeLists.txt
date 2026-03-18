@@ -1,50 +1,41 @@
 cmake_minimum_required(VERSION 3.15)
 project(reAAF VERSION 0.1.2 LANGUAGES C CXX OBJC OBJCXX)
 
-# -------------------------------------------------------------------------
-# LogBuffer standalone test binary (no REAPER SDK required)
-# -------------------------------------------------------------------------
-add_executable(test_logbuffer
-        tests/test_logbuffer.cpp
-        src/LogBuffer.cpp
-)
-target_include_directories(test_logbuffer PRIVATE
-        src
-        ${CMAKE_SOURCE_DIR}/extern/reaper-sdk/WDL
-)
-set_target_properties(test_logbuffer PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-)
-
-if(UNIX AND NOT APPLE)
-    target_link_libraries(test_logbuffer PRIVATE pthread)
-elseif(UNIX AND APPLE)
-    # pthread is provided by libSystem on macOS — no explicit link needed
-endif()
-
-# -------------------------------------------------------------------------
-# test_progressdialog_format: formatEntry() unit tests
-# -------------------------------------------------------------------------
-add_executable(test_progressdialog_format
-        tests/test_progressdialog_format.cpp
-        src/LogBuffer.cpp
-)
-target_include_directories(test_progressdialog_format PRIVATE
-        src
-        ${CMAKE_SOURCE_DIR}/extern/reaper-sdk/WDL
-)
-set_target_properties(test_progressdialog_format PROPERTIES
-        CXX_STANDARD 17
-        CXX_STANDARD_REQUIRED ON
-)
-if(UNIX AND NOT APPLE)
-    target_link_libraries(test_progressdialog_format PRIVATE pthread)
-endif()
-
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# -------------------------------------------------------------------------
+# Helper: standalone unit-test binary (no REAPER SDK required)
+# -------------------------------------------------------------------------
+function(add_unit_test TARGET)
+    cmake_parse_arguments(ARG "" "" "SOURCES" ${ARGN})
+    add_executable(${TARGET} ${ARG_SOURCES})
+    target_include_directories(${TARGET} PRIVATE
+            src
+            ${CMAKE_SOURCE_DIR}/extern/reaper-sdk/WDL
+    )
+    set_target_properties(${TARGET} PROPERTIES
+            CXX_STANDARD 17
+            CXX_STANDARD_REQUIRED ON
+    )
+    # pthread is part of libSystem on macOS — no explicit link needed there
+    if(UNIX AND NOT APPLE)
+        target_link_libraries(${TARGET} PRIVATE pthread)
+    endif()
+endfunction()
+
+# -------------------------------------------------------------------------
+# Unit tests
+# -------------------------------------------------------------------------
+add_unit_test(test_logbuffer SOURCES
+        tests/test_logbuffer.cpp
+        src/LogBuffer.cpp
+)
+add_unit_test(test_progressdialog_format SOURCES
+        tests/test_progressdialog_format.cpp
+        src/LogBuffer.cpp
+)
 
 # -------------------------------------------------------------------------
 # Paths

@@ -27,9 +27,9 @@
 #include <defines.h>
 
 
-void libaafLogCallback(aafLog *, void *, const int lib, const int type,
-                       const char *, const char *, int,
-                       const char *msg, void *user) {
+void AafImporter::libaafLogCallback(aafLog *, void *, const int lib, const int type,
+                                    const char *, const char *, int,
+                                    const char *msg, void *user) {
     if (lib != LOG_SRC_ID_AAF_IFACE || type != VERB_WARNING) return;
     if (!msg || !user) return;
     if (const auto *self = static_cast<AafImporter *>(user); self->m_logBuffer)
@@ -55,7 +55,7 @@ int AafImporter::run() {
         return -1;
     }
 
-    aafi_set_debug(m_aafi.get(), VERB_WARNING, 0, nullptr, libaafLogCallback, this);
+    aafi_set_debug(m_aafi.get(), VERB_WARNING, 0, nullptr, &AafImporter::libaafLogCallback, this);
     aafi_set_option_int(m_aafi.get(), "protools", PROTOOLS_ALL_OPT);
 
     setMediaLocation();
@@ -94,8 +94,6 @@ int AafImporter::run() {
     AAFI_foreachAudioTrack(m_aafi, track) {
         processTrack_Audio(track);
     }
-    m_logBuffer->log(LogEntry::ERROR, "TEST ERROR");
-    m_logBuffer->log(LogEntry::WARN, "TEST WARN");
 
     return 0;
 }
@@ -162,8 +160,9 @@ void AafImporter::processTrackAutomation(const aafiAudioTrack *track, const doub
                         /*arm=*/true);
 }
 
-int AafImporter::countRequiredTracks(const aafiAudioClip *clip, int &nchan) {
+AafImporter::TrackLayout AafImporter::countRequiredTracks(const aafiAudioClip *clip) {
     int cnt = 0;
+    int nchan = 2;
     const aafiAudioEssencePointer *p = nullptr;
     AAFI_foreachEssencePointer(clip->essencePointerList, p) {
         if (p->essenceFile->channels > 1) {
@@ -173,7 +172,7 @@ int AafImporter::countRequiredTracks(const aafiAudioClip *clip, int &nchan) {
         }
         ++cnt;
     }
-    return cnt;
+    return {cnt, nchan};
 }
 
 // Find the pointer for the provided trackIdx.
@@ -210,7 +209,9 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
 
     AAFI_foreachTrackItem(track, ti) {
         if (const auto *clip = aafi_timelineItemToAudioClip(ti)) {
-            requiredTracks = countRequiredTracks(clip, nchan);
+            const auto [count, chan] = countRequiredTracks(clip);
+            requiredTracks = count;
+            nchan = std::max(nchan, chan);
         }
     }
 
@@ -295,6 +296,34 @@ void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational
     processSource_Video(clip->Essence);
 }
 
+bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
+    if (!m_extractDirCreated) {
+        if (!ensure_dir(m_extractDir)) {
+            m_logBuffer->logf(LogEntry::ERROR, "could not create extract dir: %s",
+                              m_extractDir.c_str());
+            return false;
+        }
+        m_extractDirCreated = true;
+    }
+
+    // We don't care about outPath since we then use ess->usable_file_path, but the function needs it so...
+    char *outPath = nullptr;
+    const int rc = aafi_extractAudioEssenceFile(m_aafi.get(), ess,
+                                                AAFI_EXTRACT_DEFAULT,
+                                                m_extractDir.c_str(),
+                                                0, 0,
+                                                nullptr, &outPath);
+    free(outPath);
+
+    if (rc != 0) {
+        m_logBuffer->logf(LogEntry::ERROR, "failed to extract '%s'",
+                          ess->unique_name ? ess->unique_name : "(unnamed)");
+        return false;
+    }
+    m_logBuffer->logf(LogEntry::INFO, "Extracted '%s'", ess->unique_name);
+    return true;
+}
+
 void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     if (!essPtr || !essPtr->essenceFile) {
         m_writer.emptySource();
@@ -303,33 +332,9 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 
     aafiAudioEssenceFile *ess = essPtr->essenceFile;
 
-    // Extract embedded essence if not yet done
     if (ess->is_embedded && !ess->usable_file_path) {
-        // Create a media folder if it's not there already.
-        if (!m_extractDirCreated) {
-            if (!ensure_dir(m_extractDir)) {
-                m_logBuffer->logf(LogEntry::ERROR, "could not create extract dir: %s", m_extractDir.c_str());
-                m_writer.emptySource();
-                return;
-            }
-            m_extractDirCreated = true;
-        }
-
-        // We don't care about outPath since we then use ess->usable_file_path, but the function needs it so...
-        char *outPath = nullptr;
-        const int rc = aafi_extractAudioEssenceFile(m_aafi.get(), ess,
-                                                    AAFI_EXTRACT_DEFAULT,
-                                                    m_extractDir.c_str(),
-                                                    0, 0,
-                                                    nullptr, &outPath);
-        free(outPath);
-
-        if (rc != 0) {
-            m_logBuffer->logf(LogEntry::ERROR, "failed to extract '%s'",
-                              ess->unique_name ? ess->unique_name : "(unnamed)");
-            return;
-        }
-        m_logBuffer->logf(LogEntry::INFO, "Extracted '%s'", ess->unique_name);
+        if (!extractEmbeddedEssence(ess))
+            return;  // no emptySource() — matches original behavior on extraction failure
     }
 
     // TODO: sanitize path, might contain invalid chars
@@ -341,9 +346,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
         return;
     }
 
-    const char *srcType = rppSourceTypeFromPath(filePath);
-
-    auto w_src = m_writer.source(srcType, filePath);
+    auto w_src = m_writer.source(rppSourceTypeFromPath(filePath), filePath);
 }
 
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {

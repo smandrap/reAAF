@@ -36,6 +36,7 @@ struct aafiVideoClip;
 struct aafiVideoEssence;
 struct aafiTimelineItem;
 struct aafiAudioEssencePointer;
+struct aafiAudioEssenceFile;
 class ProjectStateContext;
 
 class AafImporter {
@@ -52,9 +53,9 @@ private:
     bool m_extractDirCreated = false;
     LogBuffer*  m_logBuffer = nullptr;
 
-    friend void libaafLogCallback(aafLog*, void*, int, int,
-                                  const char*, const char*, int,
-                                  const char*, void*);
+    static void libaafLogCallback(aafLog *log, void *userData, int lib, int type,
+                                  const char *srcFile, const char *srcFunc, int line,
+                                  const char *msg, void *user);
 
     static std::string buildExtractDir(const char *filepath);
 
@@ -70,7 +71,8 @@ private:
 
     void processTrackAutomation(const aafiAudioTrack *track, double compLen);
 
-    static int countRequiredTracks(const aafiAudioClip *clip, int &nchan);
+    struct TrackLayout { int count; int nchan; };
+    static TrackLayout countRequiredTracks(const aafiAudioClip *clip);
 
     static const aafiAudioEssencePointer *getAudioEssencePtr(const aafiAudioClip *clip, int trackIdx);
 
@@ -86,6 +88,9 @@ private:
                            const aafiAudioEssencePointer *essPtr);
 
     void processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate);
+
+    // Returns true on success; sets ess->usable_file_path as a side effect via libaaf.
+    bool extractEmbeddedEssence(aafiAudioEssenceFile *ess);
 
     void processSource_Audio(const aafiAudioEssencePointer *essPtr);
 
