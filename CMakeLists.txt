@@ -187,15 +187,7 @@ elseif(APPLE)
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE "-framework CoreFoundation" "-framework Cocoa")
     target_sources(reaper_aaf PRIVATE
-            ${REAPER_SDK_DIR}/WDL/swell/swell-appstub.mm
-            ${REAPER_SDK_DIR}/WDL/swell/swell-dlg.mm
-            ${REAPER_SDK_DIR}/WDL/swell/swell-gdi.mm
-            ${REAPER_SDK_DIR}/WDL/swell/swell-kb.mm
-            ${REAPER_SDK_DIR}/WDL/swell/swell-menu.mm
-            ${REAPER_SDK_DIR}/WDL/swell/swell-misc.mm
-            ${REAPER_SDK_DIR}/WDL/swell/swell-miscdlg.mm
             ${REAPER_SDK_DIR}/WDL/swell/swell-modstub.mm
-            ${REAPER_SDK_DIR}/WDL/swell/swell-wnd.mm
             src/resource_swell.cpp
     )
     set(REAPER_PLUGINS_DIR "$ENV{HOME}/Library/Application Support/REAPER/UserPlugins")
@@ -211,15 +203,7 @@ else()  # Linux
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE dl)
     target_sources(reaper_aaf PRIVATE
-            ${REAPER_SDK_DIR}/WDL/swell/swell-appstub-generic.cpp
-            ${REAPER_SDK_DIR}/WDL/swell/swell-dlg-generic.cpp
-            ${REAPER_SDK_DIR}/WDL/swell/swell-gdi-generic.cpp
-            ${REAPER_SDK_DIR}/WDL/swell/swell-kb-generic.cpp
-            ${REAPER_SDK_DIR}/WDL/swell/swell-menu-generic.cpp
-            ${REAPER_SDK_DIR}/WDL/swell/swell-misc-generic.cpp
-            ${REAPER_SDK_DIR}/WDL/swell/swell-miscdlg-generic.cpp
             ${REAPER_SDK_DIR}/WDL/swell/swell-modstub-generic.cpp
-            ${REAPER_SDK_DIR}/WDL/swell/swell-wnd-generic.cpp
             src/resource_swell.cpp
     )
 endif()

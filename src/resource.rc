@@ -6,18 +6,18 @@ CAPTION "AAF Import Prefs"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     GROUPBOX "AAF Import",       IDC_STATIC,           4,  4, 292, 32
-    LTEXT    "Log verbosity:",   IDC_STATIC,          13, 17,  68, 10
-    COMBOBOX                     IDC_COMBO_VERBOSITY,  84, 15, 205, 50,
+    LTEXT    "Log verbosity:",   IDC_STATIC,          13, 20,  68, 10
+    COMBOBOX                     IDC_COMBO_VERBOSITY,  74, 18, 205, 50,
                                  CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
-IDD_AAF_PROGRESS DIALOGEX 0, 0, 278, 150
+IDD_AAF_PROGRESS DIALOGEX 0, 0, 308, 300
 STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX
 CAPTION "AAF Import Log"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    LTEXT      "Ready",   IDC_PROGRESS_LABEL,  4,   4, 270,   8
-    LISTBOX               IDC_LOG_LIST,         4,  16, 270, 110,
+    LTEXT      "Ready",   IDC_PROGRESS_LABEL,  4,   4, 300,   8
+    LISTBOX               IDC_LOG_LIST,         4,  16, 300, 260,
                LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP | WS_BORDER
-    PUSHBUTTON "Close",   IDC_CLOSE_BTN,      228, 130,  46,  14
+    PUSHBUTTON "Close",   IDC_CLOSE_BTN,      258, 280,  46,  14
 END
