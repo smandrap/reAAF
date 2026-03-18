@@ -1,30 +1,17 @@
 // Dialog resources for macOS/Linux via SWELL.
+// resource.rc_mac_dlg is auto-generated from resource.rc by swell_resgen.php
+// at build time — resource.rc is the single source of truth.
 // Not compiled on Windows (see CMakeLists.txt).
 
-// reaper_plugin.h pulls in swell.h (and swell-types.h) which defines
-// Win32 constants like CBS_DROPDOWNLIST, WS_TABSTOP, WS_VSCROLL, etc.
-// swell-dlggen.h must be included after these types are available.
+// reaper_plugin.h pulls in swell.h which defines the Win32 constants
+// (CBS_DROPDOWNLIST, WS_TABSTOP, etc.) needed by the generated file.
+// swell-dlggen.h must come after swell.h and before the generated include.
 #include "reaper_plugin.h"
-#include "swell/swell-dlggen.h"
 #include "resource.h"
+#include "swell-dlggen.h"
 
-SWELL_DEFINE_DIALOG_RESOURCE_BEGIN(IDD_AAF_PREFS,
-    SWELL_DLG_WS_CHILD | SWELL_DLG_WS_FLIPPED,
-    "AAF Import Prefs", 300, 42, 1.8)
-BEGIN
-    GROUPBOX "AAF Import",     IDC_STATIC,          4,  4, 292, 32
-    LTEXT    "Log verbosity:", IDC_STATIC,          13, 20,  68, 10
-    COMBOBOX                   IDC_COMBO_VERBOSITY, 60, 19, 160, 50, CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-END
-SWELL_DEFINE_DIALOG_RESOURCE_END(IDD_AAF_PREFS)
+// WS_SIZEBOX in resource.rc is not auto-mapped to SWELL_DLG_WS_RESIZABLE by
+// swell_resgen.php, so we override the generated style before including it.
+#define SET_IDD_AAF_PROGRESS_STYLE (SWELL_DLG_FLAGS_AUTOGEN | SWELL_DLG_WS_RESIZABLE)
 
-SWELL_DEFINE_DIALOG_RESOURCE_BEGIN(IDD_AAF_PROGRESS,
-    SWELL_DLG_WS_RESIZABLE | SWELL_DLG_WS_FLIPPED,
-    "AAF Import Log", 278, 164, 1.8)
-BEGIN
-    LTEXT      "Ready to have a great time yayyy, very long random text yahoo",   IDC_PROGRESS_LABEL,  4,   4, 700,   8
-    LISTBOX               IDC_LOG_LIST,         4,  16, 270, 126,
-               LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_HSCROLL | WS_TABSTOP
-    PUSHBUTTON "Close",   IDC_CLOSE_BTN,      228, 146,  46,  14
-END
-SWELL_DEFINE_DIALOG_RESOURCE_END(IDD_AAF_PROGRESS)
+#include "resource.rc_mac_dlg"

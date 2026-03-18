@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(reAAF VERSION 0.1.2 LANGUAGES C CXX)
+project(reAAF VERSION 0.1.2 LANGUAGES C CXX OBJC OBJCXX)
 
 # -------------------------------------------------------------------------
 # LogBuffer standalone test binary (no REAPER SDK required)
@@ -127,6 +127,40 @@ target_compile_definitions(reaper_aaf PRIVATE
 )
 
 # -------------------------------------------------------------------------
+# SWELL (macOS + Linux only)
+# - Adds the swell/ directory to include paths so SWELL files can resolve
+#   their own sibling headers with bare #include "swell.h" style includes.
+# - Transpiles resource.rc → resource.rc_mac_dlg via swell_resgen.php so
+#   resource_swell.cpp can #include the auto-generated file. resource.rc
+#   remains the single source of truth for dialog layout on all platforms.
+# -------------------------------------------------------------------------
+if(NOT WIN32)
+    target_include_directories(reaper_aaf PRIVATE
+            ${REAPER_SDK_DIR}/WDL/swell
+    )
+
+    find_program(PHP_EXECUTABLE php REQUIRED)
+    set(SWELL_RESGEN "${REAPER_SDK_DIR}/WDL/swell/swell_resgen.php")
+    set(SWELL_RESGEN_OUT_DIR "${CMAKE_BINARY_DIR}/generated")
+    add_custom_command(
+            OUTPUT  "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_dlg"
+                    "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_menu"
+            COMMAND ${CMAKE_COMMAND} -E copy
+                    "${CMAKE_SOURCE_DIR}/src/resource.rc"
+                    "${SWELL_RESGEN_OUT_DIR}/resource.rc"
+            COMMAND ${PHP_EXECUTABLE} "${SWELL_RESGEN}" --quiet resource.rc
+            WORKING_DIRECTORY "${SWELL_RESGEN_OUT_DIR}"
+            MAIN_DEPENDENCY "${CMAKE_SOURCE_DIR}/src/resource.rc"
+            DEPENDS         "${SWELL_RESGEN}"
+            COMMENT "Transpiling resource.rc → resource.rc_mac_dlg (SWELL)"
+    )
+    add_custom_target(swell_resources
+            DEPENDS "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_dlg"
+    )
+    add_dependencies(reaper_aaf swell_resources)
+endif()
+
+# -------------------------------------------------------------------------
 # Platform specifics
 # -------------------------------------------------------------------------
 if(WIN32)
@@ -151,14 +185,19 @@ elseif(APPLE)
             OSX_ARCHITECTURES "${CMAKE_OSX_ARCHITECTURES}"
     )
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
-    target_link_libraries(reaper_aaf PRIVATE "-framework CoreFoundation")
-    # swell-modstub.mm defines SWELL_curmodule_dialogresource_head and populates
-    # SWELL function pointers at startup (required for any SWELL UI call)
+    target_link_libraries(reaper_aaf PRIVATE "-framework CoreFoundation" "-framework Cocoa")
     target_sources(reaper_aaf PRIVATE
+            ${REAPER_SDK_DIR}/WDL/swell/swell-appstub.mm
+            ${REAPER_SDK_DIR}/WDL/swell/swell-dlg.mm
+            ${REAPER_SDK_DIR}/WDL/swell/swell-gdi.mm
+            ${REAPER_SDK_DIR}/WDL/swell/swell-kb.mm
+            ${REAPER_SDK_DIR}/WDL/swell/swell-menu.mm
+            ${REAPER_SDK_DIR}/WDL/swell/swell-misc.mm
+            ${REAPER_SDK_DIR}/WDL/swell/swell-miscdlg.mm
             ${REAPER_SDK_DIR}/WDL/swell/swell-modstub.mm
+            ${REAPER_SDK_DIR}/WDL/swell/swell-wnd.mm
             src/resource_swell.cpp
     )
-    target_link_libraries(reaper_aaf PRIVATE "-framework Cocoa")
     set(REAPER_PLUGINS_DIR "$ENV{HOME}/Library/Application Support/REAPER/UserPlugins")
     add_custom_command(TARGET reaper_aaf POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -171,9 +210,16 @@ else()  # Linux
     set_target_properties(reaper_aaf PROPERTIES SUFFIX ".so")
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE dl)
-    # swell-modstub-generic.cpp defines SWELL_curmodule_dialogresource_head on Linux
     target_sources(reaper_aaf PRIVATE
+            ${REAPER_SDK_DIR}/WDL/swell/swell-appstub-generic.cpp
+            ${REAPER_SDK_DIR}/WDL/swell/swell-dlg-generic.cpp
+            ${REAPER_SDK_DIR}/WDL/swell/swell-gdi-generic.cpp
+            ${REAPER_SDK_DIR}/WDL/swell/swell-kb-generic.cpp
+            ${REAPER_SDK_DIR}/WDL/swell/swell-menu-generic.cpp
+            ${REAPER_SDK_DIR}/WDL/swell/swell-misc-generic.cpp
+            ${REAPER_SDK_DIR}/WDL/swell/swell-miscdlg-generic.cpp
             ${REAPER_SDK_DIR}/WDL/swell/swell-modstub-generic.cpp
+            ${REAPER_SDK_DIR}/WDL/swell/swell-wnd-generic.cpp
             src/resource_swell.cpp
     )
 endif()

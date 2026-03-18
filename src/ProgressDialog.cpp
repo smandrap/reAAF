@@ -93,7 +93,7 @@ static WDL_DLGRET CALLBACK progressDialogProc(HWND hwnd, const UINT msg, const W
             // Set up resizer — anchors are (left, top, right, bottom).
             // 0.0 = anchored to that edge of the dialog, 1.0 = moves with the opposite edge.
             s_resizer.init(hwnd);
-            // s_resizer.init_item(IDC_PROGRESS_LABEL, 0.0f, 0.0f, 1.0f, 0.0f); // stretches right, fixed top
+            s_resizer.init_item(IDC_PROGRESS_LABEL, 0.0f, 0.0f, 1.0f, 0.0f); // stretches right, fixed top
             s_resizer.init_item(IDC_LOG_LIST,        0.0f, 0.0f, 1.0f, 1.0f); // stretches both axes
             s_resizer.init_item(IDC_CLOSE_BTN,       1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
 
