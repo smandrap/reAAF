@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0b1] - 2026-03-19
+
+- Add import log 
+- Add preference to control when/how the log dialog opens (always, on warnings/errors, never)
+
 ## [0.1.2] - 2026-03-14
 
 - fix possible crash in case libaaf returns nullptr in clips and timecode structs

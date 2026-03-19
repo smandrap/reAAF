@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
-project(reAAF VERSION 0.1.2 LANGUAGES C CXX)
+project(reAAF VERSION 0.2.0 LANGUAGES C CXX)
 if(APPLE)
     enable_language(OBJC OBJCXX)
 endif()
 
 # Pre-release suffix (e.g. "b3"). Leave empty for a stable release.
-set(REAAF_VERSION_SUFFIX "")
+set(REAAF_VERSION_SUFFIX "b1")
 set(REAAF_VERSION "${PROJECT_VERSION}${REAAF_VERSION_SUFFIX}")
 
 set(CMAKE_C_STANDARD 11)
