@@ -33,10 +33,12 @@
 #endif
 #include "reaper_plugin.h"
 
+#include <algorithm> // std::find
 #include <cstdio>    // snprintf
 #include <cstring>   // strcpy
 #include <string>
 #include <utility>   // std::move
+#include <vector>
 
 // ---------------------------------------------------------------------------
 // External declarations (defined in main.cpp)
@@ -107,6 +109,14 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
             self->m_resizer.init_item(IDC_LOG_LIST, 0.0f, 0.0f, 1.0f, 1.0f); // stretches both axes
             self->m_resizer.init_item(IDC_CLOSE_BTN, 1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
 
+            self->m_resizer.init_item(IDC_LOGFILTER_INFO,  0.0f, 1.0f, 0.0f, 1.0f);
+            self->m_resizer.init_item(IDC_LOGFILTER_WARN,  0.0f, 1.0f, 0.0f, 1.0f);
+            self->m_resizer.init_item(IDC_LOGFILTER_ERROR, 0.0f, 1.0f, 0.0f, 1.0f);
+
+            CheckDlgButton(hwnd, IDC_LOGFILTER_INFO,  BST_CHECKED);
+            CheckDlgButton(hwnd, IDC_LOGFILTER_WARN,  BST_CHECKED);
+            CheckDlgButton(hwnd, IDC_LOGFILTER_ERROR, BST_CHECKED);
+
             return 1;
         }
 
@@ -117,8 +127,15 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
         }
 
         case WM_COMMAND: {
-            if (LOWORD(wParam) == IDC_CLOSE_BTN)
+            const int id = LOWORD(wParam);
+            if (id == IDC_CLOSE_BTN) {
                 self->close();
+            } else if (id == IDC_LOGFILTER_INFO || id == IDC_LOGFILTER_WARN || id == IDC_LOGFILTER_ERROR) {
+                self->m_showInfo  = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_INFO)  == BST_CHECKED;
+                self->m_showWarn  = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_WARN)  == BST_CHECKED;
+                self->m_showError = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_ERROR) == BST_CHECKED;
+                self->populate();
+            }
             return 0;
         }
 
@@ -166,11 +183,16 @@ LRESULT LogDialog::onCustomDraw(NMLVCUSTOMDRAW *nmcd) const {
             if (nmcd->nmcd.uItemState & CDIS_SELECTED)
                 return CDRF_DODEFAULT;
 
-            const int idx = static_cast<int>(nmcd->nmcd.dwItemSpec);
-            if (idx < 0 || idx >= m_buf.size())
+            // Retrieve the buffer index stored in the item's lParam during populate()
+            LVITEM lvi = {};
+            lvi.mask = LVIF_PARAM;
+            lvi.iItem = static_cast<int>(nmcd->nmcd.dwItemSpec);
+            ListView_GetItem(GetDlgItem(m_hwnd, IDC_LOG_LIST), &lvi);
+            const int bufIdx = static_cast<int>(lvi.lParam);
+            if (bufIdx < 0 || bufIdx >= m_buf.size())
                 return CDRF_DODEFAULT;
 
-            const LogEntry &e = m_buf.at(idx);
+            const LogEntry &e = m_buf.at(bufIdx);
             switch (e.severity) {
                 case LogEntry::ERROR: nmcd->clrText = RGB(220, 0,   0);                  break;
                 case LogEntry::WARN:  nmcd->clrText = RGB(180, 180, 0);                  break;
@@ -191,29 +213,69 @@ LRESULT LogDialog::onCustomDraw(NMLVCUSTOMDRAW *nmcd) const {
 void LogDialog::populate() const {
     HWND hwndList = GetDlgItem(m_hwnd, IDC_LOG_LIST);
 
+    // Save buffer indices of selected/focused rows using the idiomatic LVNI_ iteration
+    std::vector<int> selBufIndices;
+    int focusBufIdx = -1;
+    for (int j = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED); j != -1;
+             j = ListView_GetNextItem(hwndList,  j, LVNI_SELECTED)) {
+        LVITEM lvi = {}; lvi.mask = LVIF_PARAM; lvi.iItem = j;
+        ListView_GetItem(hwndList, &lvi);
+        selBufIndices.push_back(static_cast<int>(lvi.lParam));
+    }
+    {
+        const int fj = ListView_GetNextItem(hwndList, -1, LVNI_FOCUSED);
+        if (fj != -1) {
+            LVITEM lvi = {}; lvi.mask = LVIF_PARAM; lvi.iItem = fj;
+            ListView_GetItem(hwndList, &lvi);
+            focusBufIdx = static_cast<int>(lvi.lParam);
+        }
+    }
+
     SendMessage(hwndList, WM_SETREDRAW, FALSE, 0);
     ListView_DeleteAllItems(hwndList);
 
-    int warnings = 0, errors = 0;
+    // rowBufIdx[r] = buffer index of ListView row r — built during insertion so we
+    // don't need a second ListView_GetItem pass when restoring selection below
+    std::vector<int> rowBufIdx;
+    int info = 0, warnings = 0, errors = 0, row = 0;
     const int n = m_buf.size();
     for (int i = 0; i < n; ++i) {
         const LogEntry &e = m_buf.at(i);
 
         const char *level;
+        bool show;
         switch (e.severity) {
-            case LogEntry::ERROR: level = "ERROR"; ++errors;   break;
-            case LogEntry::WARN:  level = "WARN";  ++warnings; break;
-            default:              level = "INFO";              break;
+            case LogEntry::ERROR: level = "ERROR"; ++errors;   show = m_showError; break;
+            case LogEntry::WARN:  level = "WARN";  ++warnings; show = m_showWarn;  break;
+            default:              level = "INFO";  ++info;     show = m_showInfo;  break;
         }
+        if (!show) continue;
 
         LVITEM item = {};
-        item.mask = LVIF_TEXT;
-        item.iItem = i;
+        item.mask = LVIF_TEXT | LVIF_PARAM;
+        item.iItem = row;
+        item.lParam = static_cast<LPARAM>(i);
         item.pszText = const_cast<char *>(level);
         ListView_InsertItem(hwndList, &item);
 
         std::string rowText = e.text;
-        ListView_SetItemText(hwndList, i, 1, rowText.data());
+        ListView_SetItemText(hwndList, row, 1, rowText.data());
+        rowBufIdx.push_back(i);
+        ++row;
+    }
+
+    // SWELL preserves selection state across DeleteAllItems/re-insert, so explicitly
+    // clear everything first, then restore only the entries that survived the filter
+    ListView_SetItemState(hwndList, -1, 0, LVIS_SELECTED | LVIS_FOCUSED);
+    for (int r = 0; r < row; ++r) {
+        const int bi = rowBufIdx[r];
+        UINT newState = 0;
+        if (std::find(selBufIndices.begin(), selBufIndices.end(), bi) != selBufIndices.end())
+            newState |= LVIS_SELECTED;
+        if (bi == focusBufIdx)
+            newState |= LVIS_FOCUSED;
+        if (newState)
+            ListView_SetItemState(hwndList, r, newState, LVIS_SELECTED | LVIS_FOCUSED);
     }
 
     SendMessage(hwndList, WM_SETREDRAW, TRUE, 0);
@@ -222,12 +284,12 @@ void LogDialog::populate() const {
     // Summary label
     char label[128];
     snprintf(label, sizeof(label),
-             "Import complete: %d warnings, %d errors", warnings, errors);
+             "Import complete: %d messages, %d warnings, %d errors", info, warnings, errors);
     SetDlgItemText(m_hwnd, IDC_PROGRESS_LABEL, label);
 
-    // Scroll to last row
-    if (n > 0)
-        ListView_EnsureVisible(hwndList, n - 1, FALSE);
+    // Scroll to last visible row
+    if (row > 0)
+        ListView_EnsureVisible(hwndList, row - 1, FALSE);
 }
 
 // ---------------------------------------------------------------------------
