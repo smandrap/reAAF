@@ -6,6 +6,7 @@
 
 #define IDD_AAF_PREFS          2001
 #define IDC_COMBO_VERBOSITY    1001
+#define IDC_VERSION_LABEL      1008
 
 #define IDD_AAF_PROGRESS       2002
 #define IDC_PROGRESS_LABEL     1002

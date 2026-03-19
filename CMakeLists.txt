@@ -47,6 +47,7 @@ set(LIBAAF_DIR     "${CMAKE_SOURCE_DIR}/extern/LibAAF"     CACHE PATH "Path to a
 # Version header
 # -------------------------------------------------------------------------
 configure_file(src/version.h.in ${CMAKE_BINARY_DIR}/generated/version.h)
+configure_file(src/resource.rc.in ${CMAKE_BINARY_DIR}/generated/resource.rc)
 
 # -------------------------------------------------------------------------
 # LibAAF — use its own build system, static only, no tools/docs/tests
@@ -137,12 +138,9 @@ if(NOT WIN32)
     add_custom_command(
             OUTPUT  "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_dlg"
                     "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_menu"
-            COMMAND ${CMAKE_COMMAND} -E copy
-                    "${CMAKE_SOURCE_DIR}/src/resource.rc"
-                    "${SWELL_RESGEN_OUT_DIR}/resource.rc"
             COMMAND ${PHP_EXECUTABLE} "${SWELL_RESGEN}" --quiet resource.rc
             WORKING_DIRECTORY "${SWELL_RESGEN_OUT_DIR}"
-            MAIN_DEPENDENCY "${CMAKE_SOURCE_DIR}/src/resource.rc"
+            MAIN_DEPENDENCY "${CMAKE_BINARY_DIR}/generated/resource.rc"
             DEPENDS         "${SWELL_RESGEN}"
             COMMENT "Transpiling resource.rc → resource.rc_mac_dlg (SWELL)"
     )
@@ -162,7 +160,7 @@ if(WIN32)
             WIN32_LEAN_AND_MEAN
             NOMINMAX
     )
-    target_sources(reaper_aaf PRIVATE src/resource.rc)
+    target_sources(reaper_aaf PRIVATE ${CMAKE_BINARY_DIR}/generated/resource.rc)
     set(REAPER_PLUGINS_DIR "$ENV{APPDATA}/REAPER/UserPlugins")
     add_custom_command(TARGET reaper_aaf POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
