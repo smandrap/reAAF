@@ -48,7 +48,7 @@ static prefs_page_register_t g_prefs_reg = {
     "reaper_aaf_prefs", // idstr — globally unique
     "AAF Import", // displayname — shown in REAPER Preferences tree
     PrefsPage::createHwnd,
-    0, // par_id — top-level entry
+    0x9a, // par_id — top-level entry
     nullptr, // par_idstr — nullptr for top-level entry
     0, // childrenFlag — leaf node
     nullptr, // treeitem — REAPER fills in
