@@ -1,0 +1,26 @@
+#include "resource.h"
+
+IDD_AAF_PREFS DIALOGEX 0, 0, 300, 50
+STYLE WS_CHILD
+CAPTION "AAF Import Prefs"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX "AAF Import",        IDC_STATIC,           2,  4, 296,  44
+    LTEXT    "Show import Log:",  IDC_STATIC,          13, 20,  68,  10
+    COMBOBOX                      IDC_COMBO_VERBOSITY, 74, 18, 205,  50,
+                                  CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT    "v@REAAF_VERSION@", IDC_VERSION_LABEL,    8, 38,  80,   8
+END
+
+IDD_AAF_PROGRESS DIALOGEX 0, 0, 308, 300
+STYLE DS_SETFONT | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_SIZEBOX
+CAPTION "AAF Import Log"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT      "Ready",   IDC_PROGRESS_LABEL,  4,   4, 300,   8
+    CONTROL         "",IDC_LOG_LIST,"SysListView32",LVS_REPORT | LVS_SHOWSELALWAYS | WS_BORDER | WS_VSCROLL | WS_TABSTOP,4,16,300,260
+    CHECKBOX    "Info",     IDC_LOGFILTER_INFO,  4,  281, 50, 12
+    CHECKBOX    "Warnings", IDC_LOGFILTER_WARN,  58, 281, 66, 12
+    CHECKBOX    "Errors",   IDC_LOGFILTER_ERROR, 128,281, 58, 12
+    PUSHBUTTON "Close",   IDC_CLOSE_BTN,      258, 280,  46,  14
+END
