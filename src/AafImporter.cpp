@@ -69,6 +69,17 @@ int AafImporter::run() {
     setMediaLocation();
     if (!loadFile()) return -1;
 
+    if (m_aafi->compositionName && m_aafi->compositionName[0] != '\0')
+        m_logBuffer->logf(LogEntry::INFO, "Composition: %s", m_aafi->compositionName);
+
+    m_logBuffer->logf(LogEntry::INFO, "Audio tracks: %u  |  Sample rate: %u Hz  |  Bit depth: %u",
+        m_aafi->Audio->track_count,
+        m_aafi->Audio->samplerate,
+        m_aafi->Audio->samplesize);
+
+    if (m_aafi->Audio->samplerate == 0)
+        m_logBuffer->log(LogEntry::WARN, "Sample rate missing from AAF, defaulting to 48000 Hz");
+
     const uint32_t samplerate =
             m_aafi->Audio->samplerate > 0 ? m_aafi->Audio->samplerate : 48000u;
 
@@ -85,6 +96,9 @@ int AafImporter::run() {
         // isDrop: 0 = integer fps, 1 = drop, 2 = non-drop fractional (23.976 or 29.97 ND)
         const bool isFrac = m_aafi->Timecode->edit_rate->denominator != 1;
         isDrop = isFrac ? (fps == 24 ? 2 : (m_aafi->Timecode->drop > 0 ? 1 : 2)) : 0;
+
+        m_logBuffer->logf(LogEntry::INFO, "Timecode: %d fps%s",
+            fps, isDrop == 1 ? " drop" : (isDrop == 2 ? " non-drop" : ""));
     }
 
     // Guard destroyed at end of scope, emits closing ">" for REAPER_PROJECT
@@ -199,6 +213,12 @@ const aafiAudioEssencePointer *AafImporter::getAudioEssencePtr(const aafiAudioCl
 void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     const char *trackName = track->name ? track->name : "";
 
+    m_logBuffer->logf(LogEntry::INFO, "Audio track %u: \"%s\"  clips: %d",
+        track->number, trackName, track->clipCount);
+
+    if (track->mute)
+        m_logBuffer->logf(LogEntry::WARN, "Track %u (\"%s\") is muted", track->number, trackName);
+
     const double vol = clamp_volume(resolveConstantGain(track->gain));
     const double pan = clamp_pan((resolveConstantGain(track->pan, 0.5) - 0.5) * -2.0);
     const int mute = track->mute != 0 ? 1 : 0;
@@ -224,6 +244,10 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
         }
     }
 
+    if (requiredTracks > 1)
+        m_logBuffer->logf(LogEntry::INFO, "Track %u split into %d mono sub-tracks",
+            track->number, requiredTracks);
+
     for (int trackIdx = 0; trackIdx < requiredTracks; ++trackIdx) {
         std::string fullName = requiredTracks > 1
                                    ? std::string(trackName) + "_" + std::to_string(trackIdx + 1)
@@ -247,6 +271,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
 }
 
 void AafImporter::processTrack_Video(const aafiVideoTrack *track) {
+    m_logBuffer->logf(LogEntry::INFO, "Video track %u", track->number);
     auto w_trk = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
     const aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
@@ -270,6 +295,9 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
     const auto [fadeOutLen, fadeOutShape] = resolveFadeOut(clip, ti, xFadeMap, trackEditRate);
 
     const char *clipName = resolveClipName(clip);
+
+    if (clip->mute)
+        m_logBuffer->logf(LogEntry::WARN, "Clip \"%s\" is muted", clipName[0] ? clipName : "(unnamed)");
 
     auto w_itm = m_writer.item(clipName,
                                pos, len,
@@ -341,6 +369,10 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 
     aafiAudioEssenceFile *ess = essPtr->essenceFile;
 
+    m_logBuffer->logf(LogEntry::INFO, "Source: \"%s\"  %u Hz / %u-bit / %uch",
+        ess->unique_name ? ess->unique_name : ess->name ? ess->name : "(unnamed)",
+        ess->samplerate, ess->samplesize, ess->channels);
+
     if (ess->is_embedded && !ess->usable_file_path) {
         if (!extractEmbeddedEssence(ess))
             return;  // no emptySource() — matches original behavior on extraction failure
@@ -371,6 +403,7 @@ void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
 
 void AafImporter::processMarkers() const {
     int id = 1;
+    int markerCount = 0, regionCount = 0;
     const aafiMarker *m = nullptr;
     AAFI_foreachMarker(m_aafi, m) {
         const double t = pos_to_seconds(m->start, m->edit_rate);
@@ -380,14 +413,17 @@ void AafImporter::processMarkers() const {
 
         if (m->length == 0) {
             m_writer.writeMarker(id++, t, m->name, false, color);
-
+            ++markerCount;
             continue;
         }
         // it's a region
         const double endT = pos_to_seconds(m->start + m->length, m->edit_rate);
         m_writer.writeMarker(id, t, m->name, true, color);
         m_writer.writeMarker(id++, endT, "", true, color);
+        ++regionCount;
     }
+    if (markerCount + regionCount > 0)
+        m_logBuffer->logf(LogEntry::INFO, "Markers: %d  |  Regions: %d", markerCount, regionCount);
 }
 
 void AafImporter::processEnvelope(const aafiAudioGain *gain,
