@@ -1,11 +1,12 @@
 @description reAAF
-@version 0.1.2
+@version 0.2.0b1
 @author smandrap
 @link https://github.com/smandrap/reAAF
 @about
   AAF session importer for REAPER. See the repository for details.
 @changelog
-  - fix possible crash in case libaaf returns nullptr in clips and timecode structs
+  - Add import log 
+  - Add preference to control when/how the log dialog opens (always, on warnings/errors, never)
 @provides
   [darwin-arm64] reaper_reAAF-arm64.dylib    https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-arm64.dylib
   [darwin64]     reaper_reAAF-x86_64.dylib   https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-x86_64.dylib
