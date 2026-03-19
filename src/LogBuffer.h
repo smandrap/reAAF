@@ -27,7 +27,7 @@
 // ---------------------------------------------------------------------------
 
 struct LogEntry {
-    enum Severity { ERROR, WARN, INFO } severity = INFO;
+    enum Severity { ERR, WARN, INFO } severity = INFO;
 
     std::string text;
 
@@ -58,7 +58,10 @@ public:
 
     void log(LogEntry::Severity sev, const char *msg);
     void logf(LogEntry::Severity sev, const char *fmt, ...)
-        __attribute__((format(printf, 3, 4)));
+#if defined(__GNUC__) || defined(__clang__)
+        __attribute__((format(printf, 3, 4)))
+#endif
+        ;
 
     // --- Test-only accessors (used by TestableLogBuffer in tests/) ----------
     // Returns the number of entries currently stored in the buffer.

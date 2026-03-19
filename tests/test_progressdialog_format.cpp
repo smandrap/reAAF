@@ -15,7 +15,7 @@ static std::string formatEntry(const LogEntry& e)
 {
     const char* prefix = "";
     switch (e.severity) {
-        case LogEntry::ERROR: prefix = "[ERROR]"; break;
+        case LogEntry::ERR: prefix = "[ERROR]"; break;
         case LogEntry::WARN:  prefix = "[WARN]";  break;
         case LogEntry::INFO:  prefix = "[INFO]";  break;
     }
@@ -40,7 +40,7 @@ static void CHECK(bool cond, const char* msg)
 
 static void test_format_error()
 {
-    LogEntry e; e.severity = LogEntry::ERROR; e.text = "disk error";
+    LogEntry e; e.severity = LogEntry::ERR; e.text = "disk error";
     CHECK(formatEntry(e) == "[ERROR] disk error", "ERROR prefix");
 }
 

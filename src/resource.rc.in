@@ -1,3 +1,6 @@
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include "resource.h"
 
 IDD_AAF_PREFS DIALOGEX 0, 0, 300, 50

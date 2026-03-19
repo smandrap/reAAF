@@ -67,7 +67,7 @@ static void test_stores_all_severities()
     TestableLogBuffer buf;
     buf.log(LogEntry::INFO,  "info");
     buf.log(LogEntry::WARN,  "warn");
-    buf.log(LogEntry::ERROR, "error");
+    buf.log(LogEntry::ERR, "error");
     check(buf.count() == 3, "All severities stored");
 }
 
@@ -91,7 +91,7 @@ static void test_ring_overflow_eviction_and_sentinel()
         buf.log(LogEntry::INFO, "fill");
     }
 
-    buf.log(LogEntry::ERROR, "overflow entry");
+    buf.log(LogEntry::ERR, "overflow entry");
 
     check(buf.count() == LogBuffer::kCapacity, "Overflow: count stays at kCapacity");
 

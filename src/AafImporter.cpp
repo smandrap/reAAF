@@ -58,7 +58,7 @@ int AafImporter::run() {
     m_writer.setErrorHandler([this](RppWriter::ErrorKind kind, const char *msg) {
         switch (kind) {
             case RppWriter::ErrorKind::LineTruncated:
-                m_logBuffer->logf(LogEntry::ERROR, "%s", msg);
+                m_logBuffer->logf(LogEntry::ERR, "%s", msg);
                 break;
         }
     });
@@ -351,7 +351,7 @@ void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational
 bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
     if (!m_extractDirCreated) {
         if (!ensure_dir(m_extractDir)) {
-            m_logBuffer->logf(LogEntry::ERROR, "could not create extract dir: %s",
+            m_logBuffer->logf(LogEntry::ERR, "could not create extract dir: %s",
                               m_extractDir.c_str());
             return false;
         }
@@ -368,7 +368,7 @@ bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
     free(outPath);
 
     if (rc != 0) {
-        m_logBuffer->logf(LogEntry::ERROR, "failed to extract '%s'",
+        m_logBuffer->logf(LogEntry::ERR, "failed to extract '%s'",
                           ess->unique_name ? ess->unique_name : "(unnamed)");
         return false;
     }

@@ -15,30 +15,34 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "LogDialog.h"
 #include "resource.h"
 #include "reaper_plugin_functions.h"
 
-#ifndef CDRF_DODEFAULT
-#  define CDRF_DODEFAULT        0x00000000
+// On Windows these come from commctrl.h (included via LogDialog.h).
+// On SWELL platforms they may not be defined, so provide fallbacks.
+#ifndef _WIN32
+#  ifndef CDRF_DODEFAULT
+#    define CDRF_DODEFAULT        0x00000000
+#  endif
+#  ifndef CDRF_NOTIFYITEMDRAW
+#    define CDRF_NOTIFYITEMDRAW   0x00000020
+#  endif
+#  ifndef CDIS_SELECTED
+#    define CDIS_SELECTED         0x0001
+#  endif
+#  ifndef COLOR_WINDOWTEXT
+#    define COLOR_WINDOWTEXT      8
+#  endif
 #endif
-#ifndef CDRF_NOTIFYITEMDRAW
-#  define CDRF_NOTIFYITEMDRAW   0x00000020
-#endif
-#ifndef CDIS_SELECTED
-#  define CDIS_SELECTED         0x0001
-#endif
-#ifndef COLOR_WINDOWTEXT
-#  define COLOR_WINDOWTEXT      8
-#endif
-#include "reaper_plugin.h"
 
-#include <algorithm> // std::find
-#include <cstdio>    // snprintf
-#include <cstring>   // strcpy
-#include <string>
-#include <utility>   // std::move
-#include <vector>
 
 // ---------------------------------------------------------------------------
 // External declarations (defined in main.cpp)
@@ -196,7 +200,7 @@ LRESULT LogDialog::onCustomDraw(NMLVCUSTOMDRAW *nmcd) const {
 
             const LogEntry &e = m_buf.at(bufIdx);
             switch (e.severity) {
-                case LogEntry::ERROR: nmcd->clrText = RGB(220, 0,   0);                  break;
+                case LogEntry::ERR: nmcd->clrText = RGB(220, 0,   0);                  break;
                 case LogEntry::WARN:  nmcd->clrText = RGB(180, 180, 0);                  break;
                 default:              nmcd->clrText = GetSysColor(COLOR_WINDOWTEXT);     break;
             }
@@ -247,7 +251,7 @@ void LogDialog::populate() const {
         const char *level;
         bool show;
         switch (e.severity) {
-            case LogEntry::ERROR: level = "ERROR"; ++errors;   show = m_showError; break;
+            case LogEntry::ERR: level = "ERROR"; ++errors;   show = m_showError; break;
             case LogEntry::WARN:  level = "WARN";  ++warnings; show = m_showWarn;  break;
             default:              level = "INFO";  ++info;     show = m_showInfo;  break;
         }

@@ -20,9 +20,11 @@
 
 #include "LogBuffer.h"
 #include "reaper_plugin.h"
-#include "swell-types.h"
 #include "wdltypes.h"
 #include "wingui/wndsize.h"
+#ifdef _WIN32
+#  include <commctrl.h>
+#endif
 
 // Modeless dialog that displays log entries collected during an AAF import.
 // At most one instance exists at a time. The dialog owns its LogBuffer by

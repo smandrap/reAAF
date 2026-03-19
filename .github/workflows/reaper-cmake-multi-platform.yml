@@ -52,6 +52,14 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Install PHP (macOS)
+        if: runner.os == 'macOS'
+        run: brew install php
+
+      - name: Install PHP (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get install -y php-cli
+
       - name: Configure
         run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_arch_flag }}
 

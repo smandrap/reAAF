@@ -15,13 +15,15 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cstdio>    // snprintf
+#include <cstdlib>   // strtol
+
 #include "PrefsPage.h"
 #include "reaper_plugin_functions.h"
 #include "resource.h"
 #include "wdltypes.h"
 
-#include <cstdio>    // snprintf
-#include <cstdlib>   // strtol
+
 
 // ---------------------------------------------------------------------------
 // Constants

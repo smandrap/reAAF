@@ -69,12 +69,12 @@ static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
         for (int i = 0; i < logBuffer.size(); ++i) {
             const LogEntry &e = logBuffer.at(i);
             if (e.severity == LogEntry::WARN)  hasWarn  = true;
-            if (e.severity == LogEntry::ERROR) hasError = true;
+            if (e.severity == LogEntry::ERR) hasError = true;
         }
         if (!hasWarn && !hasError) return ok;
-        LogDialog::open(std::move(logBuffer), /*info=*/false, hasWarn, hasError);
+        LogDialog::open(std::move(logBuffer), false, hasWarn, hasError);
     } else { // mode == 2
-        LogDialog::open(std::move(logBuffer), /*info=*/true, /*warn=*/true, /*error=*/true);
+        LogDialog::open(std::move(logBuffer), true, true, true);
     }
     return ok;
 }
