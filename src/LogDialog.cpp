@@ -56,7 +56,9 @@ LogDialog *LogDialog::s_instance = nullptr;
 // Constructor
 // ---------------------------------------------------------------------------
 
-LogDialog::LogDialog(LogBuffer buf) : m_buf(std::move(buf)) {}
+LogDialog::LogDialog(LogBuffer buf, bool showInfo, bool showWarn, bool showError)
+    : m_buf(std::move(buf))
+    , m_showInfo(showInfo), m_showWarn(showWarn), m_showError(showError) {}
 
 // ---------------------------------------------------------------------------
 // Private: dialogProc
@@ -113,9 +115,9 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
             self->m_resizer.init_item(IDC_LOGFILTER_WARN,  0.0f, 1.0f, 0.0f, 1.0f);
             self->m_resizer.init_item(IDC_LOGFILTER_ERROR, 0.0f, 1.0f, 0.0f, 1.0f);
 
-            CheckDlgButton(hwnd, IDC_LOGFILTER_INFO,  BST_CHECKED);
-            CheckDlgButton(hwnd, IDC_LOGFILTER_WARN,  BST_CHECKED);
-            CheckDlgButton(hwnd, IDC_LOGFILTER_ERROR, BST_CHECKED);
+            CheckDlgButton(hwnd, IDC_LOGFILTER_INFO,  self->m_showInfo  ? BST_CHECKED : BST_UNCHECKED);
+            CheckDlgButton(hwnd, IDC_LOGFILTER_WARN,  self->m_showWarn  ? BST_CHECKED : BST_UNCHECKED);
+            CheckDlgButton(hwnd, IDC_LOGFILTER_ERROR, self->m_showError ? BST_CHECKED : BST_UNCHECKED);
 
             return 1;
         }
@@ -296,14 +298,21 @@ void LogDialog::populate() const {
 // Public: open
 // ---------------------------------------------------------------------------
 
-void LogDialog::open(LogBuffer buf) {
+void LogDialog::open(LogBuffer buf, bool showInfo, bool showWarn, bool showError) {
     if (s_instance) {
-        s_instance->m_buf = std::move(buf);
+        s_instance->m_buf      = std::move(buf);
+        s_instance->m_showInfo  = showInfo;
+        s_instance->m_showWarn  = showWarn;
+        s_instance->m_showError = showError;
+        HWND hw = s_instance->m_hwnd;
+        CheckDlgButton(hw, IDC_LOGFILTER_INFO,  showInfo  ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hw, IDC_LOGFILTER_WARN,  showWarn  ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hw, IDC_LOGFILTER_ERROR, showError ? BST_CHECKED : BST_UNCHECKED);
         s_instance->populate();
         SetForegroundWindow(s_instance->m_hwnd);
         return;
     }
-    s_instance = new LogDialog(std::move(buf));
+    s_instance = new LogDialog(std::move(buf), showInfo, showWarn, showError);
     HWND parent = GetMainHwnd();
     HWND hwnd = CreateDialogParam(g_hInst,
                                   MAKEINTRESOURCE(IDD_AAF_PROGRESS),

@@ -45,16 +45,11 @@ struct LogEntry {
 // callback is invoked synchronously during AafImporter::run(), which is called
 // from aaf_ImportProject() on the main thread.
 //
-// Verbosity levels:
-//   0 = None    -- drops everything; push() stores nothing
-//   1 = Normal  -- stores ERROR and WARN only; drops INFO
-//   2 = Verbose -- stores all severities
-//
 // Overflow behaviour: on the first overflow push() evicts the oldest entry
-// and inserts a one-time sentinel [WARN] "N earlier entries were dropped
-// (buffer full)" (N = m_dropped + 1), then stores the new entry.  All
-// subsequent overflows silently evict the oldest entry and store the new one
-// (pure ring-buffer behaviour). Count never exceeds kCapacity.
+// and inserts a one-time sentinel [WARN] "1 earlier entry was dropped
+// (buffer full)", then stores the new entry. All subsequent overflows silently
+// evict the oldest entry and store the new one (pure ring-buffer behaviour).
+// Count never exceeds kCapacity.
 // ---------------------------------------------------------------------------
 
 class LogBuffer {
@@ -64,10 +59,6 @@ public:
     void log(LogEntry::Severity sev, const char *msg);
     void logf(LogEntry::Severity sev, const char *fmt, ...)
         __attribute__((format(printf, 3, 4)));
-
-    void setVerbosity(int v);
-
-    [[nodiscard]] int getVerbosity() const;
 
     // --- Test-only accessors (used by TestableLogBuffer in tests/) ----------
     // Returns the number of entries currently stored in the buffer.
@@ -81,11 +72,7 @@ private:
     LogEntry m_entries[kCapacity] = {};
     int m_head = 0; // next write position (ring index)
     int m_count = 0; // entries currently stored (max kCapacity)
-    int m_verbosity = 1; // 0=None, 1=Normal, 2=Verbose
-    int m_dropped = 0; // verbosity-filtered drops since last sentinel
     bool m_overflowing = false; // true after the first capacity overflow
-
-    [[nodiscard]] bool shouldLogEntry(const LogEntry &entry) const;
 
     void push(const LogEntry &entry);
 };

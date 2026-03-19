@@ -61,49 +61,19 @@ public:
 // Tests
 // ---------------------------------------------------------------------------
 
-static void test_verbosity_normal_passes_warn()
+static void test_stores_all_severities()
 {
-    // push(WARN, "msg") with verbosity=1 (Normal): entry stored
+    // All severities are stored regardless — no filtering at buffer level
     TestableLogBuffer buf;
-    buf.setVerbosity(1);
-    buf.log(LogEntry::WARN, "warn message");
-    check(buf.count() == 1, "Normal verbosity: WARN is stored");
-}
-
-static void test_verbosity_normal_drops_info()
-{
-    // push(INFO, "msg") with verbosity=1 (Normal): entry NOT stored
-    TestableLogBuffer buf;
-    buf.setVerbosity(1);
-    buf.log(LogEntry::INFO, "info message");
-    check(buf.count() == 0, "Normal verbosity: INFO is dropped");
-}
-
-static void test_verbosity_none_drops_error()
-{
-    // push(ERROR, "msg") with verbosity=0 (None): entry NOT stored
-    TestableLogBuffer buf;
-    buf.setVerbosity(0);
-    buf.log(LogEntry::ERROR, "error message");
-    check(buf.count() == 0, "None verbosity: ERROR is dropped");
-}
-
-static void test_verbosity_verbose_stores_all()
-{
-    // push(any, "msg") with verbosity=2 (Verbose): entry stored regardless
-    TestableLogBuffer buf;
-    buf.setVerbosity(2);
     buf.log(LogEntry::INFO,  "info");
     buf.log(LogEntry::WARN,  "warn");
     buf.log(LogEntry::ERROR, "error");
-    check(buf.count() == 3, "Verbose verbosity: all severities stored");
+    check(buf.count() == 3, "All severities stored");
 }
 
 static void test_buffer_full_at_capacity()
 {
-    // After 2000 pushes (all pass verbosity filter): count == 2000
     TestableLogBuffer buf;
-    buf.setVerbosity(2);
     for (int i = 0; i < LogBuffer::kCapacity; ++i) {
         buf.log(LogEntry::INFO, "fill");
     }
@@ -112,84 +82,28 @@ static void test_buffer_full_at_capacity()
 
 static void test_ring_overflow_eviction_and_sentinel()
 {
-    // On 2001st push (passes filter): oldest entry evicted; a sentinel [WARN]
-    // entry with text containing "1 earlier entries were dropped (buffer full)"
-    // is inserted; new entry also stored (count stays at 2000)
+    // On kCapacity+1 push: oldest entry evicted; a sentinel [WARN]
+    // "1 earlier entry was dropped (buffer full)" is inserted; new entry also
+    // stored (count stays at kCapacity).
     TestableLogBuffer buf;
-    buf.setVerbosity(2);
 
-    // Fill to capacity
     for (int i = 0; i < LogBuffer::kCapacity; ++i) {
         buf.log(LogEntry::INFO, "fill");
     }
 
-    // Push one more — triggers overflow sentinel
     buf.log(LogEntry::ERROR, "overflow entry");
 
     check(buf.count() == LogBuffer::kCapacity, "Overflow: count stays at kCapacity");
 
-    // The second-to-last entry should be the sentinel (WARN, "1 earlier entries were dropped (buffer full)")
-    // The last entry should be "overflow entry"
-    // Sentinel is at index count-2, new entry at count-1
     LogEntry sentinel = buf.entryAt(buf.count() - 2);
     LogEntry newest   = buf.entryAt(buf.count() - 1);
 
     check(sentinel.severity == LogEntry::WARN,
           "Overflow sentinel: severity is WARN");
-    check(sentinel.text == "1 earlier entries were dropped (buffer full)",
+    check(sentinel.text == "1 earlier entry was dropped (buffer full)",
           "Overflow sentinel: text matches exact format");
     check(newest.text == "overflow entry",
           "Overflow: newest entry is the pushed entry");
-}
-
-static void test_sentinel_counts_multiple_drops()
-{
-    // If N entries are dropped due to verbosity before overflow, sentinel says "N earlier entries..."
-    // Here we test the sentinel N count: push kCapacity verbose entries, then push one
-    // that is filtered (verbosity=1, INFO → dropped, m_dropped increments),
-    // then push one that passes (WARN) → triggers overflow, sentinel must say "2 earlier entries..."
-    // Wait — the plan says m_dropped tracks verbosity-filtered drops (not eviction drops).
-    // Let me re-read: "1 earlier entries were dropped (buffer full)" — the N is m_dropped+1.
-    // Actually from the plan: "build sentinel entry with text='<m_dropped+1> earlier entries...'"
-    // and "reset m_dropped to 0" after. So m_dropped accumulates verbosity-dropped entries,
-    // not ring-buffer-evicted entries. Let me test that.
-
-    TestableLogBuffer buf;
-    // Fill to capacity with WARN (Normal verbosity stores WARN)
-    buf.setVerbosity(1); // Normal
-    for (int i = 0; i < LogBuffer::kCapacity; ++i) {
-        buf.log(LogEntry::WARN, "fill");
-    }
-    // Now push 2 INFO entries — they are filtered by verbosity → m_dropped += 2
-    buf.log(LogEntry::INFO, "dropped1");
-    buf.log(LogEntry::INFO, "dropped2");
-    check(buf.count() == LogBuffer::kCapacity,
-          "After verbosity drops, count still kCapacity");
-
-    // Now push a WARN (passes verbosity=1) → buffer full → evict + sentinel
-    buf.log(LogEntry::WARN, "trigger overflow");
-    check(buf.count() == LogBuffer::kCapacity,
-          "After overflow trigger, count stays kCapacity");
-
-    LogEntry sentinel = buf.entryAt(buf.count() - 2);
-    LogEntry newest   = buf.entryAt(buf.count() - 1);
-
-    // m_dropped was 2 when overflow occurred, sentinel text = "3 earlier entries..."
-    // (m_dropped+1 = 3)
-    check(sentinel.severity == LogEntry::WARN,
-          "Multi-drop sentinel: severity WARN");
-    check(sentinel.text == "3 earlier entries were dropped (buffer full)",
-          "Multi-drop sentinel: text says 3 (2 verbosity-dropped + 1 evicted)");
-    check(newest.text == "trigger overflow",
-          "Multi-drop overflow: newest is the trigger entry");
-}
-
-static void test_verbosity_getset()
-{
-    // setVerbosity(2) then getVerbosity() returns 2
-    LogBuffer buf;
-    buf.setVerbosity(2);
-    check(buf.getVerbosity() == 2, "setVerbosity(2)/getVerbosity() returns 2");
 }
 
 // ---------------------------------------------------------------------------
@@ -200,14 +114,9 @@ int main()
 {
     printf("=== LogBuffer Tests ===\n\n");
 
-    test_verbosity_normal_passes_warn();
-    test_verbosity_normal_drops_info();
-    test_verbosity_none_drops_error();
-    test_verbosity_verbose_stores_all();
+    test_stores_all_severities();
     test_buffer_full_at_capacity();
     test_ring_overflow_eviction_and_sentinel();
-    test_sentinel_counts_multiple_drops();
-    test_verbosity_getset();
 
     printf("\n=== Results: %d passed, %d failed ===\n", g_passed, g_failed);
     return (g_failed == 0) ? 0 : 1;

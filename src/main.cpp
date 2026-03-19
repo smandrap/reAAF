@@ -59,12 +59,23 @@ static const char *aaf_EnumFileExtensions(const int i, char **descptr) {
 static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
     if (!fn || !ctx) return -1;
     LogBuffer logBuffer;
-    logBuffer.setVerbosity(PrefsPage::getVerbosity());
-
     const int ok = AafImporter(ctx, fn, &logBuffer).run();
-    if (PrefsPage::getVerbosity() != 0)
-        LogDialog::open(std::move(logBuffer));
 
+    const int mode = PrefsPage::getVerbosity(); // 0=never, 1=on warn/err, 2=always
+    if (mode == 0) return ok;
+
+    if (mode == 1) {
+        bool hasWarn = false, hasError = false;
+        for (int i = 0; i < logBuffer.size(); ++i) {
+            const LogEntry &e = logBuffer.at(i);
+            if (e.severity == LogEntry::WARN)  hasWarn  = true;
+            if (e.severity == LogEntry::ERROR) hasError = true;
+        }
+        if (!hasWarn && !hasError) return ok;
+        LogDialog::open(std::move(logBuffer), /*info=*/false, hasWarn, hasError);
+    } else { // mode == 2
+        LogDialog::open(std::move(logBuffer), /*info=*/true, /*warn=*/true, /*error=*/true);
+    }
     return ok;
 }
 

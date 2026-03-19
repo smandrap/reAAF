@@ -102,9 +102,9 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
     switch (msg) {
         case WM_INITDIALOG: {
             HWND combo = GetDlgItem(hwnd, IDC_COMBO_VERBOSITY);
-            SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("None"));
-            SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Errors and Warnings"));
-            SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Full Log"));
+            SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Never open the log"));
+            SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Open on warnings or errors"));
+            SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Always open the log"));
             SendMessage(combo, CB_SETCURSEL, PrefsPage::getVerbosity(), 0);
             return 1;
         }

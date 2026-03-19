@@ -31,10 +31,10 @@ class LogDialog {
 public:
     // Opens the dialog with a fresh buffer. If already open, refreshes the
     // list with the new data and brings the window to the foreground.
-    static void open(LogBuffer buf);
+    static void open(LogBuffer buf, bool showInfo, bool showWarn, bool showError);
 
 private:
-    explicit LogDialog(LogBuffer buf);
+    explicit LogDialog(LogBuffer buf, bool showInfo, bool showWarn, bool showError);
 
     ~LogDialog() = default;
 

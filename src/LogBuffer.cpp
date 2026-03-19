@@ -21,31 +21,18 @@
 #include <cstdarg>  // va_list
 
 // ---------------------------------------------------------------------------
-// push() — the core operation;
-//
-// Verbosity thresholds (enforced at write time, before any storage):
-//   0 = None:    drop all (increment m_dropped, return)
-//   1 = Normal:  keep ERROR and WARN only; drop INFO
-//   2 = Verbose: keep everything
+// push() — the core operation.
 //
 // Overflow path (m_count == kCapacity):
 //   First overflow (m_overflowing == false):
 //     1. Evict the oldest entry; write a sentinel WARN at that slot:
-//        "<m_dropped+1> earlier entries were dropped (buffer full)".
-//     2. Advance m_head; reset m_dropped = 0; set m_overflowing = true.
+//        "1 earlier entry was dropped (buffer full)".
+//     2. Advance m_head; set m_overflowing = true.
 //     3. Fall through to the pure-ring write below.
 //   Subsequent overflows (m_overflowing == true):
 //     Just evict the oldest entry and store the new one. No sentinel spam.
 //   m_count never exceeds kCapacity.
 // ---------------------------------------------------------------------------
-
-bool LogBuffer::shouldLogEntry(const LogEntry &entry) const {
-    switch (m_verbosity) {
-        case 0: return false;
-        case 1: return entry.severity == LogEntry::ERROR || entry.severity == LogEntry::WARN;
-        default: return true;
-    }
-}
 
 void LogBuffer::log(const LogEntry::Severity sev, const char *msg) {
     push(LogEntry(sev, msg));
@@ -61,18 +48,11 @@ void LogBuffer::logf(const LogEntry::Severity sev, const char *fmt, ...) {
 }
 
 void LogBuffer::push(const LogEntry &entry) {
-    if (!shouldLogEntry(entry)) {
-        ++m_dropped;
-        return;
-    }
-
     if (m_count == kCapacity) {
         if (!m_overflowing) {
-            char buf[80];
-            snprintf(buf, sizeof(buf), "%d earlier entries were dropped (buffer full)", m_dropped + 1);
-            m_entries[m_head] = LogEntry(LogEntry::WARN, buf);
+            static const char kSentinel[] = "1 earlier entry was dropped (buffer full)";
+            m_entries[m_head] = LogEntry(LogEntry::WARN, kSentinel);
             m_head = (m_head + 1) % kCapacity;
-            m_dropped = 0;
             m_overflowing = true;
         }
         // Pure ring: evict oldest, store new entry. m_count stays at kCapacity.
@@ -84,18 +64,6 @@ void LogBuffer::push(const LogEntry &entry) {
     m_entries[m_head] = entry;
     m_head = (m_head + 1) % kCapacity;
     ++m_count;
-}
-
-// ---------------------------------------------------------------------------
-// setVerbosity / getVerbosity
-// ---------------------------------------------------------------------------
-
-void LogBuffer::setVerbosity(const int v) {
-    m_verbosity = v;
-}
-
-int LogBuffer::getVerbosity() const {
-    return m_verbosity;
 }
 
 // ---------------------------------------------------------------------------
