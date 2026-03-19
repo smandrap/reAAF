@@ -312,6 +312,21 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
                         [](const double v) { return clamp_volume(v); });
     }
 
+    if (essPtr && essPtr->essenceFile) {
+        const aafiAudioEssenceFile *ess = essPtr->essenceFile;
+        const char *essName = ess->unique_name ? ess->unique_name
+                            : ess->name        ? ess->name
+                                               : "(unnamed)";
+        char fadeStr[64] = "";
+        if (fadeInLen > 0.0 || fadeOutLen > 0.0) {
+            char *p = fadeStr;
+            if (fadeInLen  > 0.0) p += snprintf(p, sizeof(fadeStr) - (p - fadeStr), "  fadeIn: %.3fs",  fadeInLen);
+            if (fadeOutLen > 0.0)     snprintf(p, sizeof(fadeStr) - (p - fadeStr), "  fadeOut: %.3fs", fadeOutLen);
+        }
+        m_logBuffer->logf(LogEntry::INFO, "Source: \"%s\"  %u Hz / %u-bit / %uch  @ %.3fs%s",
+            essName, ess->samplerate, ess->samplesize, ess->channels, pos, fadeStr);
+    }
+
     processSource_Audio(essPtr);
     // 'w_itm' destructor fires here ">"
 }
@@ -368,10 +383,6 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     }
 
     aafiAudioEssenceFile *ess = essPtr->essenceFile;
-
-    m_logBuffer->logf(LogEntry::INFO, "Source: \"%s\"  %u Hz / %u-bit / %uch",
-        ess->unique_name ? ess->unique_name : ess->name ? ess->name : "(unnamed)",
-        ess->samplerate, ess->samplesize, ess->channels);
 
     if (ess->is_embedded && !ess->usable_file_path) {
         if (!extractEmbeddedEssence(ess))
