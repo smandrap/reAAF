@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.0b2] - 2026-03-19
+
+- Remove custom color logic from import log dialog, it's still broken.
+
 ## [0.2.0b1] - 2026-03-19
 
 - Add import log 

@@ -1,12 +1,11 @@
 @description reAAF
-@version 0.2.0b1
+@version 0.2.0b2
 @author smandrap
 @link https://github.com/smandrap/reAAF
 @about
   AAF session importer for REAPER. See the repository for details.
 @changelog
-  - Add import log 
-  - Add preference to control when/how the log dialog opens (always, on warnings/errors, never)
+  - Remove custom color logic from import log dialog, it's still broken.
 @provides
   [darwin-arm64] reaper_reAAF-arm64.dylib    https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-arm64.dylib
   [darwin64]     reaper_reAAF-x86_64.dylib   https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-x86_64.dylib
