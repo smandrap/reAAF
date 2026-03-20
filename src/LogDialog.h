@@ -44,6 +44,8 @@ private:
 
     void populate() const;
 
+    void copyToClipboard() const;
+
     static int HandleKey(MSG *msg, accelerator_register_t *accel);
 
     static WDL_DLGRET CALLBACK dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

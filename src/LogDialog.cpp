@@ -97,6 +97,7 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
             self->m_resizer.init_item(IDC_PROGRESS_LABEL, 0.0f, 0.0f, 1.0f, 0.0f); // stretches right, fixed top
             self->m_resizer.init_item(IDC_LOG_LIST, 0.0f, 0.0f, 1.0f, 1.0f); // stretches both axes
             self->m_resizer.init_item(IDC_CLOSE_BTN, 1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
+            self->m_resizer.init_item(IDC_COPY_BTN, 1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
 
             self->m_resizer.init_item(IDC_LOGFILTER_INFO, 0.0f, 1.0f, 0.0f, 1.0f);
             self->m_resizer.init_item(IDC_LOGFILTER_WARN, 0.0f, 1.0f, 0.0f, 1.0f);
@@ -118,6 +119,8 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
         case WM_COMMAND: {
             if (const int id = LOWORD(wParam); id == IDC_CLOSE_BTN) {
                 self->close();
+            } else if (id == IDC_COPY_BTN) {
+                self->copyToClipboard();
             } else if (id == IDC_LOGFILTER_INFO || id == IDC_LOGFILTER_WARN || id == IDC_LOGFILTER_ERROR) {
                 self->m_showInfo = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_INFO) == BST_CHECKED;
                 self->m_showWarn = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_WARN) == BST_CHECKED;
@@ -289,4 +292,83 @@ int LogDialog::HandleKey(MSG *msg, accelerator_register_t *accel) {
 
 void LogDialog::close() const {
     DestroyWindow(m_hwnd);
+}
+
+
+// ---------------------------------------------------------------------------
+// Private: copyToClipboard
+// ---------------------------------------------------------------------------
+
+void LogDialog::copyToClipboard() const {
+    std::string text;
+    const int n = m_buf.size();
+    for (int i = 0; i < n; ++i) {
+#ifdef _WIN32
+        constexpr const char *nl = "\r\n";
+#else
+        constexpr auto nl = "\n";
+#endif
+        const LogEntry &e = m_buf.at(i);
+        const char *level;
+        bool show;
+        switch (e.severity) {
+            case LogEntry::ERR: level = "***[ ERROR ]*** :";
+                show = m_showError;
+                break;
+            case LogEntry::WARN: level = "*[ WARN ]* :";
+                show = m_showWarn;
+                break;
+            default: level = "[ INFO ] :";
+                show = m_showInfo;
+                break;
+        }
+        if (!show) continue;
+        text += level;
+        text += '\t';
+        text += e.text;
+        text += nl;
+    }
+
+#ifdef _WIN32
+    const int wlen = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
+    if (wlen <= 0) return;
+    std::vector<wchar_t> wbuf(wlen);
+    MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wbuf.data(), wlen);
+    const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, wlen * sizeof(wchar_t));
+    if (!mem) return;
+    wchar_t *dst = static_cast<wchar_t *>(GlobalLock(mem));
+    if (!dst) {
+        GlobalFree(mem);
+        return;
+    }
+    std::copy(wbuf.begin(), wbuf.end(), dst);
+    GlobalUnlock(mem);
+    if (!OpenClipboard(m_hwnd)) {
+        GlobalFree(mem);
+        return;
+    }
+    EmptyClipboard();
+    SetClipboardData(CF_UNICODETEXT, mem);
+    CloseClipboard();
+#else
+    const size_t byteSize = text.size() + 1;
+    const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, byteSize);
+    if (!mem) return;
+    const auto dst = static_cast<char *>(GlobalLock(mem));
+    if (!dst) {
+        GlobalFree(mem);
+        return;
+    }
+    std::copy(text.begin(), text.end(), dst);
+    dst[text.size()] = '\0';
+    GlobalUnlock(mem);
+    if (!OpenClipboard(m_hwnd)) {
+        GlobalFree(mem);
+        return;
+    }
+    EmptyClipboard();
+    const unsigned int fmt = RegisterClipboardFormat("SWELL__CF_TEXT");
+    SetClipboardData(fmt, mem);
+    CloseClipboard();
+#endif
 }
