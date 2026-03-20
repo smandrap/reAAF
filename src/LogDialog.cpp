@@ -26,23 +26,6 @@
 #include "resource.h"
 #include "reaper_plugin_functions.h"
 
-// On Windows these come from commctrl.h (included via LogDialog.h).
-// On SWELL platforms they may not be defined, so provide fallbacks.
-#ifndef _WIN32
-#  ifndef CDRF_DODEFAULT
-#    define CDRF_DODEFAULT        0x00000000
-#  endif
-#  ifndef CDRF_NOTIFYITEMDRAW
-#    define CDRF_NOTIFYITEMDRAW   0x00000020
-#  endif
-#  ifndef CDIS_SELECTED
-#    define CDIS_SELECTED         0x0001
-#  endif
-#  ifndef COLOR_WINDOWTEXT
-#    define COLOR_WINDOWTEXT      8
-#  endif
-#endif
-
 
 // ---------------------------------------------------------------------------
 // External declarations (defined in main.cpp)
@@ -62,7 +45,7 @@ LogDialog *LogDialog::s_instance = nullptr;
 
 LogDialog::LogDialog(LogBuffer buf, bool showInfo, bool showWarn, bool showError)
     : m_buf(std::move(buf))
-    , m_showInfo(showInfo), m_showWarn(showWarn), m_showError(showError) {}
+      , m_showInfo(showInfo), m_showWarn(showWarn), m_showError(showError) {}
 
 // ---------------------------------------------------------------------------
 // Private: dialogProc
@@ -115,12 +98,12 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
             self->m_resizer.init_item(IDC_LOG_LIST, 0.0f, 0.0f, 1.0f, 1.0f); // stretches both axes
             self->m_resizer.init_item(IDC_CLOSE_BTN, 1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
 
-            self->m_resizer.init_item(IDC_LOGFILTER_INFO,  0.0f, 1.0f, 0.0f, 1.0f);
-            self->m_resizer.init_item(IDC_LOGFILTER_WARN,  0.0f, 1.0f, 0.0f, 1.0f);
+            self->m_resizer.init_item(IDC_LOGFILTER_INFO, 0.0f, 1.0f, 0.0f, 1.0f);
+            self->m_resizer.init_item(IDC_LOGFILTER_WARN, 0.0f, 1.0f, 0.0f, 1.0f);
             self->m_resizer.init_item(IDC_LOGFILTER_ERROR, 0.0f, 1.0f, 0.0f, 1.0f);
 
-            CheckDlgButton(hwnd, IDC_LOGFILTER_INFO,  self->m_showInfo  ? BST_CHECKED : BST_UNCHECKED);
-            CheckDlgButton(hwnd, IDC_LOGFILTER_WARN,  self->m_showWarn  ? BST_CHECKED : BST_UNCHECKED);
+            CheckDlgButton(hwnd, IDC_LOGFILTER_INFO, self->m_showInfo ? BST_CHECKED : BST_UNCHECKED);
+            CheckDlgButton(hwnd, IDC_LOGFILTER_WARN, self->m_showWarn ? BST_CHECKED : BST_UNCHECKED);
             CheckDlgButton(hwnd, IDC_LOGFILTER_ERROR, self->m_showError ? BST_CHECKED : BST_UNCHECKED);
 
             return 1;
@@ -133,12 +116,11 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
         }
 
         case WM_COMMAND: {
-            const int id = LOWORD(wParam);
-            if (id == IDC_CLOSE_BTN) {
+            if (const int id = LOWORD(wParam); id == IDC_CLOSE_BTN) {
                 self->close();
             } else if (id == IDC_LOGFILTER_INFO || id == IDC_LOGFILTER_WARN || id == IDC_LOGFILTER_ERROR) {
-                self->m_showInfo  = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_INFO)  == BST_CHECKED;
-                self->m_showWarn  = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_WARN)  == BST_CHECKED;
+                self->m_showInfo = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_INFO) == BST_CHECKED;
+                self->m_showWarn = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_WARN) == BST_CHECKED;
                 self->m_showError = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_ERROR) == BST_CHECKED;
                 self->populate();
             }
@@ -162,55 +144,11 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
             return 0;
         }
 
-        case WM_NOTIFY: {
-            const auto *hdr = reinterpret_cast<NMHDR *>(lParam);
-            if (hdr->idFrom != IDC_LOG_LIST || hdr->code != NM_CUSTOMDRAW)
-                return 0;
-            auto *nmcd = reinterpret_cast<NMLVCUSTOMDRAW *>(lParam);
-            return self->onCustomDraw(nmcd);
-        }
-
         default:
             return 0;
     }
 }
 
-// ---------------------------------------------------------------------------
-// Private: onCustomDraw
-// ---------------------------------------------------------------------------
-
-LRESULT LogDialog::onCustomDraw(NMLVCUSTOMDRAW *nmcd) const {
-    switch (nmcd->nmcd.dwDrawStage) {
-        case CDDS_PREPAINT:
-            return CDRF_NOTIFYITEMDRAW;
-
-        case CDDS_ITEMPREPAINT: {
-            // Let the system render selected rows naturally
-            if (nmcd->nmcd.uItemState & CDIS_SELECTED)
-                return CDRF_DODEFAULT;
-
-            // Retrieve the buffer index stored in the item's lParam during populate()
-            LVITEM lvi = {};
-            lvi.mask = LVIF_PARAM;
-            lvi.iItem = static_cast<int>(nmcd->nmcd.dwItemSpec);
-            ListView_GetItem(GetDlgItem(m_hwnd, IDC_LOG_LIST), &lvi);
-            const int bufIdx = static_cast<int>(lvi.lParam);
-            if (bufIdx < 0 || bufIdx >= m_buf.size())
-                return CDRF_DODEFAULT;
-
-            const LogEntry &e = m_buf.at(bufIdx);
-            switch (e.severity) {
-                case LogEntry::ERR: nmcd->clrText = RGB(220, 0,   0);                  break;
-                case LogEntry::WARN:  nmcd->clrText = RGB(180, 180, 0);                  break;
-                default:              nmcd->clrText = GetSysColor(COLOR_WINDOWTEXT);     break;
-            }
-            return CDRF_DODEFAULT;
-        }
-
-        default:
-            return CDRF_DODEFAULT;
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Private: populate
@@ -223,15 +161,18 @@ void LogDialog::populate() const {
     std::vector<int> selBufIndices;
     int focusBufIdx = -1;
     for (int j = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED); j != -1;
-             j = ListView_GetNextItem(hwndList,  j, LVNI_SELECTED)) {
-        LVITEM lvi = {}; lvi.mask = LVIF_PARAM; lvi.iItem = j;
+         j = ListView_GetNextItem(hwndList, j, LVNI_SELECTED)) {
+        LVITEM lvi = {};
+        lvi.mask = LVIF_PARAM;
+        lvi.iItem = j;
         ListView_GetItem(hwndList, &lvi);
         selBufIndices.push_back(static_cast<int>(lvi.lParam));
     }
     {
-        const int fj = ListView_GetNextItem(hwndList, -1, LVNI_FOCUSED);
-        if (fj != -1) {
-            LVITEM lvi = {}; lvi.mask = LVIF_PARAM; lvi.iItem = fj;
+        if (const int fj = ListView_GetNextItem(hwndList, -1, LVNI_FOCUSED); fj != -1) {
+            LVITEM lvi = {};
+            lvi.mask = LVIF_PARAM;
+            lvi.iItem = fj;
             ListView_GetItem(hwndList, &lvi);
             focusBufIdx = static_cast<int>(lvi.lParam);
         }
@@ -240,8 +181,6 @@ void LogDialog::populate() const {
     SendMessage(hwndList, WM_SETREDRAW, FALSE, 0);
     ListView_DeleteAllItems(hwndList);
 
-    // rowBufIdx[r] = buffer index of ListView row r — built during insertion so we
-    // don't need a second ListView_GetItem pass when restoring selection below
     std::vector<int> rowBufIdx;
     int info = 0, warnings = 0, errors = 0, row = 0;
     const int n = m_buf.size();
@@ -251,9 +190,18 @@ void LogDialog::populate() const {
         const char *level;
         bool show;
         switch (e.severity) {
-            case LogEntry::ERR: level = "ERROR"; ++errors;   show = m_showError; break;
-            case LogEntry::WARN:  level = "WARN";  ++warnings; show = m_showWarn;  break;
-            default:              level = "INFO";  ++info;     show = m_showInfo;  break;
+            case LogEntry::ERR: level = "ERROR";
+                ++errors;
+                show = m_showError;
+                break;
+            case LogEntry::WARN: level = "WARN";
+                ++warnings;
+                show = m_showWarn;
+                break;
+            default: level = "INFO";
+                ++info;
+                show = m_showInfo;
+                break;
         }
         if (!show) continue;
 
@@ -270,8 +218,6 @@ void LogDialog::populate() const {
         ++row;
     }
 
-    // SWELL preserves selection state across DeleteAllItems/re-insert, so explicitly
-    // clear everything first, then restore only the entries that survived the filter
     ListView_SetItemState(hwndList, -1, 0, LVIS_SELECTED | LVIS_FOCUSED);
     for (int r = 0; r < row; ++r) {
         const int bi = rowBufIdx[r];
@@ -298,19 +244,16 @@ void LogDialog::populate() const {
         ListView_EnsureVisible(hwndList, row - 1, FALSE);
 }
 
-// ---------------------------------------------------------------------------
-// Public: open
-// ---------------------------------------------------------------------------
 
-void LogDialog::open(LogBuffer buf, bool showInfo, bool showWarn, bool showError) {
+void LogDialog::open(LogBuffer buf, const bool showInfo, const bool showWarn, const bool showError) {
     if (s_instance) {
-        s_instance->m_buf      = std::move(buf);
-        s_instance->m_showInfo  = showInfo;
-        s_instance->m_showWarn  = showWarn;
+        s_instance->m_buf = std::move(buf);
+        s_instance->m_showInfo = showInfo;
+        s_instance->m_showWarn = showWarn;
         s_instance->m_showError = showError;
         HWND hw = s_instance->m_hwnd;
-        CheckDlgButton(hw, IDC_LOGFILTER_INFO,  showInfo  ? BST_CHECKED : BST_UNCHECKED);
-        CheckDlgButton(hw, IDC_LOGFILTER_WARN,  showWarn  ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hw, IDC_LOGFILTER_INFO, showInfo ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hw, IDC_LOGFILTER_WARN, showWarn ? BST_CHECKED : BST_UNCHECKED);
         CheckDlgButton(hw, IDC_LOGFILTER_ERROR, showError ? BST_CHECKED : BST_UNCHECKED);
         s_instance->populate();
         SetForegroundWindow(s_instance->m_hwnd);
