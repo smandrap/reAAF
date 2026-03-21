@@ -61,19 +61,13 @@ static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
     LogBuffer logBuffer;
     const int ok = AafImporter(ctx, fn, &logBuffer).run();
 
-    const int mode = PrefsPage::getVerbosity(); // 0=never, 1=on warn/err, 2=always
-    if (mode == 0) return ok;
+    const auto mode = PrefsPage::getVerbosity();
+    if (mode == PrefsPage::LogVerbosity::NONE) return ok;
 
-    if (mode == 1) {
-        bool hasWarn = false, hasError = false;
-        for (int i = 0; i < logBuffer.size(); ++i) {
-            const LogEntry &e = logBuffer.at(i);
-            if (e.severity == LogEntry::WARN)  hasWarn  = true;
-            if (e.severity == LogEntry::ERR) hasError = true;
-        }
-        if (!hasWarn && !hasError) return ok;
-        LogDialog::open(std::move(logBuffer), false, hasWarn, hasError);
-    } else { // mode == 2
+    if (mode == PrefsPage::LogVerbosity::ERR) {
+        if (!logBuffer.hasErrorsOrWarnings()) return ok;
+        LogDialog::open(std::move(logBuffer), false, true, true);
+    } else {
         LogDialog::open(std::move(logBuffer), true, true, true);
     }
     return ok;

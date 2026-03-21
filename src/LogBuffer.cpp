@@ -47,7 +47,13 @@ void LogBuffer::logf(const LogEntry::Severity sev, const char *fmt, ...) {
     push(LogEntry(sev, buf));
 }
 
+bool LogBuffer::hasErrorsOrWarnings() const { return m_hasErrorsOrWarnings; }
+
 void LogBuffer::push(const LogEntry &entry) {
+    if (entry.severity == LogEntry::ERR || entry.severity == LogEntry::WARN) {
+        m_hasErrorsOrWarnings = true;
+    }
+
     if (m_count == kCapacity) {
         if (!m_overflowing) {
             static const char kSentinel[] = "1 earlier entry was dropped (buffer full)";

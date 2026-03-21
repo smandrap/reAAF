@@ -63,6 +63,8 @@ public:
 #endif
         ;
 
+    [[nodiscard]] bool hasErrorsOrWarnings() const;
+
     // --- Test-only accessors (used by TestableLogBuffer in tests/) ----------
     // Returns the number of entries currently stored in the buffer.
     [[nodiscard]] int size() const;
@@ -76,6 +78,7 @@ private:
     int m_head = 0; // next write position (ring index)
     int m_count = 0; // entries currently stored (max kCapacity)
     bool m_overflowing = false; // true after the first capacity overflow
+    bool m_hasErrorsOrWarnings = false;
 
     void push(const LogEntry &entry);
 };

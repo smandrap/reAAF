@@ -25,6 +25,7 @@ using RegisterFn = int (*)(const char*, void*);
 
 class PrefsPage {
 public:
+    enum class LogVerbosity {NONE, ERR, ALL};
     // Called from REAPER_PLUGIN_ENTRYPOINT to register the preferences page.
     static void registerPage(const reaper_plugin_info_t* rec);
 
@@ -32,9 +33,7 @@ public:
     // g_prefs_reg is file-scope static in PrefsPage.cpp; REAPER must not call it after unload.
     static void unregisterPage_static(RegisterFn fn);
 
-    // Read persisted verbosity (0=None, 1=Normal, 2=Verbose).
-    // Returns 1 (Normal) if no SetExtState entry exists.
-    static int  getVerbosity();
+    static LogVerbosity getVerbosity();
     static void setVerbosity(int v);
 
     // Factory function stored in g_prefs_reg.create — REAPER calls this to create

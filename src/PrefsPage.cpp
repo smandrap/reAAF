@@ -74,14 +74,14 @@ void PrefsPage::unregisterPage_static(const RegisterFn fn) {
 // PrefsPage::getVerbosity / setVerbosity
 // ---------------------------------------------------------------------------
 
-int PrefsPage::getVerbosity() {
-    if (!HasExtState(kSection, kKeyVerb)) return 1; // default: Normal
+PrefsPage::LogVerbosity PrefsPage::getVerbosity() {
+    if (!HasExtState(kSection, kKeyVerb)) return LogVerbosity::ERR; // default: Normal
     // strtol immediately — do NOT store the pointer from GetExtState
     const char *s = GetExtState(kSection, kKeyVerb);
     char *end;
     const long v = strtol(s, &end, 10);
-    if (end == s || v < 0 || v > 2) return 1; // unparseable or out of range
-    return static_cast<int>(v);
+    if (end == s || v < 0 || v > 2) return LogVerbosity::ERR; // unparseable or out of range
+    return static_cast<LogVerbosity>(v);
 }
 
 void PrefsPage::setVerbosity(const int v) {
