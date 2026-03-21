@@ -19,6 +19,7 @@
 
 #include <cstdio>   // snprintf, vsnprintf
 #include <cstdarg>  // va_list
+#include <string>
 
 // ---------------------------------------------------------------------------
 // push() — the core operation.
@@ -41,10 +42,29 @@ void LogBuffer::log(const LogEntry::Severity sev, const char *msg) {
 void LogBuffer::logf(const LogEntry::Severity sev, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
+
     char buf[512];
-    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_list ap2;
+    va_copy(ap2, ap);
+    const int written = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
-    push(LogEntry(sev, buf));
+
+    if (written >= 0 && written < static_cast<int>(sizeof(buf))) {
+        va_end(ap2);
+        push(LogEntry(sev, buf));
+        return;
+    }
+
+    if (written >= static_cast<int>(sizeof(buf))) {
+        std::string large(static_cast<size_t>(written), '\0');
+        vsnprintf(large.data(), static_cast<size_t>(written) + 1, fmt, ap2);
+        va_end(ap2);
+        push(LogEntry(sev, large.c_str()));
+        return;
+    }
+
+    va_end(ap2);
+    push(LogEntry(sev, "(logf encoding error)"));
 }
 
 bool LogBuffer::hasErrorsOrWarnings() const { return m_hasErrorsOrWarnings; }
