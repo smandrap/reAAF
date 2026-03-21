@@ -27,10 +27,6 @@
 #include "reaper_plugin_functions.h"
 
 
-// ---------------------------------------------------------------------------
-// External declarations (defined in main.cpp)
-// ---------------------------------------------------------------------------
-
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 // ---------------------------------------------------------------------------
@@ -47,8 +43,6 @@ LogDialog::LogDialog(LogBuffer buf, const LogEntry::Severity minSeverity)
     : m_buf(std::move(buf))
       , m_showInfo{minSeverity >= LogEntry::INFO}
       , m_showWarn{minSeverity >= LogEntry::WARN} {}
-
-// Error not needed, since the window is not constructed at all if never is chosen
 
 
 void LogDialog::setupResizer(HWND hwnd) {

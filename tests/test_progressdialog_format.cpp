@@ -7,8 +7,7 @@
 #include "LogBuffer.h"
 
 // ---------------------------------------------------------------------------
-// formatEntry — local copy matching the implementation in ProgressDialog.cpp.
-// Keep in sync when ProgressDialog.cpp is written (Plan 04).
+// formatEntry — formats a LogEntry as a displayable string with severity prefix.
 // ---------------------------------------------------------------------------
 
 static std::string formatEntry(const LogEntry& e)
