@@ -24,42 +24,23 @@
 #include "wdltypes.h"
 
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
 static constexpr auto kSection = "reaper_aaf";
 static constexpr auto kKeyVerb = "verbosity";
 
 
-// ---------------------------------------------------------------------------
 // Forward declarations
-// ---------------------------------------------------------------------------
-
 static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
-// ---------------------------------------------------------------------------
-// File-scope static struct — CRITICAL: must be file-scope, not local or heap.
-// REAPER holds a raw pointer and writes back hwndCache and treeitem here.
-// ---------------------------------------------------------------------------
 
 static prefs_page_register_t g_prefs_reg = {
     "reaper_aaf_prefs", // idstr — globally unique
     "AAF Import", // displayname — shown in REAPER Preferences tree
     PrefsPage::createHwnd,
-    0x9a, // par_id — top-level entry
-    "", // par_idstr — nullptr for top-level entry
-    0, // childrenFlag — leaf node
-    nullptr, // treeitem — REAPER fills in
-    nullptr, // hwndCache — REAPER fills in
-    {} // _extra[64] — zero-init reserved
+    0x9a, "",
+    0
 };
 
-// ---------------------------------------------------------------------------
-// PrefsPage::registerPage / unregisterPage_static
-// ---------------------------------------------------------------------------
 
 void PrefsPage::registerPage() {
     plugin_register("prefpage", &g_prefs_reg);
@@ -69,13 +50,8 @@ void PrefsPage::unregisterPage() {
     plugin_register("-prefpage", &g_prefs_reg);
 }
 
-// ---------------------------------------------------------------------------
-// PrefsPage::getVerbosity / setVerbosity
-// ---------------------------------------------------------------------------
-
 PrefsPage::LogVerbosity PrefsPage::getVerbosity() {
     if (!HasExtState(kSection, kKeyVerb)) return LogVerbosity::ERR; // default: Normal
-    // strtol immediately — do NOT store the pointer from GetExtState
     const char *s = GetExtState(kSection, kKeyVerb);
     char *end;
     const long v = strtol(s, &end, 10);
@@ -94,10 +70,6 @@ void PrefsPage::setVerbosity(const int v) {
 static constexpr UINT WM_PREFS_APPLY = WM_USER * 2;
 // REAPER's Apply button control ID — enable it when a change is pending.
 static constexpr int IDC_PREFS_APPLY = 0x478;
-
-// ---------------------------------------------------------------------------
-// Dialog procedure
-// ---------------------------------------------------------------------------
 
 static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPARAM wParam, LPARAM lParam) {
     switch (msg) {

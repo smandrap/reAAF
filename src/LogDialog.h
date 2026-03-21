@@ -36,9 +36,48 @@ public:
     static void open(LogBuffer buf, LogEntry::Severity minSeverity);
 
 private:
+    struct SelectionState {
+        std::vector<int> selected;
+        int focused = -1;
+    };
+
+    struct InsertResult {
+        std::vector<int> rowBufIdx;
+        int info = 0, warnings = 0, errors = 0;
+    };
+
+    LogBuffer m_buf;
+    HWND m_hwnd = nullptr;
+    WDL_WndSizer m_resizer;
+    accelerator_register_t m_accel = {};
+    bool m_isFocused = false;
+    bool m_showInfo = true;
+    bool m_showWarn = true;
+    bool m_showError = true;
+
+    static LogDialog *s_instance;
+
     explicit LogDialog(LogBuffer buf, LogEntry::Severity minSeverity);
 
     ~LogDialog() = default;
+
+    void setupResizer(HWND hwnd);
+
+    void registerAccel();
+
+    static void setupFilterChecks(HWND hwnd, const LogDialog *self);
+
+    static void setupListView(HWND hwnd);
+
+    [[nodiscard]] InsertResult insertRows(HWND hwndList) const;
+
+    [[nodiscard]] static auto saveListViewSelection(HWND hwndList) -> SelectionState;
+
+    static void restoreListViewSelection(HWND hwnd, const SelectionState &selState, const std::vector<int> &rowBufIdx);
+
+    static void updateSummaryLabel(HWND hwnd, int info, int warnings, int errors);
+
+    [[nodiscard]] bool shouldShow(LogEntry::Severity s) const;
 
     void close() const;
 
@@ -49,17 +88,6 @@ private:
     static int HandleKey(MSG *msg, accelerator_register_t *accel);
 
     static WDL_DLGRET CALLBACK dialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-    LogBuffer m_buf;
-    HWND m_hwnd = nullptr;
-    WDL_WndSizer m_resizer;
-    accelerator_register_t m_accel = {};
-    bool m_isFocused = false;
-    bool m_showInfo  = true;
-    bool m_showWarn  = true;
-    bool m_showError = true;
-
-    static LogDialog *s_instance;
 };
 
 #endif // REAPER_AAF_LOGDIALOG_H
