@@ -23,24 +23,38 @@
 #include "reaper_plugin_functions.h"
 
 #include <cstdarg>
+#include <string>
 
 
 void RppWriter::line(const char *fmt, ...) const {
     char buf[8192];
     std::va_list ap;
     va_start(ap, fmt);
+    std::va_list ap2;
+    va_copy(ap2, ap);
     const int written = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
 
-    if (written < 0 || written >= static_cast<int>(sizeof(buf))) {
-        char errmsg[128];
-        snprintf(errmsg, sizeof(errmsg),
-                 "line truncated (need %d bytes, buffer is %zu) — line dropped", written, sizeof(buf));
-        if (m_onError) m_onError(ErrorKind::LineTruncated, errmsg);
+    if (written >= 0 && written < static_cast<int>(sizeof(buf))) {
+        va_end(ap2);
+        m_ctx->AddLine("%s", buf);
         return;
     }
 
-    m_ctx->AddLine("%s", buf);
+    if (written >= static_cast<int>(sizeof(buf))) {
+        std::string large(static_cast<size_t>(written), '\0');
+        vsnprintf(large.data(), static_cast<size_t>(written) + 1, fmt, ap2);
+        va_end(ap2);
+        m_ctx->AddLine("%s", large.c_str());
+        return;
+    }
+
+    va_end(ap2);
+    if (m_onError) {
+        char errmsg[128];
+        snprintf(errmsg, sizeof(errmsg), "line formatting failed (vsnprintf returned %d)", written);
+        m_onError(ErrorKind::LineTruncated, errmsg);
+    }
 }
 
 
