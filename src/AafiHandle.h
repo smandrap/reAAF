@@ -37,6 +37,16 @@ struct AafiHandle {
     // move constructor
     AafiHandle(AafiHandle &&other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
 
+    // move-assignment
+    AafiHandle &operator=(AafiHandle &&other) noexcept {
+        if (this != &other) {
+            if (ptr) aafi_release(&ptr);
+            ptr = other.ptr;
+            other.ptr = nullptr;
+        }
+        return *this;
+    }
+
     AAF_Iface *operator->() const { return ptr; }
     [[nodiscard]] AAF_Iface *get() const { return ptr; }
     explicit operator bool() const { return ptr != nullptr; }

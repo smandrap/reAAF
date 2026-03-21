@@ -19,6 +19,7 @@
 #include "LogBuffer.h"
 #include "PrefsPage.h"
 #include "LogDialog.h"
+#include "defines.h"
 
 // ReSharper disable once CppUnusedIncludeDirective
 #include "version.h"
@@ -26,11 +27,6 @@
 #define REAPERAPI_IMPLEMENT
 #include "reaper_plugin_functions.h"
 #include "reaper_plugin.h"
-
-
-#ifdef _WIN32
-#  define strcasecmp _stricmp
-#endif
 
 REAPER_PLUGIN_HINSTANCE g_hInst = nullptr;
 
