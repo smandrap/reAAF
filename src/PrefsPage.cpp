@@ -24,7 +24,6 @@
 #include "wdltypes.h"
 
 
-
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -51,7 +50,7 @@ static prefs_page_register_t g_prefs_reg = {
     "AAF Import", // displayname — shown in REAPER Preferences tree
     PrefsPage::createHwnd,
     0x9a, // par_id — top-level entry
-    nullptr, // par_idstr — nullptr for top-level entry
+    "", // par_idstr — nullptr for top-level entry
     0, // childrenFlag — leaf node
     nullptr, // treeitem — REAPER fills in
     nullptr, // hwndCache — REAPER fills in
@@ -66,8 +65,8 @@ void PrefsPage::registerPage() {
     plugin_register("prefpage", &g_prefs_reg);
 }
 
-void PrefsPage::unregisterPage_static(const RegisterFn fn) {
-    if (fn) fn("-prefpage", &g_prefs_reg);
+void PrefsPage::unregisterPage() {
+    plugin_register("-prefpage", &g_prefs_reg);
 }
 
 // ---------------------------------------------------------------------------
@@ -107,7 +106,7 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
             SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Never"));
             SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("On Errors or Warnings"));
             SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Always"));
-            SendMessage(combo, CB_SETCURSEL, PrefsPage::getVerbosity(), 0);
+            SendMessage(combo, CB_SETCURSEL, static_cast<int>(PrefsPage::getVerbosity()), 0);
             EnableWindow(GetDlgItem(hwnd, IDC_VERSION_LABEL), FALSE);
             return 1;
         }

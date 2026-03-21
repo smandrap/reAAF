@@ -20,20 +20,19 @@
 
 #include "reaper_plugin.h"   // HWND, prefs_page_register_t
 
-// RegisterFn matches the signature of reaper_plugin_info_t::Register
-using RegisterFn = int (*)(const char*, void*);
-
 class PrefsPage {
 public:
-    enum class LogVerbosity {NONE, ERR, ALL};
+    enum class LogVerbosity { NONE, ERR, ALL };
+
     // Called from REAPER_PLUGIN_ENTRYPOINT to register the preferences page.
     static void registerPage();
 
     // Called from the atexit callback to unregister via the stored Register fn pointer.
     // g_prefs_reg is file-scope static in PrefsPage.cpp; REAPER must not call it after unload.
-    static void unregisterPage_static(RegisterFn fn);
+    static void unregisterPage();
 
     static LogVerbosity getVerbosity();
+
     static void setVerbosity(int v);
 
     // Factory function stored in g_prefs_reg.create — REAPER calls this to create

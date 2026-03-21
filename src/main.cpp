@@ -34,10 +34,6 @@
 
 REAPER_PLUGIN_HINSTANCE g_hInst = nullptr;
 
-// Stored Register fn pointer — used by the atexit callback to unregister
-// the preferences page after REAPER has finished calling into the plugin.
-RegisterFn g_registerFn = nullptr;
-
 // ---------------------------------------------------------------------------
 // projectimport callbacks
 // ---------------------------------------------------------------------------
@@ -103,7 +99,7 @@ int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance,
     PrefsPage::registerPage();
 
     plugin_register("atexit", reinterpret_cast<void *>(+[] {
-        PrefsPage::unregisterPage_static(g_registerFn);
+        PrefsPage::unregisterPage();
     }));
 
     return 1;
