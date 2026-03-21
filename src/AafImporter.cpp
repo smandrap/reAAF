@@ -204,6 +204,7 @@ const aafiAudioEssencePointer *AafImporter::getAudioEssencePtr(const aafiAudioCl
     int idx = 0;
     const aafiAudioEssencePointer *ptr = nullptr;
     AAFI_foreachEssencePointer(clip->essencePointerList, ptr) {
+        if (!ptr->essenceFile) { ++idx; continue; }
         if (ptr->essenceFile->channels > 1 || idx == trackIdx) return ptr;
         ++idx;
     }
@@ -239,7 +240,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     AAFI_foreachTrackItem(track, ti) {
         if (const auto *clip = aafi_timelineItemToAudioClip(ti)) {
             const auto [count, chan] = countRequiredTracks(clip);
-            requiredTracks = count;
+            requiredTracks = std::max(requiredTracks, count);
             nchan = std::max(nchan, chan);
         }
     }
