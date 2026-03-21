@@ -26,7 +26,7 @@
 
 
 [[nodiscard]] constexpr double rational_to_double(const aafRational_t r) noexcept {
-    if (r.denominator < 1e-10) return 0.0;
+    if (r.denominator == 0) return 0.0;
     return static_cast<double>(r.numerator) / static_cast<double>(r.denominator);
 }
 
