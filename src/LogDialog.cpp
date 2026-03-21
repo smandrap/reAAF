@@ -314,32 +314,7 @@ void LogDialog::close() const {
 }
 
 
-void LogDialog::copyToClipboard() const {
-    std::string text;
-    const int n = m_buf.size();
-    for (int i = 0; i < n; ++i) {
-#ifdef _WIN32
-        constexpr const char *nl = "\r\n";
-#else
-        constexpr auto nl = "\n";
-#endif
-        const LogEntry &e = m_buf.at(i);
-        const char *level;
-        switch (e.severity) {
-            case LogEntry::ERR: level = "***[ ERROR ]*** :";
-                break;
-            case LogEntry::WARN: level = "*[ WARN ]* :";
-                break;
-            default: level = "[ INFO ] :";
-                break;
-        }
-        if (!shouldShow(e.severity)) continue;
-        text += level;
-        text += '\t';
-        text += e.text;
-        text += nl;
-    }
-
+static void setClipboardText(HWND hwnd, const std::string &text) {
 #ifdef _WIN32
     const int wlen = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
     if (wlen <= 0) return;
@@ -348,38 +323,50 @@ void LogDialog::copyToClipboard() const {
     const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, wlen * sizeof(wchar_t));
     if (!mem) return;
     wchar_t *dst = static_cast<wchar_t *>(GlobalLock(mem));
-    if (!dst) {
-        GlobalFree(mem);
-        return;
-    }
+    if (!dst) { GlobalFree(mem); return; }
     std::copy(wbuf.begin(), wbuf.end(), dst);
     GlobalUnlock(mem);
-    if (!OpenClipboard(m_hwnd)) {
-        GlobalFree(mem);
-        return;
-    }
+    if (!OpenClipboard(hwnd)) { GlobalFree(mem); return; }
     EmptyClipboard();
     SetClipboardData(CF_UNICODETEXT, mem);
     CloseClipboard();
 #else
-    const size_t byteSize = text.size() + 1;
-    const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, byteSize);
+    const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
     if (!mem) return;
     const auto dst = static_cast<char *>(GlobalLock(mem));
-    if (!dst) {
-        GlobalFree(mem);
-        return;
-    }
+    if (!dst) { GlobalFree(mem); return; }
     std::copy(text.begin(), text.end(), dst);
     dst[text.size()] = '\0';
     GlobalUnlock(mem);
-    if (!OpenClipboard(m_hwnd)) {
-        GlobalFree(mem);
-        return;
-    }
+    if (!OpenClipboard(hwnd)) { GlobalFree(mem); return; }
     EmptyClipboard();
     const unsigned int fmt = RegisterClipboardFormat("SWELL__CF_TEXT");
     SetClipboardData(fmt, mem);
     CloseClipboard();
 #endif
+}
+
+void LogDialog::copyToClipboard() const {
+#ifdef _WIN32
+    constexpr const char *nl = "\r\n";
+#else
+    constexpr auto nl = "\n";
+#endif
+    std::string text;
+    const int n = m_buf.size();
+    for (int i = 0; i < n; ++i) {
+        const LogEntry &e = m_buf.at(i);
+        if (!shouldShow(e.severity)) continue;
+        const char *level;
+        switch (e.severity) {
+            case LogEntry::ERR:  level = "***[ ERROR ]*** :"; break;
+            case LogEntry::WARN: level = "*[ WARN ]* :";     break;
+            default:             level = "[ INFO ] :";        break;
+        }
+        text += level;
+        text += '\t';
+        text += e.text;
+        text += nl;
+    }
+    setClipboardText(m_hwnd, text);
 }
