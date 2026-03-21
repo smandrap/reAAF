@@ -62,9 +62,9 @@ static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
 
     if (mode == PrefsPage::LogVerbosity::ERR) {
         if (!logBuffer.hasErrorsOrWarnings()) return ok;
-        LogDialog::open(std::move(logBuffer), false, true, true);
+        LogDialog::open(std::move(logBuffer), LogEntry::WARN);
     } else {
-        LogDialog::open(std::move(logBuffer), true, true, true);
+        LogDialog::open(std::move(logBuffer), LogEntry::INFO);
     }
     return ok;
 }

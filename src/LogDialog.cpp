@@ -43,9 +43,11 @@ LogDialog *LogDialog::s_instance = nullptr;
 // Constructor
 // ---------------------------------------------------------------------------
 
-LogDialog::LogDialog(LogBuffer buf, bool showInfo, bool showWarn, bool showError)
+LogDialog::LogDialog(LogBuffer buf, const LogEntry::Severity minSeverity)
     : m_buf(std::move(buf))
-      , m_showInfo(showInfo), m_showWarn(showWarn), m_showError(showError) {}
+      , m_showInfo{minSeverity >= LogEntry::INFO}
+      , m_showWarn{minSeverity >= LogEntry::WARN} {}
+// Error not needed, since the window is not constructed at all if never is chosen
 
 // ---------------------------------------------------------------------------
 // Private: dialogProc
@@ -248,21 +250,18 @@ void LogDialog::populate() const {
 }
 
 
-void LogDialog::open(LogBuffer buf, const bool showInfo, const bool showWarn, const bool showError) {
+void LogDialog::open(LogBuffer buf, const LogEntry::Severity minSeverity) {
     if (s_instance) {
         s_instance->m_buf = std::move(buf);
-        s_instance->m_showInfo = showInfo;
-        s_instance->m_showWarn = showWarn;
-        s_instance->m_showError = showError;
         HWND hw = s_instance->m_hwnd;
-        CheckDlgButton(hw, IDC_LOGFILTER_INFO, showInfo ? BST_CHECKED : BST_UNCHECKED);
-        CheckDlgButton(hw, IDC_LOGFILTER_WARN, showWarn ? BST_CHECKED : BST_UNCHECKED);
-        CheckDlgButton(hw, IDC_LOGFILTER_ERROR, showError ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hw, IDC_LOGFILTER_INFO, minSeverity == LogEntry::INFO ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hw, IDC_LOGFILTER_WARN, BST_CHECKED);
+        CheckDlgButton(hw, IDC_LOGFILTER_ERROR, BST_CHECKED);
         s_instance->populate();
         SetForegroundWindow(s_instance->m_hwnd);
         return;
     }
-    s_instance = new LogDialog(std::move(buf), showInfo, showWarn, showError);
+    s_instance = new LogDialog(std::move(buf), minSeverity);
     HWND parent = GetMainHwnd();
     HWND hwnd = CreateDialogParam(g_hInst,
                                   MAKEINTRESOURCE(IDD_AAF_PROGRESS),
