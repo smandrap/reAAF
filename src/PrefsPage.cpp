@@ -51,7 +51,7 @@ void PrefsPage::unregisterPage() {
 }
 
 PrefsPage::LogVerbosity PrefsPage::getVerbosity() {
-    if (!HasExtState(kSection, kKeyVerb)) return LogVerbosity::ERR; // default: Normal
+    if (!HasExtState(kSection, kKeyVerb)) return LogVerbosity::ERR; // default: On Errors or Warnings
     const char *s = GetExtState(kSection, kKeyVerb);
     char *end;
     const long v = strtol(s, &end, 10);
