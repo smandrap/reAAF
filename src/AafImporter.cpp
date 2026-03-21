@@ -318,11 +318,12 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
                             : ess->name        ? ess->name
                                                : "(unnamed)";
         char fadeStr[64] = "";
-        if (fadeInLen > 0.0 || fadeOutLen > 0.0) {
-            char *p = fadeStr;
-            if (fadeInLen  > 0.0) p += snprintf(p, sizeof(fadeStr) - (p - fadeStr), "  fadeIn: %.3fs",  fadeInLen);
-            if (fadeOutLen > 0.0)     snprintf(p, sizeof(fadeStr) - (p - fadeStr), "  fadeOut: %.3fs", fadeOutLen);
-        }
+        if (fadeInLen > 0.0 && fadeOutLen > 0.0)
+            snprintf(fadeStr, sizeof(fadeStr), "  fadeIn: %.3fs  fadeOut: %.3fs", fadeInLen, fadeOutLen);
+        else if (fadeInLen > 0.0)
+            snprintf(fadeStr, sizeof(fadeStr), "  fadeIn: %.3fs", fadeInLen);
+        else if (fadeOutLen > 0.0)
+            snprintf(fadeStr, sizeof(fadeStr), "  fadeOut: %.3fs", fadeOutLen);
         m_logBuffer->logf(LogEntry::INFO, "Source: \"%s\"  %u Hz / %u-bit / %uch  @ %.3fs%s",
             essName, ess->samplerate, ess->samplesize, ess->channels, pos, fadeStr);
     }
