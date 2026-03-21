@@ -273,6 +273,8 @@ void LogDialog::populate() const {
 void LogDialog::open(LogBuffer buf, const LogEntry::Severity minSeverity) {
     if (s_instance) {
         s_instance->m_buf = std::move(buf);
+        s_instance->m_showInfo = (minSeverity >= LogEntry::INFO);
+        s_instance->m_showWarn = (minSeverity >= LogEntry::WARN);
         HWND hw = s_instance->m_hwnd;
         setupFilterChecks(hw, s_instance);
         s_instance->populate();
