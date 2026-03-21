@@ -65,7 +65,7 @@ public:
     [[nodiscard]] int size() const;
 
     // Returns the entry at logical index idx (0 = oldest, size()-1 = newest).
-    [[nodiscard]] LogEntry at(int idx) const;
+    [[nodiscard]] const LogEntry &at(int idx) const;
 
 private:
     LogEntry m_entries[kCapacity] = {};

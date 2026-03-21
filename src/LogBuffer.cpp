@@ -80,7 +80,7 @@ int LogBuffer::size() const {
     return m_count;
 }
 
-LogEntry LogBuffer::at(const int idx) const {
+const LogEntry &LogBuffer::at(const int idx) const {
     // idx 0 = oldest, idx m_count-1 = newest.
     // The oldest entry lives at (m_head - m_count + kCapacity) % kCapacity.
     const int oldest = (m_head - m_count + kCapacity) % kCapacity;

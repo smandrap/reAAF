@@ -239,8 +239,7 @@ auto LogDialog::insertRows(HWND hwndList) const -> InsertResult {
         item.pszText = const_cast<char *>(level);
 
         ListView_InsertItem(hwndList, &item);
-        std::string rowText = e.text;
-        ListView_SetItemText(hwndList, item.iItem, 1, rowText.data());
+        ListView_SetItemText(hwndList, item.iItem, 1, const_cast<char *>(e.text.c_str()));
         res.rowBufIdx.push_back(i);
     }
 
