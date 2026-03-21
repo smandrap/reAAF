@@ -27,7 +27,7 @@ class PrefsPage {
 public:
     enum class LogVerbosity {NONE, ERR, ALL};
     // Called from REAPER_PLUGIN_ENTRYPOINT to register the preferences page.
-    static void registerPage(const reaper_plugin_info_t* rec);
+    static void registerPage();
 
     // Called from the atexit callback to unregister via the stored Register fn pointer.
     // g_prefs_reg is file-scope static in PrefsPage.cpp; REAPER must not call it after unload.

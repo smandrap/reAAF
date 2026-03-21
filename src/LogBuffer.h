@@ -40,11 +40,6 @@ struct LogEntry {
 // ---------------------------------------------------------------------------
 // LogBuffer -- fixed-capacity ring buffer of LogEntry items.
 //
-// Thread safety: NOT thread-safe. All calls must be made from the main thread.
-// Single-threaded access is guaranteed by the plugin architecture: the LibAAF
-// callback is invoked synchronously during AafImporter::run(), which is called
-// from aaf_ImportProject() on the main thread.
-//
 // Overflow behaviour: on the first overflow push() evicts the oldest entry
 // and inserts a one-time sentinel [WARN] "1 earlier entry was dropped
 // (buffer full)", then stores the new entry. All subsequent overflows silently
@@ -70,7 +65,6 @@ public:
     [[nodiscard]] int size() const;
 
     // Returns the entry at logical index idx (0 = oldest, size()-1 = newest).
-    // Behaviour is undefined if idx is out of range.
     [[nodiscard]] LogEntry at(int idx) const;
 
 private:

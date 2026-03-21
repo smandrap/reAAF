@@ -100,7 +100,7 @@ int REAPER_PLUGIN_ENTRYPOINT(REAPER_PLUGIN_HINSTANCE hInstance,
     plugin_register("projectimport", &g_import_reg);
 
     // Register the AAF Import preferences page
-    PrefsPage::registerPage(rec);
+    PrefsPage::registerPage();
 
     plugin_register("atexit", reinterpret_cast<void *>(+[] {
         PrefsPage::unregisterPage_static(g_registerFn);

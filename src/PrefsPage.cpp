@@ -62,8 +62,8 @@ static prefs_page_register_t g_prefs_reg = {
 // PrefsPage::registerPage / unregisterPage_static
 // ---------------------------------------------------------------------------
 
-void PrefsPage::registerPage(const reaper_plugin_info_t *rec) {
-    rec->Register("prefpage", &g_prefs_reg);
+void PrefsPage::registerPage() {
+    plugin_register("prefpage", &g_prefs_reg);
 }
 
 void PrefsPage::unregisterPage_static(const RegisterFn fn) {
