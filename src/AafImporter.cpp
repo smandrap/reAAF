@@ -386,8 +386,12 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     aafiAudioEssenceFile *ess = essPtr->essenceFile;
 
     if (ess->is_embedded && !ess->usable_file_path) {
-        if (!extractEmbeddedEssence(ess))
-            return;  // no emptySource() — matches original behavior on extraction failure
+        if (!extractEmbeddedEssence(ess)) {
+            m_logBuffer->logf(LogEntry::ERR, "embedded extraction failed: %s",
+                              ess->unique_name ? ess->unique_name : "(unnamed)");
+            m_writer.emptySource();
+            return;
+        }
     }
 
     // TODO: sanitize path, might contain invalid chars
