@@ -321,7 +321,7 @@ static void setClipboardText(HWND hwnd, const std::string &text) {
     GlobalUnlock(mem);
     if (!OpenClipboard(hwnd)) { GlobalFree(mem); return; }
     EmptyClipboard();
-    SetClipboardData(CF_UNICODETEXT, mem);
+    if (!SetClipboardData(CF_UNICODETEXT, mem)) GlobalFree(mem);
     CloseClipboard();
 #else
     const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
