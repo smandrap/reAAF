@@ -52,7 +52,7 @@ const char *rppSourceTypeFromPath(const char *filePath) {
     return srcType;
 }
 
-double resolveConstantGain(const aafiAudioGain *gain, double defaultValue = 1.0) {
+double resolveConstantGain(const aafiAudioGain *gain, const double defaultValue = 1.0) {
     if (gain
         && gain->flags & AAFI_AUDIO_GAIN_CONSTANT
         && gain->pts_cnt >= 1
@@ -129,7 +129,7 @@ int AafImporter::run() {
         return -1;
     }
 
-    m_writer.setErrorHandler([this](RppWriter::ErrorKind kind, const char *msg) {
+    m_writer.setErrorHandler([this](const RppWriter::ErrorKind kind, const char *msg) {
         switch (kind) {
             case RppWriter::ErrorKind::LineTruncated:
                 m_logBuffer.logf(LogEntry::ERR, "%s", msg);
@@ -402,7 +402,6 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
         }
     }
 
-    // TODO: sanitize path, might contain invalid chars
     const char *filePath = ess->usable_file_path;
     if (!filePath || *filePath == '\0') {
         m_logBuffer.logf(LogEntry::WARN, "no usable path for '%s'",

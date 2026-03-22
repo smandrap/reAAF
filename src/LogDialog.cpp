@@ -112,7 +112,7 @@ namespace {
         if (!SetClipboardData(CF_UNICODETEXT, mem)) GlobalFree(mem);
         CloseClipboard();
 #else
-        const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, static_cast<int>(text.size()) + 1);
+        HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, static_cast<int>(text.size()) + 1);
         if (!mem) return;
         const auto dst = static_cast<char *>(GlobalLock(mem));
         if (!dst) {
