@@ -20,6 +20,7 @@
 
 #include "LogBuffer.h"
 #include <memory>
+#include <vector>
 #include "reaper_plugin.h"
 #include "wdltypes.h"
 #include "wingui/wndsize.h"
@@ -28,24 +29,24 @@
 #endif
 
 // Modeless dialog that displays log entries collected during an AAF import.
-// At most one instance exists at a time. The dialog owns its LogBuffer by
-// value. Call from main thread only.
+// At most one instance exists at a time.
 class LogDialog {
 public:
     explicit LogDialog(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
 
-    static void open(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
+    LogDialog(const LogDialog &) = delete;
 
-    // Public destructor required so std::unique_ptr<LogDialog> can call it
-    // via std::default_delete.
+    LogDialog &operator=(const LogDialog &) = delete;
+
+    LogDialog(LogDialog &&) = delete;
+
+    LogDialog &operator=(LogDialog &&) = delete;
+
     ~LogDialog() = default;
 
-private:
-    struct SelectionState {
-        std::vector<int> selected;
-        int focused = -1;
-    };
+    static void open(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
 
+private:
     struct InsertResult {
         std::vector<int> rowBufIdx;
         int info = 0, warnings = 0, errors = 0;
@@ -62,20 +63,13 @@ private:
 
     static std::unique_ptr<LogDialog> s_owner;
 
-
     void setupResizer(HWND hwnd);
 
     void registerAccel();
 
     static void setupFilterChecks(HWND hwnd, const LogDialog *self);
 
-    static void setupListView(HWND hwnd);
-
     [[nodiscard]] InsertResult insertRows(HWND hwndList) const;
-
-    [[nodiscard]] static auto saveListViewSelection(HWND hwndList) -> SelectionState;
-
-    static void restoreListViewSelection(HWND hwnd, const SelectionState &selState, const std::vector<int> &rowBufIdx);
 
     static void updateSummaryLabel(HWND hwnd, int info, int warnings, int errors);
 

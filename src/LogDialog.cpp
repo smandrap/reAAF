@@ -26,6 +26,113 @@
 #include "resource.h"
 #include "reaper_plugin_functions.h"
 
+namespace {
+    void setupListView(HWND hwnd) {
+        // Set up ListView extended styles and columns.
+        HWND hwndList = GetDlgItem(hwnd, IDC_LOG_LIST);
+        ListView_SetExtendedListViewStyleEx(hwndList,
+                                            LVS_EX_FULLROWSELECT,
+                                            LVS_EX_FULLROWSELECT);
+
+        LVCOLUMN col = {};
+        col.mask = LVCF_TEXT | LVCF_WIDTH;
+        char colLevel[] = "Level";
+        col.pszText = colLevel;
+        col.cx = 55;
+        ListView_InsertColumn(hwndList, 0, &col);
+
+        char colMessage[] = "Message";
+        col.pszText = colMessage;
+        RECT listRc;
+        GetClientRect(hwndList, &listRc);
+        col.cx = listRc.right;
+        ListView_InsertColumn(hwndList, 1, &col);
+    }
+
+    struct SelectionState {
+        std::vector<int> selected;
+        int focused = -1;
+    };
+
+    auto saveListViewSelection(HWND hwndList) -> SelectionState {
+        SelectionState sel;
+        for (int i = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED); i != -1;
+             i = ListView_GetNextItem(hwndList, i, LVNI_SELECTED)) {
+            LVITEM lvi = {};
+            lvi.mask = LVIF_PARAM;
+            lvi.iItem = i;
+            ListView_GetItem(hwndList, &lvi);
+            sel.selected.push_back(static_cast<int>(lvi.lParam));
+        }
+        if (const int fi = ListView_GetNextItem(hwndList, -1, LVNI_FOCUSED); fi != -1) {
+            LVITEM lvi = {};
+            lvi.mask = LVIF_PARAM;
+            lvi.iItem = fi;
+            ListView_GetItem(hwndList, &lvi);
+            sel.focused = static_cast<int>(lvi.lParam);
+        }
+        return sel;
+    }
+
+    void restoreListViewSelection(HWND hwnd, const SelectionState &selState,
+                                  const std::vector<int> &rowBufIdx) {
+        ListView_SetItemState(hwnd, -1, 0, LVIS_SELECTED | LVIS_FOCUSED);
+        for (int r = 0; r < static_cast<int>(rowBufIdx.size()); ++r) {
+            const int bi = rowBufIdx[r];
+            UINT state = 0;
+            if (std::find(selState.selected.begin(), selState.selected.end(), bi) != selState.selected.end())
+                state |= LVIS_SELECTED;
+            if (bi == selState.focused)
+                state |= LVIS_FOCUSED;
+            if (state)
+                ListView_SetItemState(hwnd, r, state, LVIS_SELECTED | LVIS_FOCUSED);
+        }
+    }
+
+    void setClipboardText(HWND hwnd, const std::string &text) {
+#ifdef _WIN32
+        const int wlen = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
+        if (wlen <= 0) return;
+        std::vector<wchar_t> wbuf(wlen);
+        MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wbuf.data(), wlen);
+        const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, wlen * sizeof(wchar_t));
+        if (!mem) return;
+        wchar_t *dst = static_cast<wchar_t *>(GlobalLock(mem));
+        if (!dst) {
+            GlobalFree(mem);
+            return;
+        }
+        std::copy(wbuf.begin(), wbuf.end(), dst);
+        GlobalUnlock(mem);
+        if (!OpenClipboard(hwnd)) {
+            GlobalFree(mem);
+            return;
+        }
+        EmptyClipboard();
+        if (!SetClipboardData(CF_UNICODETEXT, mem)) GlobalFree(mem);
+        CloseClipboard();
+#else
+        const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, static_cast<int>(text.size()) + 1);
+        if (!mem) return;
+        const auto dst = static_cast<char *>(GlobalLock(mem));
+        if (!dst) {
+            GlobalFree(mem);
+            return;
+        }
+        std::copy(text.begin(), text.end(), dst);
+        dst[text.size()] = '\0';
+        GlobalUnlock(mem);
+        if (!OpenClipboard(hwnd)) {
+            GlobalFree(mem);
+            return;
+        }
+        EmptyClipboard();
+        const unsigned int fmt = RegisterClipboardFormat("SWELL__CF_TEXT");
+        SetClipboardData(fmt, mem);
+        CloseClipboard();
+#endif
+    }
+}
 
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
@@ -67,28 +174,6 @@ void LogDialog::setupFilterChecks(HWND hwnd, const LogDialog *self) {
     CheckDlgButton(hwnd, IDC_LOGFILTER_INFO, self->m_showInfo ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwnd, IDC_LOGFILTER_WARN, self->m_showWarn ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwnd, IDC_LOGFILTER_ERROR, self->m_showError ? BST_CHECKED : BST_UNCHECKED);
-}
-
-void LogDialog::setupListView(HWND hwnd) {
-    // Set up ListView extended styles and columns.
-    HWND hwndList = GetDlgItem(hwnd, IDC_LOG_LIST);
-    ListView_SetExtendedListViewStyleEx(hwndList,
-                                        LVS_EX_FULLROWSELECT,
-                                        LVS_EX_FULLROWSELECT);
-
-    LVCOLUMN col = {};
-    col.mask = LVCF_TEXT | LVCF_WIDTH;
-    char colLevel[] = "Level";
-    col.pszText = colLevel;
-    col.cx = 55;
-    ListView_InsertColumn(hwndList, 0, &col);
-
-    char colMessage[] = "Message";
-    col.pszText = colMessage;
-    RECT listRc;
-    GetClientRect(hwndList, &listRc);
-    col.cx = listRc.right;
-    ListView_InsertColumn(hwndList, 1, &col);
 }
 
 
@@ -159,42 +244,6 @@ bool LogDialog::shouldShow(const LogEntry::Severity s) const {
         case LogEntry::ERR: return m_showError;
         case LogEntry::WARN: return m_showWarn;
         default: return m_showInfo;
-    }
-}
-
-
-auto LogDialog::saveListViewSelection(HWND hwndList) -> SelectionState {
-    SelectionState sel;
-    for (int i = ListView_GetNextItem(hwndList, -1, LVNI_SELECTED); i != -1;
-         i = ListView_GetNextItem(hwndList, i, LVNI_SELECTED)) {
-        LVITEM lvi = {};
-        lvi.mask = LVIF_PARAM;
-        lvi.iItem = i;
-        ListView_GetItem(hwndList, &lvi);
-        sel.selected.push_back(static_cast<int>(lvi.lParam));
-    }
-    if (const int fi = ListView_GetNextItem(hwndList, -1, LVNI_FOCUSED); fi != -1) {
-        LVITEM lvi = {};
-        lvi.mask = LVIF_PARAM;
-        lvi.iItem = fi;
-        ListView_GetItem(hwndList, &lvi);
-        sel.focused = static_cast<int>(lvi.lParam);
-    }
-    return sel;
-}
-
-void LogDialog::restoreListViewSelection(HWND hwnd, const SelectionState &selState,
-                                         const std::vector<int> &rowBufIdx) {
-    ListView_SetItemState(hwnd, -1, 0, LVIS_SELECTED | LVIS_FOCUSED);
-    for (int r = 0; r < static_cast<int>(rowBufIdx.size()); ++r) {
-        const int bi = rowBufIdx[r];
-        UINT state = 0;
-        if (std::find(selState.selected.begin(), selState.selected.end(), bi) != selState.selected.end())
-            state |= LVIS_SELECTED;
-        if (bi == selState.focused)
-            state |= LVIS_FOCUSED;
-        if (state)
-            ListView_SetItemState(hwnd, r, state, LVIS_SELECTED | LVIS_FOCUSED);
     }
 }
 
@@ -289,7 +338,6 @@ void LogDialog::open(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity mi
     ShowWindow(hwnd, SW_SHOW);
 }
 
-
 int LogDialog::HandleKey(MSG *msg, accelerator_register_t *accel) {
     const auto dlg = static_cast<LogDialog *>(accel->user);
     if (!dlg || !dlg->m_isFocused)
@@ -304,50 +352,6 @@ int LogDialog::HandleKey(MSG *msg, accelerator_register_t *accel) {
 
 void LogDialog::close() const {
     DestroyWindow(m_hwnd);
-}
-
-static void setClipboardText(HWND hwnd, const std::string &text) {
-#ifdef _WIN32
-    const int wlen = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
-    if (wlen <= 0) return;
-    std::vector<wchar_t> wbuf(wlen);
-    MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wbuf.data(), wlen);
-    const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, wlen * sizeof(wchar_t));
-    if (!mem) return;
-    wchar_t *dst = static_cast<wchar_t *>(GlobalLock(mem));
-    if (!dst) {
-        GlobalFree(mem);
-        return;
-    }
-    std::copy(wbuf.begin(), wbuf.end(), dst);
-    GlobalUnlock(mem);
-    if (!OpenClipboard(hwnd)) {
-        GlobalFree(mem);
-        return;
-    }
-    EmptyClipboard();
-    if (!SetClipboardData(CF_UNICODETEXT, mem)) GlobalFree(mem);
-    CloseClipboard();
-#else
-    const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, static_cast<int>(text.size()) + 1);
-    if (!mem) return;
-    const auto dst = static_cast<char *>(GlobalLock(mem));
-    if (!dst) {
-        GlobalFree(mem);
-        return;
-    }
-    std::copy(text.begin(), text.end(), dst);
-    dst[text.size()] = '\0';
-    GlobalUnlock(mem);
-    if (!OpenClipboard(hwnd)) {
-        GlobalFree(mem);
-        return;
-    }
-    EmptyClipboard();
-    const unsigned int fmt = RegisterClipboardFormat("SWELL__CF_TEXT");
-    SetClipboardData(fmt, mem);
-    CloseClipboard();
-#endif
 }
 
 void LogDialog::copyToClipboard() const {
