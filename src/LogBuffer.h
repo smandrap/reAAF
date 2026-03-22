@@ -49,7 +49,7 @@ struct LogEntry {
 
 class LogBuffer {
 public:
-    static constexpr int kCapacity = 10000;
+    static constexpr int kCapacity = 2000;
 
     void log(LogEntry::Severity sev, const char *msg);
     void logf(LogEntry::Severity sev, const char *fmt, ...)
