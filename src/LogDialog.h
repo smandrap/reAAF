@@ -19,6 +19,7 @@
 #define REAPER_AAF_LOGDIALOG_H
 
 #include "LogBuffer.h"
+#include <memory>
 #include "reaper_plugin.h"
 #include "wdltypes.h"
 #include "wingui/wndsize.h"
@@ -34,6 +35,11 @@ public:
     // Opens the dialog with a fresh buffer. If already open, refreshes the
     // list with the new data and brings the window to the foreground.
     static void open(LogBuffer buf, LogEntry::Severity minSeverity);
+
+    // Public destructor required so std::unique_ptr<LogDialog> can call it
+    // via std::default_delete. Constructor remains private — open() is the
+    // only creation path.
+    ~LogDialog() = default;
 
 private:
     struct SelectionState {
@@ -55,11 +61,9 @@ private:
     bool m_showWarn = true;
     bool m_showError = true;
 
-    static LogDialog *s_instance;
+    static std::unique_ptr<LogDialog> s_owner;
 
     explicit LogDialog(LogBuffer buf, LogEntry::Severity minSeverity);
-
-    ~LogDialog() = default;
 
     void setupResizer(HWND hwnd);
 

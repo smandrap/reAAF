@@ -33,7 +33,7 @@ extern REAPER_PLUGIN_HINSTANCE g_hInst;
 // Singleton instance definition
 // ---------------------------------------------------------------------------
 
-LogDialog *LogDialog::s_instance = nullptr;
+std::unique_ptr<LogDialog> LogDialog::s_owner;
 
 // ---------------------------------------------------------------------------
 // Constructor
@@ -149,8 +149,7 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
 
         case WM_DESTROY: {
             plugin_register("-accelerator", &self->m_accel);
-            s_instance = nullptr;
-            delete self;
+            s_owner.reset();
             return 0;
         }
 
@@ -264,26 +263,25 @@ void LogDialog::populate() const {
 
 
 void LogDialog::open(LogBuffer buf, const LogEntry::Severity minSeverity) {
-    if (s_instance) {
-        s_instance->m_buf = std::move(buf);
-        s_instance->m_showInfo = (minSeverity >= LogEntry::INFO);
-        s_instance->m_showWarn = (minSeverity >= LogEntry::WARN);
-        HWND hw = s_instance->m_hwnd;
-        setupFilterChecks(hw, s_instance);
-        s_instance->populate();
-        SetForegroundWindow(s_instance->m_hwnd);
+    if (s_owner) {
+        s_owner->m_buf = std::move(buf);
+        s_owner->m_showInfo = (minSeverity >= LogEntry::INFO);
+        s_owner->m_showWarn = (minSeverity >= LogEntry::WARN);
+        HWND hw = s_owner->m_hwnd;
+        setupFilterChecks(hw, s_owner.get());
+        s_owner->populate();
+        SetForegroundWindow(s_owner->m_hwnd);
         return;
     }
-    s_instance = new LogDialog(std::move(buf), minSeverity);
+    s_owner.reset(new LogDialog(std::move(buf), minSeverity));
     HWND parent = GetMainHwnd();
     HWND hwnd = CreateDialogParam(g_hInst,
                                   MAKEINTRESOURCE(IDD_AAF_PROGRESS),
                                   parent,
                                   dialogProc,
-                                  reinterpret_cast<LPARAM>(s_instance));
+                                  reinterpret_cast<LPARAM>(s_owner.get()));
     if (!hwnd) {
-        delete s_instance;
-        s_instance = nullptr;
+        s_owner.reset();
         return;
     }
     ShowWindow(hwnd, SW_SHOW);

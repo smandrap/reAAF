@@ -32,12 +32,12 @@ void AafImporter::libaafLogCallback(aafLog *, void *, const int lib, const int t
                                     const char *msg, void *user) {
     if (lib != LOG_SRC_ID_AAF_IFACE || type != VERB_WARNING) return;
     if (!msg || !user) return;
-    if (const auto *self = static_cast<AafImporter *>(user); self->m_logBuffer)
-        self->m_logBuffer->log(LogEntry::WARN, msg);
+    const auto *self = static_cast<AafImporter *>(user);
+    self->m_logBuffer.log(LogEntry::WARN, msg);
 }
 
 
-AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuffer *logBuffer)
+AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuffer &logBuffer)
     : m_writer(ctx),
       m_aafi(AafiHandle(aafi_alloc(nullptr))),
       m_filePath(filepath),
@@ -50,15 +50,10 @@ int AafImporter::run() {
         return -1;
     }
 
-    if (!m_logBuffer) {
-        rlog("ReAAF: Can't allocate log buffer\n");
-        return -1;
-    }
-
     m_writer.setErrorHandler([this](RppWriter::ErrorKind kind, const char *msg) {
         switch (kind) {
             case RppWriter::ErrorKind::LineTruncated:
-                m_logBuffer->logf(LogEntry::ERR, "%s", msg);
+                m_logBuffer.logf(LogEntry::ERR, "%s", msg);
                 break;
         }
     });
@@ -70,15 +65,15 @@ int AafImporter::run() {
     if (!loadFile()) return -1;
 
     if (m_aafi->compositionName && m_aafi->compositionName[0] != '\0')
-        m_logBuffer->logf(LogEntry::INFO, "Composition: %s", m_aafi->compositionName);
+        m_logBuffer.logf(LogEntry::INFO, "Composition: %s", m_aafi->compositionName);
 
-    m_logBuffer->logf(LogEntry::INFO, "Audio tracks: %u  |  Sample rate: %u Hz  |  Bit depth: %u",
+    m_logBuffer.logf(LogEntry::INFO, "Audio tracks: %u  |  Sample rate: %u Hz  |  Bit depth: %u",
         m_aafi->Audio->track_count,
         m_aafi->Audio->samplerate,
         m_aafi->Audio->samplesize);
 
     if (m_aafi->Audio->samplerate == 0)
-        m_logBuffer->log(LogEntry::WARN, "Sample rate missing from AAF, defaulting to 48000 Hz");
+        m_logBuffer.log(LogEntry::WARN, "Sample rate missing from AAF, defaulting to 48000 Hz");
 
     const uint32_t samplerate =
             m_aafi->Audio->samplerate > 0 ? m_aafi->Audio->samplerate : 48000u;
@@ -92,12 +87,11 @@ int AafImporter::run() {
     if (m_aafi->Timecode) {
         fps = m_aafi->Timecode->fps;
 
-        // Determine fractional timecode and/or drop frame rate.
         // isDrop: 0 = integer fps, 1 = drop, 2 = non-drop fractional (23.976 or 29.97 ND)
         const bool isFrac = m_aafi->Timecode->edit_rate->denominator != 1;
         isDrop = isFrac ? (fps == 24 ? 2 : (m_aafi->Timecode->drop > 0 ? 1 : 2)) : 0;
 
-        m_logBuffer->logf(LogEntry::INFO, "Timecode: %d fps%s",
+        m_logBuffer.logf(LogEntry::INFO, "Timecode: %d fps%s",
             fps, isDrop == 1 ? " drop" : (isDrop == 2 ? " non-drop" : ""));
     }
 
@@ -214,11 +208,11 @@ const aafiAudioEssencePointer *AafImporter::getAudioEssencePtr(const aafiAudioCl
 void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     const char *trackName = track->name ? track->name : "";
 
-    m_logBuffer->logf(LogEntry::INFO, "Audio track %u: \"%s\"  clips: %d",
+    m_logBuffer.logf(LogEntry::INFO, "Audio track %u: \"%s\"  clips: %d",
         track->number, trackName, track->clipCount);
 
     if (track->mute)
-        m_logBuffer->logf(LogEntry::WARN, "Track %u (\"%s\") is muted", track->number, trackName);
+        m_logBuffer.logf(LogEntry::WARN, "Track %u (\"%s\") is muted", track->number, trackName);
 
     const double vol = clamp_volume(resolveConstantGain(track->gain));
     const double pan = clamp_pan((resolveConstantGain(track->pan, 0.5) - 0.5) * -2.0);
@@ -246,7 +240,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     }
 
     if (requiredTracks > 1)
-        m_logBuffer->logf(LogEntry::INFO, "Track %u split into %d mono sub-tracks",
+        m_logBuffer.logf(LogEntry::INFO, "Track %u split into %d mono sub-tracks",
             track->number, requiredTracks);
 
     for (int trackIdx = 0; trackIdx < requiredTracks; ++trackIdx) {
@@ -272,7 +266,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
 }
 
 void AafImporter::processTrack_Video(const aafiVideoTrack *track) {
-    m_logBuffer->logf(LogEntry::INFO, "Video track %u", track->number);
+    m_logBuffer.logf(LogEntry::INFO, "Video track %u", track->number);
     auto w_trk = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
     const aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
@@ -298,7 +292,7 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
     const char *clipName = resolveClipName(clip);
 
     if (clip->mute)
-        m_logBuffer->logf(LogEntry::WARN, "Clip \"%s\" is muted", clipName[0] ? clipName : "(unnamed)");
+        m_logBuffer.logf(LogEntry::WARN, "Clip \"%s\" is muted", clipName[0] ? clipName : "(unnamed)");
 
     auto w_itm = m_writer.item(clipName,
                                pos, len,
@@ -325,7 +319,7 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
             snprintf(fadeStr, sizeof(fadeStr), "  fadeIn: %.3fs", fadeInLen);
         else if (fadeOutLen > 0.0)
             snprintf(fadeStr, sizeof(fadeStr), "  fadeOut: %.3fs", fadeOutLen);
-        m_logBuffer->logf(LogEntry::INFO, "Source: \"%s\"  %u Hz / %u-bit / %uch  @ %.3fs%s",
+        m_logBuffer.logf(LogEntry::INFO, "Source: \"%s\"  %u Hz / %u-bit / %uch  @ %.3fs%s",
             essName, ess->samplerate, ess->samplesize, ess->channels, pos, fadeStr);
     }
 
@@ -353,7 +347,7 @@ void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational
 bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
     if (!m_extractDirCreated) {
         if (!ensure_dir(m_extractDir)) {
-            m_logBuffer->logf(LogEntry::ERR, "could not create extract dir: %s",
+            m_logBuffer.logf(LogEntry::ERR, "could not create extract dir: %s",
                               m_extractDir.c_str());
             return false;
         }
@@ -370,11 +364,11 @@ bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
     free(outPath);
 
     if (rc != 0) {
-        m_logBuffer->logf(LogEntry::ERR, "failed to extract '%s'",
+        m_logBuffer.logf(LogEntry::ERR, "failed to extract '%s'",
                           ess->unique_name ? ess->unique_name : "(unnamed)");
         return false;
     }
-    m_logBuffer->logf(LogEntry::INFO, "Extracted '%s'", ess->unique_name);
+    m_logBuffer.logf(LogEntry::INFO, "Extracted '%s'", ess->unique_name);
     return true;
 }
 
@@ -388,7 +382,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 
     if (ess->is_embedded && !ess->usable_file_path) {
         if (!extractEmbeddedEssence(ess)) {
-            m_logBuffer->logf(LogEntry::ERR, "embedded extraction failed: %s",
+            m_logBuffer.logf(LogEntry::ERR, "embedded extraction failed: %s",
                               ess->unique_name ? ess->unique_name : "(unnamed)");
             m_writer.emptySource();
             return;
@@ -398,7 +392,7 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     // TODO: sanitize path, might contain invalid chars
     const char *filePath = ess->usable_file_path;
     if (!filePath || *filePath == '\0') {
-        m_logBuffer->logf(LogEntry::WARN, "no usable path for '%s'",
+        m_logBuffer.logf(LogEntry::WARN, "no usable path for '%s'",
                           ess->unique_name ? ess->unique_name : "(unnamed)");
         m_writer.emptySource();
         return;
@@ -409,11 +403,11 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
     if (!ess || !ess->usable_file_path || *ess->usable_file_path == '\0') {
-        m_logBuffer->log(LogEntry::WARN, "video essence has no usable path");
+        m_logBuffer.log(LogEntry::WARN, "video essence has no usable path");
         m_writer.emptySource();
         return;
     }
-    m_logBuffer->logf(LogEntry::INFO, "Processed video: '%s'", ess->usable_file_path);
+    m_logBuffer.logf(LogEntry::INFO, "Processed video: '%s'", ess->usable_file_path);
     auto w_src = m_writer.source("VIDEO", ess->usable_file_path);
 }
 
@@ -440,7 +434,7 @@ void AafImporter::processMarkers() const {
         ++regionCount;
     }
     if (markerCount + regionCount > 0)
-        m_logBuffer->logf(LogEntry::INFO, "Markers: %d  |  Regions: %d", markerCount, regionCount);
+        m_logBuffer.logf(LogEntry::INFO, "Markers: %d  |  Regions: %d", markerCount, regionCount);
 }
 
 void AafImporter::processEnvelope(const aafiAudioGain *gain,

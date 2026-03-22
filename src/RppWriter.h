@@ -120,7 +120,7 @@ public:
     void writeEnvPoint(double timeSec, double value) const;
 
 private:
-    ProjectStateContext *m_ctx;
+    ProjectStateContext *m_ctx;  // not owned — lifetime tied to caller's ProjectStateContext
     std::function<void(ErrorKind, const char *)> m_onError;
 
     void line(const char *fmt, ...) const;

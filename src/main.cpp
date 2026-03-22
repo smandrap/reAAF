@@ -51,7 +51,7 @@ static const char *aaf_EnumFileExtensions(const int i, char **descptr) {
 static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
     if (!fn || !ctx) return -1;
     LogBuffer logBuffer;
-    const int ok = AafImporter(ctx, fn, &logBuffer).run();
+    const int ok = AafImporter(ctx, fn, logBuffer).run();
 
     const auto mode = PrefsPage::getVerbosity();
     if (mode == PrefsPage::LogVerbosity::NONE) return ok;

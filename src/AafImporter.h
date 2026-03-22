@@ -41,7 +41,7 @@ class ProjectStateContext;
 
 class AafImporter {
 public:
-    AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuffer *logBuffer);
+    AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuffer &logBuffer);
 
     int run();
 
@@ -51,7 +51,7 @@ private:
     std::string m_filePath;
     std::string m_extractDir;
     bool m_extractDirCreated = false;
-    LogBuffer*  m_logBuffer = nullptr;
+    LogBuffer& m_logBuffer;
 
     static void libaafLogCallback(aafLog *log, void *userData, int lib, int type,
                                   const char *srcFile, const char *srcFunc, int line,
@@ -63,7 +63,7 @@ private:
 
     static double resolveConstantGain(const aafiAudioGain *gain, double defaultValue = 1.0);
 
-    static const char *resolveClipName(const aafiAudioClip *clip);
+    static const char *resolveClipName(const aafiAudioClip *clip);  // not owned — points into LibAAF-owned string
 
     void setMediaLocation() const;
 
