@@ -28,10 +28,10 @@ extern "C" {
 struct AafiHandle {
     AAF_Iface *ptr = nullptr;
     explicit AafiHandle(AAF_Iface *p) : ptr(p) {} // no raw pointers allowed sir
-    ~AafiHandle() { if (ptr) aafi_release(&ptr); } // autorelease on scope end
 
     // prevent copy
     AafiHandle(const AafiHandle &) = delete;
+
     AafiHandle &operator=(const AafiHandle &) = delete;
 
     // move constructor
@@ -46,6 +46,8 @@ struct AafiHandle {
         }
         return *this;
     }
+
+    ~AafiHandle() { if (ptr) aafi_release(&ptr); } // autorelease on scope end
 
     AAF_Iface *operator->() const { return ptr; }
     [[nodiscard]] AAF_Iface *get() const { return ptr; }
