@@ -57,25 +57,11 @@ private:
                                   const char *srcFile, const char *srcFunc, int line,
                                   const char *msg, void *user);
 
-    static std::string buildExtractDir(const char *filepath);
-
-    static const char *rppSourceTypeFromPath(const char *filePath);
-
-    static double resolveConstantGain(const aafiAudioGain *gain, double defaultValue = 1.0);
-
-    static const char *resolveClipName(const aafiAudioClip *clip);  // not owned — points into LibAAF-owned string
-
     void setMediaLocation() const;
 
     [[nodiscard]] bool loadFile() const;
 
     void processTrackAutomation(const aafiAudioTrack *track, double compLen);
-
-    struct TrackLayout { int count; int nchan; };
-    static TrackLayout countRequiredTracks(const aafiAudioClip *clip);
-
-    static const aafiAudioEssencePointer *getAudioEssencePtr(const aafiAudioClip *clip, int trackIdx);
-
 
     void processTrack_Audio(const aafiAudioTrack *track);
 

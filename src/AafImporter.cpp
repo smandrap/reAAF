@@ -27,6 +27,85 @@
 #include <defines.h>
 
 
+// ---------------------------------------------------------------------------
+// File-scope helpers (no AafImporter state)
+// ---------------------------------------------------------------------------
+namespace {
+
+struct TrackLayout { int count; int nchan; };
+
+std::string buildExtractDir(const char *filepath) {
+    std::string p(filepath);
+    if (const auto dot = p.rfind('.'); dot != std::string::npos) p.resize(dot);
+    p += "-media";
+    return p;
+}
+
+const char *rppSourceTypeFromPath(const char *filePath) {
+    auto srcType = "WAVE";
+    if (const char *ext = strrchr(filePath, '.')) {
+        if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
+        else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
+        else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
+        else if (strcasecmp(ext, ".mxf") == 0) srcType = "VIDEO";
+    }
+    return srcType;
+}
+
+double resolveConstantGain(const aafiAudioGain *gain, double defaultValue = 1.0) {
+    if (gain
+        && gain->flags & AAFI_AUDIO_GAIN_CONSTANT
+        && gain->pts_cnt >= 1
+        && gain->value)
+        return rational_to_double(gain->value[0]);
+    return defaultValue;
+}
+
+// not owned — points into LibAAF-owned string
+const char *resolveClipName(const aafiAudioClip *clip) {
+    if (!clip) return "";
+    const char *clipName = clip->subClipName;
+    if (!clipName || clipName[0] == '\0') {
+        if (clip->essencePointerList && clip->essencePointerList->essenceFile)
+            clipName = clip->essencePointerList->essenceFile->name;
+    }
+    return clipName;
+}
+
+TrackLayout countRequiredTracks(const aafiAudioClip *clip) {
+    int cnt = 0;
+    int nchan = 2;
+    const aafiAudioEssencePointer *p = nullptr;
+    AAFI_foreachEssencePointer(clip->essencePointerList, p) {
+        if (!p->essenceFile) { ++cnt; continue; }
+        if (p->essenceFile->channels > 1) {
+            nchan = std::max(nchan, static_cast<int>(p->essenceFile->channels));
+            cnt = 1;
+            break;
+        }
+        ++cnt;
+    }
+    return {cnt, nchan};
+}
+
+// Find the pointer for the provided trackIdx.
+// If the file is interleaved (channels > 1), only emit on trackIdx 0.
+const aafiAudioEssencePointer *getAudioEssencePtr(const aafiAudioClip *clip, const int trackIdx) {
+    int idx = 0;
+    const aafiAudioEssencePointer *ptr = nullptr;
+    AAFI_foreachEssencePointer(clip->essencePointerList, ptr) {
+        if (!ptr->essenceFile) { ++idx; continue; }
+        if (ptr->essenceFile->channels > 1 || idx == trackIdx) return ptr;
+        ++idx;
+    }
+    return nullptr;
+}
+
+} // namespace
+
+// ---------------------------------------------------------------------------
+// AafImporter implementation
+// ---------------------------------------------------------------------------
 void AafImporter::libaafLogCallback(aafLog *, void *, const int lib, const int type,
                                     const char *, const char *, int,
                                     const char *msg, void *user) {
@@ -114,43 +193,6 @@ int AafImporter::run() {
     return 0;
 }
 
-std::string AafImporter::buildExtractDir(const char *filepath) {
-    std::string p(filepath);
-    if (const auto dot = p.rfind('.'); dot != std::string::npos) p.resize(dot);
-    p += "-media";
-    return p;
-}
-
-const char *AafImporter::rppSourceTypeFromPath(const char *filePath) {
-    auto srcType = "WAVE";
-    if (const char *ext = strrchr(filePath, '.')) {
-        if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
-        else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
-        else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
-        else if (strcasecmp(ext, ".mxf") == 0) srcType = "VIDEO";
-    }
-    return srcType;
-}
-
-double AafImporter::resolveConstantGain(const aafiAudioGain *gain, const double defaultValue) {
-    if (gain
-        && gain->flags & AAFI_AUDIO_GAIN_CONSTANT
-        && gain->pts_cnt >= 1
-        && gain->value)
-        return rational_to_double(gain->value[0]);
-    return defaultValue;
-}
-
-const char *AafImporter::resolveClipName(const aafiAudioClip *clip) {
-    if (!clip) return "";
-    const char *clipName = clip->subClipName;
-    if (!clipName || clipName[0] == '\0') {
-        if (clip->essencePointerList && clip->essencePointerList->essenceFile)
-            clipName = clip->essencePointerList->essenceFile->name;
-    }
-    return clipName;
-}
-
 void AafImporter::setMediaLocation() const {
     std::string dir(m_filePath);
     if (const auto sep = dir.find_last_of("/\\"); sep != std::string::npos) dir.resize(sep);
@@ -174,35 +216,6 @@ void AafImporter::processTrackAutomation(const aafiAudioTrack *track, const doub
         processEnvelope(track->pan, compLen, "PANENV2",
                         [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
                         /*arm=*/true);
-}
-
-AafImporter::TrackLayout AafImporter::countRequiredTracks(const aafiAudioClip *clip) {
-    int cnt = 0;
-    int nchan = 2;
-    const aafiAudioEssencePointer *p = nullptr;
-    AAFI_foreachEssencePointer(clip->essencePointerList, p) {
-        if (!p->essenceFile) { ++cnt; continue; }
-        if (p->essenceFile->channels > 1) {
-            nchan = std::max(nchan, static_cast<int>(p->essenceFile->channels));
-            cnt = 1;
-            break;
-        }
-        ++cnt;
-    }
-    return {cnt, nchan};
-}
-
-// Find the pointer for the provided trackIdx.
-// If the file is interleaved (channels > 1), only emit on trackIdx 0.
-const aafiAudioEssencePointer *AafImporter::getAudioEssencePtr(const aafiAudioClip *clip, const int trackIdx) {
-    int idx = 0;
-    const aafiAudioEssencePointer *ptr = nullptr;
-    AAFI_foreachEssencePointer(clip->essencePointerList, ptr) {
-        if (!ptr->essenceFile) { ++idx; continue; }
-        if (ptr->essenceFile->channels > 1 || idx == trackIdx) return ptr;
-        ++idx;
-    }
-    return nullptr;
 }
 
 void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
