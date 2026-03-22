@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0b3] - 2026-03-22
+
+- Internal refactor: changed some dumb ownership models
+- Fix log window stack overflow crash on Windows (oopsie)
+
 ## [0.2.0b2] - 2026-03-19
 
 - Remove custom color logic from import log dialog, it's still broken.
