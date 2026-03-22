@@ -35,11 +35,7 @@ extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 std::unique_ptr<LogDialog> LogDialog::s_owner;
 
-// ---------------------------------------------------------------------------
-// Constructor
-// ---------------------------------------------------------------------------
-
-LogDialog::LogDialog(LogBuffer buf, const LogEntry::Severity minSeverity)
+LogDialog::LogDialog(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity minSeverity)
     : m_buf(std::move(buf))
       , m_showInfo{minSeverity >= LogEntry::INFO}
       , m_showWarn{minSeverity >= LogEntry::WARN} {}
@@ -214,14 +210,20 @@ void LogDialog::updateSummaryLabel(HWND hwnd, const int info, const int warnings
 auto LogDialog::insertRows(HWND hwndList) const -> InsertResult {
     InsertResult res;
 
-    const int n = m_buf.size();
+    const int n = m_buf->size();
     for (int i = 0; i < n; ++i) {
-        const LogEntry &e = m_buf.at(i);
+        const LogEntry &e = m_buf->at(i);
         const char *level;
         switch (e.severity) {
-            case LogEntry::ERR: level = "ERROR"; ++res.errors; break;
-            case LogEntry::WARN: level = "WARN"; ++res.warnings; break;
-            default: level = "INFO"; ++res.info; break;
+            case LogEntry::ERR: level = "ERROR";
+                ++res.errors;
+                break;
+            case LogEntry::WARN: level = "WARN";
+                ++res.warnings;
+                break;
+            default: level = "INFO";
+                ++res.info;
+                break;
         }
 
         if (!shouldShow(e.severity)) continue;
@@ -262,7 +264,7 @@ void LogDialog::populate() const {
 }
 
 
-void LogDialog::open(LogBuffer buf, const LogEntry::Severity minSeverity) {
+void LogDialog::open(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity minSeverity) {
     if (s_owner) {
         s_owner->m_buf = std::move(buf);
         s_owner->m_showInfo = (minSeverity >= LogEntry::INFO);
@@ -273,7 +275,7 @@ void LogDialog::open(LogBuffer buf, const LogEntry::Severity minSeverity) {
         SetForegroundWindow(s_owner->m_hwnd);
         return;
     }
-    s_owner.reset(new LogDialog(std::move(buf), minSeverity));
+    s_owner = std::make_unique<LogDialog>(std::move(buf), minSeverity);
     HWND parent = GetMainHwnd();
     HWND hwnd = CreateDialogParam(g_hInst,
                                   MAKEINTRESOURCE(IDD_AAF_PROGRESS),
@@ -304,7 +306,6 @@ void LogDialog::close() const {
     DestroyWindow(m_hwnd);
 }
 
-
 static void setClipboardText(HWND hwnd, const std::string &text) {
 #ifdef _WIN32
     const int wlen = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
@@ -314,22 +315,34 @@ static void setClipboardText(HWND hwnd, const std::string &text) {
     const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, wlen * sizeof(wchar_t));
     if (!mem) return;
     wchar_t *dst = static_cast<wchar_t *>(GlobalLock(mem));
-    if (!dst) { GlobalFree(mem); return; }
+    if (!dst) {
+        GlobalFree(mem);
+        return;
+    }
     std::copy(wbuf.begin(), wbuf.end(), dst);
     GlobalUnlock(mem);
-    if (!OpenClipboard(hwnd)) { GlobalFree(mem); return; }
+    if (!OpenClipboard(hwnd)) {
+        GlobalFree(mem);
+        return;
+    }
     EmptyClipboard();
     if (!SetClipboardData(CF_UNICODETEXT, mem)) GlobalFree(mem);
     CloseClipboard();
 #else
-    const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
+    const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, static_cast<int>(text.size()) + 1);
     if (!mem) return;
     const auto dst = static_cast<char *>(GlobalLock(mem));
-    if (!dst) { GlobalFree(mem); return; }
+    if (!dst) {
+        GlobalFree(mem);
+        return;
+    }
     std::copy(text.begin(), text.end(), dst);
     dst[text.size()] = '\0';
     GlobalUnlock(mem);
-    if (!OpenClipboard(hwnd)) { GlobalFree(mem); return; }
+    if (!OpenClipboard(hwnd)) {
+        GlobalFree(mem);
+        return;
+    }
     EmptyClipboard();
     const unsigned int fmt = RegisterClipboardFormat("SWELL__CF_TEXT");
     SetClipboardData(fmt, mem);
@@ -338,21 +351,24 @@ static void setClipboardText(HWND hwnd, const std::string &text) {
 }
 
 void LogDialog::copyToClipboard() const {
-#ifdef _WIN32
-    constexpr const char *nl = "\r\n";
-#else
-    constexpr auto nl = "\n";
-#endif
     std::string text;
-    const int n = m_buf.size();
+    const int n = m_buf->size();
     for (int i = 0; i < n; ++i) {
-        const LogEntry &e = m_buf.at(i);
+#ifdef _WIN32
+        constexpr const char *nl = "\r\n";
+#else
+        constexpr auto nl = "\n";
+#endif
+        const LogEntry &e = m_buf->at(i);
         if (!shouldShow(e.severity)) continue;
         const char *level;
         switch (e.severity) {
-            case LogEntry::ERR:  level = "***[ ERROR ]*** :"; break;
-            case LogEntry::WARN: level = "*[ WARN ]* :";     break;
-            default:             level = "[ INFO ] :";        break;
+            case LogEntry::ERR: level = "***[ ERROR ]*** :";
+                break;
+            case LogEntry::WARN: level = "*[ WARN ]* :";
+                break;
+            default: level = "[ INFO ] :";
+                break;
         }
         text += level;
         text += '\t';

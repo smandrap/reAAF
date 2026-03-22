@@ -76,7 +76,7 @@ void LogBuffer::push(const LogEntry &entry) {
 
     if (m_count == kCapacity) {
         if (!m_overflowing) {
-            static const char kSentinel[] = "1 earlier entry was dropped (buffer full)";
+            static constexpr char kSentinel[] = "1 earlier entry was dropped (buffer full)";
             m_entries[m_head] = LogEntry(LogEntry::WARN, kSentinel);
             m_head = (m_head + 1) % kCapacity;
             m_overflowing = true;

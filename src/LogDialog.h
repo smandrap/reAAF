@@ -32,13 +32,12 @@
 // value. Call from main thread only.
 class LogDialog {
 public:
-    // Opens the dialog with a fresh buffer. If already open, refreshes the
-    // list with the new data and brings the window to the foreground.
-    static void open(LogBuffer buf, LogEntry::Severity minSeverity);
+    explicit LogDialog(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
+
+    static void open(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
 
     // Public destructor required so std::unique_ptr<LogDialog> can call it
-    // via std::default_delete. Constructor remains private — open() is the
-    // only creation path.
+    // via std::default_delete.
     ~LogDialog() = default;
 
 private:
@@ -52,7 +51,7 @@ private:
         int info = 0, warnings = 0, errors = 0;
     };
 
-    LogBuffer m_buf;
+    std::unique_ptr<LogBuffer> m_buf;
     HWND m_hwnd = nullptr;
     WDL_WndSizer m_resizer;
     accelerator_register_t m_accel = {};
@@ -63,7 +62,6 @@ private:
 
     static std::unique_ptr<LogDialog> s_owner;
 
-    explicit LogDialog(LogBuffer buf, LogEntry::Severity minSeverity);
 
     void setupResizer(HWND hwnd);
 

@@ -15,6 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <memory>
 #include "AafImporter.h"
 #include "LogBuffer.h"
 #include "PrefsPage.h"
@@ -50,14 +51,14 @@ static const char *aaf_EnumFileExtensions(const int i, char **descptr) {
 
 static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
     if (!fn || !ctx) return -1;
-    LogBuffer logBuffer;
-    const int ok = AafImporter(ctx, fn, logBuffer).run();
+    auto logBuffer = std::make_unique<LogBuffer>();
+    const int ok = AafImporter(ctx, fn, *logBuffer).run();
 
     const auto mode = PrefsPage::getVerbosity();
     if (mode == PrefsPage::LogVerbosity::NONE) return ok;
 
     if (mode == PrefsPage::LogVerbosity::ERR) {
-        if (!logBuffer.hasErrorsOrWarnings()) return ok;
+        if (!logBuffer->hasErrorsOrWarnings()) return ok;
         LogDialog::open(std::move(logBuffer), LogEntry::WARN);
     } else {
         LogDialog::open(std::move(logBuffer), LogEntry::INFO);
