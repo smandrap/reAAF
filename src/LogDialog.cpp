@@ -152,7 +152,7 @@ void LogDialog::setupResizer(HWND hwnd) {
     // Set up resizer — anchors are (left, top, right, bottom).
     // 0.0 = anchored to that edge of the dialog, 1.0 = moves with the opposite edge.
     m_resizer.init(hwnd);
-    m_resizer.init_item(IDC_PROGRESS_LABEL, 0.0f, 0.0f, 1.0f, 0.0f); // stretches right, fixed top
+    m_resizer.init_item(IDC_LOG_LABEL, 0.0f, 0.0f, 1.0f, 0.0f); // stretches right, fixed top
     m_resizer.init_item(IDC_LOG_LIST, 0.0f, 0.0f, 1.0f, 1.0f); // stretches both axes
     m_resizer.init_item(IDC_CLOSE_BTN, 1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
     m_resizer.init_item(IDC_COPY_BTN, 1.0f, 1.0f, 1.0f, 1.0f); // anchors bottom-right
@@ -252,7 +252,7 @@ void LogDialog::updateSummaryLabel(HWND hwnd, const int info, const int warnings
     char label[128];
     snprintf(label, sizeof(label),
              "Import complete: %d messages, %d warnings, %d errors", info, warnings, errors);
-    SetDlgItemText(hwnd, IDC_PROGRESS_LABEL, label);
+    SetDlgItemText(hwnd, IDC_LOG_LABEL, label);
 }
 
 
@@ -327,7 +327,7 @@ void LogDialog::open(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity mi
     s_owner = std::make_unique<LogDialog>(std::move(buf), minSeverity);
     HWND parent = GetMainHwnd();
     HWND hwnd = CreateDialogParam(g_hInst,
-                                  MAKEINTRESOURCE(IDD_AAF_PROGRESS),
+                                  MAKEINTRESOURCE(IDD_AAF_LOG_DIALOG),
                                   parent,
                                   dialogProc,
                                   reinterpret_cast<LPARAM>(s_owner.get()));

@@ -9,12 +9,12 @@
 #define IDC_VERSION_LABEL      1008
 #define IDC_CHECK_ZOOM         1010
 
-#define IDD_AAF_PROGRESS       2002
-#define IDC_PROGRESS_LABEL     1002
+#define IDD_AAF_LOG_DIALOG         2002
+#define IDC_LOG_LABEL          1002
 #define IDC_LOG_LIST           1003
 #define IDC_CLOSE_BTN          1004
 #define IDC_COPY_BTN           1009
 
-#define IDC_LOGFILTER_INFO    1005
-#define IDC_LOGFILTER_WARN    1006
+#define IDC_LOGFILTER_INFO     1005
+#define IDC_LOGFILTER_WARN     1006
 #define IDC_LOGFILTER_ERROR    1007
