@@ -26,10 +26,12 @@
 
 static constexpr auto kSection = "reaper_aaf";
 static constexpr auto kKeyVerb = "verbosity";
+static constexpr auto kKeyZoom = "zoom_after_import";
 
 
 // Forward declarations
 static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 
@@ -65,6 +67,15 @@ void PrefsPage::setVerbosity(const int v) {
     SetExtState(kSection, kKeyVerb, buf, true);
 }
 
+bool PrefsPage::getZoomAfterImport() {
+    if (!HasExtState(kSection, kKeyZoom)) return true; // default: on
+    return strtol(GetExtState(kSection, kKeyZoom), nullptr, 10) != 0;
+}
+
+void PrefsPage::setZoomAfterImport(const bool v) {
+    SetExtState(kSection, kKeyZoom, v ? "1" : "0", true);
+}
+
 // REAPER sends this message to the active prefs page when Apply is clicked.
 static constexpr UINT WM_PREFS_APPLY = WM_USER * 2;
 // REAPER's Apply button control ID — enable it when a change is pending.
@@ -78,12 +89,14 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
             SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("On Errors or Warnings"));
             SendMessage(combo, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>("Always"));
             SendMessage(combo, CB_SETCURSEL, static_cast<int>(PrefsPage::getVerbosity()), 0);
+            CheckDlgButton(hwnd, IDC_CHECK_ZOOM, PrefsPage::getZoomAfterImport() ? BST_CHECKED : BST_UNCHECKED);
             EnableWindow(GetDlgItem(hwnd, IDC_VERSION_LABEL), FALSE);
             return 1;
         }
 
         case WM_COMMAND: {
-            if (LOWORD(wParam) == IDC_COMBO_VERBOSITY && HIWORD(wParam) == CBN_SELCHANGE)
+            if (const int ctrl = LOWORD(wParam); (ctrl == IDC_COMBO_VERBOSITY && HIWORD(wParam) == CBN_SELCHANGE) ||
+                                                 (ctrl == IDC_CHECK_ZOOM && HIWORD(wParam) == BN_CLICKED))
                 EnableWindow(GetDlgItem(GetParent(hwnd), IDC_PREFS_APPLY), TRUE);
             return 0;
         }
@@ -93,6 +106,7 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
                 if (const int v = static_cast<int>(SendMessage(GetDlgItem(hwnd, IDC_COMBO_VERBOSITY), CB_GETCURSEL, 0,
                                                                0)); v >= 0)
                     PrefsPage::setVerbosity(v);
+                PrefsPage::setZoomAfterImport(IsDlgButtonChecked(hwnd, IDC_CHECK_ZOOM) == BST_CHECKED);
             }
             return 0;
     }

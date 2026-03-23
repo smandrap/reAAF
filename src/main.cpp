@@ -37,7 +37,7 @@ namespace {
     void OnProjectLoadTimer() {
         plugin_register("-timer", reinterpret_cast<void *>(OnProjectLoadTimer));
         // project is fully loaded here
-        if (isAafImport) {
+        if (isAafImport && PrefsPage::getZoomAfterImport()) {
             Main_OnCommand(kCmdId_ZoomProject, 0);
             isAafImport = false;
         }

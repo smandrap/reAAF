@@ -3,16 +3,17 @@
 #endif
 #include "resource.h"
 
-IDD_AAF_PREFS DIALOGEX 0, 0, 300, 50
+IDD_AAF_PREFS DIALOGEX 0, 0, 300, 66
 STYLE WS_CHILD
 CAPTION "AAF Import Prefs"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX "AAF Import",        IDC_STATIC,           2,  4, 296,  44
-    LTEXT    "Show import Log:",  IDC_STATIC,          13, 20,  68,  10
-    COMBOBOX                      IDC_COMBO_VERBOSITY, 74, 18, 205,  50,
-                                  CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT    "v@REAAF_VERSION@", IDC_VERSION_LABEL,    8, 38,  80,   8
+    GROUPBOX "AAF Import",               IDC_STATIC,           2,  4, 296,  58
+    LTEXT    "Show import Log:",         IDC_STATIC,          13, 20,  68,  10
+    COMBOBOX                             IDC_COMBO_VERBOSITY, 74, 18, 205,  50,
+                                         CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CHECKBOX "Zoom to project after import", IDC_CHECK_ZOOM,  13, 34, 200,  12
+    LTEXT    "v@REAAF_VERSION@",         IDC_VERSION_LABEL,    8, 54,  80,   8
 END
 
 IDD_AAF_PROGRESS DIALOGEX 0, 0, 308, 300
