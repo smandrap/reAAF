@@ -128,6 +128,7 @@ target_compile_definitions(reaper_aaf PRIVATE
         REAPERAPI_WANT_GetExtState
         REAPERAPI_WANT_HasExtState
         REAPERAPI_WANT_GetMainHwnd
+        REAPERAPI_WANT_Main_OnCommand
 )
 
 # -------------------------------------------------------------------------
