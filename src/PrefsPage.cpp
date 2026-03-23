@@ -62,8 +62,7 @@ PrefsPage::LogVerbosity PrefsPage::getVerbosity() {
 void PrefsPage::setVerbosity(const int v) {
     char buf[4];
     snprintf(buf, sizeof(buf), "%d", v);
-    SetExtState(kSection, kKeyVerb, buf, /*persist=*/true);
-    // Sync the runtime LogBuffer so the new verbosity takes effect immediately
+    SetExtState(kSection, kKeyVerb, buf, true);
 }
 
 // REAPER sends this message to the active prefs page when Apply is clicked.
@@ -107,7 +106,6 @@ HWND PrefsPage::createHwnd(HWND par) {
     // CreateDialog with resource ID IDD_AAF_PREFS creates a child window.
     // On macOS/Linux this uses the resource defined in resource_swell.cpp.
     // On Windows this uses the resource defined in resource.rc.
-    // The SWELL_DLG_WS_CHILD | SWELL_DLG_WS_FLIPPED flags ensure correct layout.
     return CreateDialog(g_hInst,
                         MAKEINTRESOURCE(IDD_AAF_PREFS),
                         par,

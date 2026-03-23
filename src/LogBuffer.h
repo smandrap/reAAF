@@ -49,14 +49,19 @@ struct LogEntry {
 
 class LogBuffer {
 public:
+    // We preallocate all 2000 entries upfront (~64 KB on heap).
+    // This is overkill for most imports. A smarter approach: reserve ~200 entries
+    // initially, grow up to kCapacity, then switch to ring-buffer logic....
+    // Hey contributor, if you want to go for it :)
     static constexpr int kCapacity = 2000;
 
     void log(LogEntry::Severity sev, const char *msg);
+
     void logf(LogEntry::Severity sev, const char *fmt, ...)
 #if defined(__GNUC__) || defined(__clang__)
-        __attribute__((format(printf, 3, 4)))
+    __attribute__((format(printf, 3, 4)))
 #endif
-        ;
+    ;
 
     [[nodiscard]] bool hasErrorsOrWarnings() const;
 

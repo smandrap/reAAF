@@ -31,10 +31,6 @@
 
 REAPER_PLUGIN_HINSTANCE g_hInst = nullptr;
 
-// ---------------------------------------------------------------------------
-// projectimport callbacks
-// ---------------------------------------------------------------------------
-
 static bool aaf_WantProjectFile(const char *fn) {
     const char *ext = strrchr(fn, '.');
     return ext && strcasecmp(ext, ".aaf") == 0;
