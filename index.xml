@@ -36,25 +36,25 @@
       <version name="0.2.0b1" author="smandrap" time="2026-03-19T14:12:43Z">
         <changelog><![CDATA[- Add import log 
 - Add preference to control when/how the log dialog opens (always, on warnings/errors, never)]]></changelog>
-        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0b1/reaper_reAAF-arm64.dylib</source>
-        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0b1/reaper_reAAF-x86_64.dylib</source>
-        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.2.0b1/reaper_reAAF-x86_64.dll</source>
-        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.2.0b1/reaper_reAAF-x86_64.so</source>
+        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta1/reaper_reAAF-arm64.dylib</source>
+        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta1/reaper_reAAF-x86_64.dylib</source>
+        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta1/reaper_reAAF-x86_64.dll</source>
+        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta1/reaper_reAAF-x86_64.so</source>
       </version>
-      <version name="0.2.0b2" author="smandrap" time="2026-03-20T13:48:59Z">
+      <version name="0.2.0-beta2" author="smandrap" time="2026-03-20T13:48:59Z">
         <changelog><![CDATA[- Remove custom color logic from import log dialog, it's still broken.]]></changelog>
-        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0b2/reaper_reAAF-arm64.dylib</source>
-        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0b2/reaper_reAAF-x86_64.dylib</source>
-        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.2.0b2/reaper_reAAF-x86_64.dll</source>
-        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.2.0b2/reaper_reAAF-x86_64.so</source>
+        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta2/reaper_reAAF-arm64.dylib</source>
+        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta2/reaper_reAAF-x86_64.dylib</source>
+        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta2/reaper_reAAF-x86_64.dll</source>
+        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta2/reaper_reAAF-x86_64.so</source>
       </version>
-      <version name="0.2.0b3" author="smandrap" time="2026-03-22T19:06:11Z">
+      <version name="0.2.0-beta3" author="smandrap" time="2026-03-22T19:06:11Z">
         <changelog><![CDATA[- Internal refactor: changed some dumb ownership models
 - Fix log window stack overflow crash on Windows (oopsie)]]></changelog>
-        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0b3/reaper_reAAF-arm64.dylib</source>
-        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0b3/reaper_reAAF-x86_64.dylib</source>
-        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.2.0b3/reaper_reAAF-x86_64.dll</source>
-        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.2.0b3/reaper_reAAF-x86_64.so</source>
+        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta3/reaper_reAAF-arm64.dylib</source>
+        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta3/reaper_reAAF-x86_64.dylib</source>
+        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta3/reaper_reAAF-x86_64.dll</source>
+        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.2.0-beta3/reaper_reAAF-x86_64.so</source>
       </version>
       <version name="0.2.0-beta4" author="smandrap" time="2026-03-23T12:06:55Z">
         <changelog><![CDATA[- Minor refactor
