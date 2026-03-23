@@ -4,8 +4,8 @@ if(APPLE)
     enable_language(OBJC OBJCXX)
 endif()
 
-# Pre-release suffix (e.g. "b3"). Leave empty for a stable release.
-set(REAAF_VERSION_SUFFIX "b3")
+# Pre-release suffix (e.g. "-beta3"). Leave empty for a stable release.
+set(REAAF_VERSION_SUFFIX "-beta4")
 set(REAAF_VERSION "${PROJECT_VERSION}${REAAF_VERSION_SUFFIX}")
 
 set(CMAKE_C_STANDARD 11)
