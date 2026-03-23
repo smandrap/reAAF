@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0-beta4] - 2026-03-23
+
+- Minor refactor
+- CI updates
+
 ## [0.2.0-beta3] - 2026-03-22
 
 - Internal refactor: changed some dumb ownership models
