@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0] - 2026-03-23
+
+- Logger Window
+- A bunch of other non user facing stuff
+
 ## [0.2.0-beta4] - 2026-03-23
 
 - Minor refactor

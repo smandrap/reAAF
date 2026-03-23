@@ -1,12 +1,12 @@
 @description reAAF
-@version 0.2.0-beta4
+@version 0.2.0
 @author smandrap
 @link https://github.com/smandrap/reAAF
 @about
   AAF session importer for REAPER. See the repository for details.
 @changelog
-  - Minor refactor
-  - CI updates
+  - Logger Window
+  - A bunch of other non user facing stuff
 @provides
   [darwin-arm64] reaper_reAAF-arm64.dylib    https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-arm64.dylib
   [darwin64]     reaper_reAAF-x86_64.dylib   https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-x86_64.dylib
