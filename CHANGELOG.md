@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.0] - 2026-03-24
+
+- Add preference to fully zoom project after AAF import
+
 ## [0.2.0] - 2026-03-23
 
 - Logger Window

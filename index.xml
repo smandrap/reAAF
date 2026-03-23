@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="reAAF" commit="096e1f059b874696847732a798c40aad571f3950">
+<index version="1" name="reAAF" commit="5a6685aa4f4cd9b7be05cd78909889d6ff20652a">
   <category name="Extensions">
     <reapack name="reAAF.ext" type="extension" desc="reAAF">
       <metadata>
@@ -71,6 +71,13 @@
         <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.2.0/reaper_reAAF-x86_64.dylib</source>
         <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.2.0/reaper_reAAF-x86_64.dll</source>
         <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.2.0/reaper_reAAF-x86_64.so</source>
+      </version>
+      <version name="0.3.0" author="smandrap" time="2026-03-23T23:57:31Z">
+        <changelog><![CDATA[- Add preference to fully zoom project after AAF import]]></changelog>
+        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.0/reaper_reAAF-arm64.dylib</source>
+        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.0/reaper_reAAF-x86_64.dylib</source>
+        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.3.0/reaper_reAAF-x86_64.dll</source>
+        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.3.0/reaper_reAAF-x86_64.so</source>
       </version>
     </reapack>
   </category>

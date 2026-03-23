@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(reAAF VERSION 0.2.0 LANGUAGES C CXX)
+project(reAAF VERSION 0.3.0 LANGUAGES C CXX)
 if(APPLE)
     enable_language(OBJC OBJCXX)
 endif()
