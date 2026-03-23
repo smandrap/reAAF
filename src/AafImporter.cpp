@@ -160,6 +160,9 @@ int AafImporter::run() {
     const double tcOffset = pos_to_seconds(m_aafi->compositionStart,
                                            m_aafi->compositionStart_editRate);
 
+    const double maxProjLen = pos_to_seconds(m_aafi->compositionLength,
+                                             m_aafi->compositionStart_editRate);
+
     int fps = 25;
     uint8_t isDrop = 0;
 
@@ -175,7 +178,7 @@ int AafImporter::run() {
     }
 
     // Guard destroyed at end of scope, emits closing ">" for REAPER_PROJECT
-    auto proj = m_writer.project(tcOffset, fps, isDrop, samplerate);
+    auto proj = m_writer.project(tcOffset, maxProjLen, fps, isDrop, samplerate);
 
     processMarkers();
 

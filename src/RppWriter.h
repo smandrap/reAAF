@@ -91,7 +91,7 @@ public:
     // (which would open AND immediately close the chunk on the same line).
     // -----------------------------------------------------------------------
 
-    [[nodiscard]] Chunk project(double tcOffsetSec, int fps, int isDrop, unsigned samplerate);
+    [[nodiscard]] Chunk project(double tcOffsetSec, double maxProjLen, int fps, int isDrop, unsigned samplerate);
 
     [[nodiscard]] Chunk track(const char *name, double vol, double pan, int mute, int solo, int nchan);
 
