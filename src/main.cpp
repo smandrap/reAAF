@@ -21,83 +21,82 @@
 #include "PrefsPage.h"
 #include "LogDialog.h"
 #include "defines.h"
-
 // ReSharper disable once CppUnusedIncludeDirective
 #include "version.h"
-
 #define REAPERAPI_IMPLEMENT
 #include "reaper_plugin_functions.h"
 #include "reaper_plugin.h"
 
 REAPER_PLUGIN_HINSTANCE g_hInst = nullptr;
 
-// This stuff is needed to zoom to project at end of import
+namespace {
+    constexpr unsigned int kCmdId_ZoomProject = 40295;
+    // This stuff is needed to zoom to project at end of import
+    bool isAafImport = false; // prevent zooming ALL projects. Set in aaf_ImportProject
 
-static constexpr unsigned int kCmdId_ZoomProject = 40295;
-static bool isAafImport = false;    // prevent zooming ALL projects
-
-static void OnProjectLoadTimer() {
-    plugin_register("-timer", reinterpret_cast<void *>(OnProjectLoadTimer));
-    // project is fully loaded here
-    if (isAafImport) {
-        Main_OnCommand(kCmdId_ZoomProject, 0);
-        isAafImport = false;
+    void OnProjectLoadTimer() {
+        plugin_register("-timer", reinterpret_cast<void *>(OnProjectLoadTimer));
+        // project is fully loaded here
+        if (isAafImport) {
+            Main_OnCommand(kCmdId_ZoomProject, 0);
+            isAafImport = false;
+        }
     }
-}
 
-static void OnBeginLoadProjectState(const bool isUndo, project_config_extension_t*) {
-    if (!isUndo && isAafImport)
-        plugin_register("timer", reinterpret_cast<void *>(OnProjectLoadTimer));
-}
-
-static project_config_extension_t s_projcfg = {
-    nullptr,               // ProcessExtensionLine
-    nullptr,               // SaveExtensionConfig
-    OnBeginLoadProjectState,
-    nullptr
-};
-
-// project import stuff here
-
-static bool aaf_WantProjectFile(const char *fn) {
-    const char *ext = strrchr(fn, '.');
-    return ext && strcasecmp(ext, ".aaf") == 0;
-}
-
-
-static const char *aaf_EnumFileExtensions(const int i, char **descptr) {
-    if (i == 0) {
-        static char kAafFileDesc[] = "Advanced Authoring Format (*.aaf)";
-        if (descptr) *descptr = kAafFileDesc;
-        return "aaf";
+    void OnBeginLoadProjectState(const bool isUndo, project_config_extension_t *) {
+        if (!isUndo && isAafImport)
+            plugin_register("timer", reinterpret_cast<void *>(OnProjectLoadTimer));
     }
-    return nullptr;
-}
 
-static int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
-    if (!fn || !ctx) return -1;
-    isAafImport = true;
+    project_config_extension_t s_projcfg = {
+        nullptr,
+        nullptr,
+        OnBeginLoadProjectState,
+        nullptr
+    };
 
-    auto logBuffer = std::make_unique<LogBuffer>();
-    const int ok = AafImporter(ctx, fn, *logBuffer).run();
+    // project import stuff here
 
-    const auto mode = PrefsPage::getVerbosity();
-    if (mode == PrefsPage::LogVerbosity::NONE) return ok;
-
-    if (mode == PrefsPage::LogVerbosity::ERR) {
-        if (!logBuffer->hasErrorsOrWarnings()) return ok;
-        LogDialog::open(std::move(logBuffer), LogEntry::WARN);
-    } else {
-        LogDialog::open(std::move(logBuffer), LogEntry::INFO);
+    bool aaf_WantProjectFile(const char *fn) {
+        const char *ext = strrchr(fn, '.');
+        return ext && strcasecmp(ext, ".aaf") == 0;
     }
-    return ok;
-}
 
-static project_import_register_t g_import_reg = {
-    aaf_WantProjectFile,
-    aaf_EnumFileExtensions,
-    aaf_ImportProject
-};
+
+    const char *aaf_EnumFileExtensions(const int i, char **descptr) {
+        if (i == 0) {
+            static char kAafFileDesc[] = "Advanced Authoring Format (*.aaf)";
+            if (descptr) *descptr = kAafFileDesc;
+            return "aaf";
+        }
+        return nullptr;
+    }
+
+    int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
+        if (!fn || !ctx) return -1;
+        isAafImport = true;
+
+        auto logBuffer = std::make_unique<LogBuffer>();
+        const int ok = AafImporter(ctx, fn, *logBuffer).run();
+
+        const auto mode = PrefsPage::getVerbosity();
+        if (mode == PrefsPage::LogVerbosity::NONE) return ok;
+
+        if (mode == PrefsPage::LogVerbosity::ERR) {
+            if (!logBuffer->hasErrorsOrWarnings()) return ok;
+            LogDialog::open(std::move(logBuffer), LogEntry::WARN);
+        } else {
+            LogDialog::open(std::move(logBuffer), LogEntry::INFO);
+        }
+        return ok;
+    }
+
+    project_import_register_t g_import_reg = {
+        aaf_WantProjectFile,
+        aaf_EnumFileExtensions,
+        aaf_ImportProject
+    };
+}
 
 // ---------------------------------------------------------------------------
 // Plugin entry point
