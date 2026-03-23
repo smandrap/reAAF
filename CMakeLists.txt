@@ -72,6 +72,10 @@ set(BUILD_UNIT_TEST  OFF CACHE BOOL "" FORCE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "" FORCE)
 add_subdirectory(${LIBAAF_DIR} extern/LibAAF)
 
+# Suppress LibAAF's internal asserts in debug builds — they fire on valid but
+# long ProductName/ProductVersionString strings (e.g. bext originator overflow).
+target_compile_definitions(aaf-static PRIVATE NDEBUG)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${_SAVE_ARCHIVE_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${_SAVE_LIBRARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_SAVE_RUNTIME_DIR})
