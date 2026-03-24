@@ -31,76 +31,83 @@
 // File-scope helpers (no AafImporter state)
 // ---------------------------------------------------------------------------
 namespace {
+    struct TrackLayout {
+        int count;
+        int nchan;
+    };
 
-struct TrackLayout { int count; int nchan; };
-
-std::string buildExtractDir(const char *filepath) {
-    std::string p(filepath);
-    if (const auto dot = p.rfind('.'); dot != std::string::npos) p.resize(dot);
-    p += "-media";
-    return p;
-}
-
-const char *rppSourceTypeFromPath(const char *filePath) {
-    auto srcType = "WAVE";
-    if (const char *ext = strrchr(filePath, '.')) {
-        if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
-        else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
-        else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
-        else if (strcasecmp(ext, ".mxf") == 0) srcType = "VIDEO";
+    std::string buildExtractDir(const char *filepath) {
+        std::string p(filepath);
+        if (const auto dot = p.rfind('.'); dot != std::string::npos) p.resize(dot);
+        p += "-media";
+        return p;
     }
-    return srcType;
-}
 
-double resolveConstantGain(const aafiAudioGain *gain, const double defaultValue = 1.0) {
-    if (gain
-        && gain->flags & AAFI_AUDIO_GAIN_CONSTANT
-        && gain->pts_cnt >= 1
-        && gain->value)
-        return rational_to_double(gain->value[0]);
-    return defaultValue;
-}
-
-// not owned — points into LibAAF-owned string
-const char *resolveClipName(const aafiAudioClip *clip) {
-    if (!clip) return "";
-    const char *clipName = clip->subClipName;
-    if (!clipName || clipName[0] == '\0') {
-        if (clip->essencePointerList && clip->essencePointerList->essenceFile)
-            clipName = clip->essencePointerList->essenceFile->name;
-    }
-    return clipName;
-}
-
-TrackLayout countRequiredTracks(const aafiAudioClip *clip) {
-    int cnt = 0;
-    int nchan = 2;
-    const aafiAudioEssencePointer *p = nullptr;
-    AAFI_foreachEssencePointer(clip->essencePointerList, p) {
-        if (!p->essenceFile) { ++cnt; continue; }
-        if (p->essenceFile->channels > 1) {
-            nchan = std::max(nchan, static_cast<int>(p->essenceFile->channels));
-            cnt = 1;
-            break;
+    const char *rppSourceTypeFromPath(const char *filePath) {
+        auto srcType = "WAVE";
+        if (const char *ext = strrchr(filePath, '.')) {
+            if (strcasecmp(ext, ".mp3") == 0) srcType = "MP3";
+            else if (strcasecmp(ext, ".flac") == 0) srcType = "FLAC";
+            else if (strcasecmp(ext, ".ogg") == 0) srcType = "VORBIS";
+            else if (strcasecmp(ext, ".mxf") == 0) srcType = "VIDEO";
         }
-        ++cnt;
+        return srcType;
     }
-    return {cnt, nchan};
-}
 
-// Find the pointer for the provided trackIdx.
-// If the file is interleaved (channels > 1), only emit on trackIdx 0.
-const aafiAudioEssencePointer *getAudioEssencePtr(const aafiAudioClip *clip, const int trackIdx) {
-    int idx = 0;
-    const aafiAudioEssencePointer *ptr = nullptr;
-    AAFI_foreachEssencePointer(clip->essencePointerList, ptr) {
-        if (!ptr->essenceFile) { ++idx; continue; }
-        if (ptr->essenceFile->channels > 1 || idx == trackIdx) return ptr;
-        ++idx;
+    double resolveConstantGain(const aafiAudioGain *gain, const double defaultValue = 1.0) {
+        if (gain
+            && gain->flags & AAFI_AUDIO_GAIN_CONSTANT
+            && gain->pts_cnt >= 1
+            && gain->value)
+            return rational_to_double(gain->value[0]);
+        return defaultValue;
     }
-    return nullptr;
-}
 
+    // not owned — points into LibAAF-owned string
+    const char *resolveClipName(const aafiAudioClip *clip) {
+        if (!clip) return "";
+        const char *clipName = clip->subClipName;
+        if (!clipName || clipName[0] == '\0') {
+            if (clip->essencePointerList && clip->essencePointerList->essenceFile)
+                clipName = clip->essencePointerList->essenceFile->name;
+        }
+        return clipName;
+    }
+
+    TrackLayout countRequiredTracks(const aafiAudioClip *clip) {
+        int cnt = 0;
+        int nchan = 2;
+        const aafiAudioEssencePointer *p = nullptr;
+        AAFI_foreachEssencePointer(clip->essencePointerList, p) {
+            if (!p->essenceFile) {
+                ++cnt;
+                continue;
+            }
+            if (p->essenceFile->channels > 1) {
+                nchan = std::max(nchan, static_cast<int>(p->essenceFile->channels));
+                cnt = 1;
+                break;
+            }
+            ++cnt;
+        }
+        return {cnt, nchan};
+    }
+
+    // Find the pointer for the provided trackIdx.
+    // If the file is interleaved (channels > 1), only emit on trackIdx 0.
+    const aafiAudioEssencePointer *getAudioEssencePtr(const aafiAudioClip *clip, const int trackIdx) {
+        int idx = 0;
+        const aafiAudioEssencePointer *ptr = nullptr;
+        AAFI_foreachEssencePointer(clip->essencePointerList, ptr) {
+            if (!ptr->essenceFile) {
+                ++idx;
+                continue;
+            }
+            if (ptr->essenceFile->channels > 1 || idx == trackIdx) return ptr;
+            ++idx;
+        }
+        return nullptr;
+    }
 } // namespace
 
 // ---------------------------------------------------------------------------
@@ -139,9 +146,9 @@ int AafImporter::run() {
         m_logBuffer.logf(LogEntry::INFO, "Composition: %s", m_aafi->compositionName);
 
     m_logBuffer.logf(LogEntry::INFO, "Audio tracks: %u  |  Sample rate: %u Hz  |  Bit depth: %u",
-        m_aafi->Audio->track_count,
-        m_aafi->Audio->samplerate,
-        m_aafi->Audio->samplesize);
+                     m_aafi->Audio->track_count,
+                     m_aafi->Audio->samplerate,
+                     m_aafi->Audio->samplesize);
 
     if (m_aafi->Audio->samplerate == 0)
         m_logBuffer.log(LogEntry::WARN, "Sample rate missing from AAF, defaulting to 48000 Hz");
@@ -166,7 +173,7 @@ int AafImporter::run() {
         isDrop = isFrac ? (fps == 24 ? 2 : (m_aafi->Timecode->drop > 0 ? 1 : 2)) : 0;
 
         m_logBuffer.logf(LogEntry::INFO, "Timecode: %d fps%s",
-            fps, isDrop == 1 ? " drop" : (isDrop == 2 ? " non-drop" : ""));
+                         fps, isDrop == 1 ? " drop" : (isDrop == 2 ? " non-drop" : ""));
     }
 
     // Guard destroyed at end of scope, emits closing ">" for REAPER_PROJECT
@@ -217,7 +224,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     const char *trackName = track->name ? track->name : "";
 
     m_logBuffer.logf(LogEntry::INFO, "Audio track %u: \"%s\"  clips: %d",
-        track->number, trackName, track->clipCount);
+                     track->number, trackName, track->clipCount);
 
     if (track->mute)
         m_logBuffer.logf(LogEntry::WARN, "Track %u (\"%s\") is muted", track->number, trackName);
@@ -249,7 +256,7 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
 
     if (requiredTracks > 1)
         m_logBuffer.logf(LogEntry::INFO, "Track %u split into %d mono sub-tracks",
-            track->number, requiredTracks);
+                         track->number, requiredTracks);
 
     for (int trackIdx = 0; trackIdx < requiredTracks; ++trackIdx) {
         std::string fullName = requiredTracks > 1
@@ -317,9 +324,11 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
 
     if (essPtr && essPtr->essenceFile) {
         const aafiAudioEssenceFile *ess = essPtr->essenceFile;
-        const char *essName = ess->unique_name ? ess->unique_name
-                            : ess->name        ? ess->name
-                                               : "(unnamed)";
+        const char *essName = ess->unique_name
+                                  ? ess->unique_name
+                                  : ess->name
+                                        ? ess->name
+                                        : "(unnamed)";
         char fadeStr[64] = "";
         if (fadeInLen > 0.0 && fadeOutLen > 0.0)
             snprintf(fadeStr, sizeof(fadeStr), "  fadeIn: %.3fs  fadeOut: %.3fs", fadeInLen, fadeOutLen);
@@ -328,7 +337,7 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip,
         else if (fadeOutLen > 0.0)
             snprintf(fadeStr, sizeof(fadeStr), "  fadeOut: %.3fs", fadeOutLen);
         m_logBuffer.logf(LogEntry::INFO, "Source: \"%s\"  %u Hz / %u-bit / %uch  @ %.3fs%s",
-            essName, ess->samplerate, ess->samplesize, ess->channels, pos, fadeStr);
+                         essName, ess->samplerate, ess->samplesize, ess->channels, pos, fadeStr);
     }
 
     processSource_Audio(essPtr);
@@ -356,7 +365,7 @@ bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
     if (!m_extractDirCreated) {
         if (!ensure_dir(m_extractDir)) {
             m_logBuffer.logf(LogEntry::ERR, "could not create extract dir: %s",
-                              m_extractDir.c_str());
+                             m_extractDir.c_str());
             return false;
         }
         m_extractDirCreated = true;
@@ -373,7 +382,7 @@ bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
 
     if (rc != 0) {
         m_logBuffer.logf(LogEntry::ERR, "failed to extract '%s'",
-                          ess->unique_name ? ess->unique_name : "(unnamed)");
+                         ess->unique_name ? ess->unique_name : "(unnamed)");
         return false;
     }
     m_logBuffer.logf(LogEntry::INFO, "Extracted '%s'", ess->unique_name);
@@ -382,6 +391,7 @@ bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
 
 void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     if (!essPtr || !essPtr->essenceFile) {
+        m_logBuffer.logf(LogEntry::ERR, "Missing source essence in clip");
         m_writer.emptySource();
         return;
     }
@@ -391,8 +401,8 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     if (ess->is_embedded && !ess->usable_file_path) {
         if (!extractEmbeddedEssence(ess)) {
             m_logBuffer.logf(LogEntry::ERR, "embedded extraction failed: %s",
-                              ess->unique_name ? ess->unique_name : "(unnamed)");
-            m_writer.emptySource();
+                             ess->unique_name ? ess->unique_name : "(unnamed)");
+            auto w_src = m_writer.source(rppSourceTypeFromPath(ess->original_file_path), ess->original_file_path);
             return;
         }
     }
@@ -400,8 +410,8 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     const char *filePath = ess->usable_file_path;
     if (!filePath || *filePath == '\0') {
         m_logBuffer.logf(LogEntry::WARN, "no usable path for '%s'",
-                          ess->unique_name ? ess->unique_name : "(unnamed)");
-        m_writer.emptySource();
+                         ess->unique_name ? ess->unique_name : "(unnamed)");
+        auto w_src = m_writer.source(rppSourceTypeFromPath(ess->original_file_path), ess->original_file_path);
         return;
     }
 
@@ -409,11 +419,17 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
 }
 
 void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
-    if (!ess || !ess->usable_file_path || *ess->usable_file_path == '\0') {
-        m_logBuffer.log(LogEntry::WARN, "video essence has no usable path");
+    if (!ess) {
+        m_logBuffer.log(LogEntry::ERR, "Missing source essence in clip");
         m_writer.emptySource();
         return;
     }
+    if (!ess->usable_file_path || *ess->usable_file_path == '\0') {
+        m_logBuffer.log(LogEntry::WARN, "Video essence has no usable path");
+        auto w_src = m_writer.source(rppSourceTypeFromPath(ess->original_file_path), ess->original_file_path);
+        return;
+    }
+
     m_logBuffer.logf(LogEntry::INFO, "Processed video: '%s'", ess->usable_file_path);
     auto w_src = m_writer.source("VIDEO", ess->usable_file_path);
 }
