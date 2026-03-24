@@ -14,6 +14,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+
 # -------------------------------------------------------------------------
 # Test frameworks (Catch2 + trompeloeil, no REAPER SDK required)
 # -------------------------------------------------------------------------

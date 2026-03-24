@@ -25,7 +25,8 @@ NAME "stereo-identif"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/stereo-identif.wav"
 >
 >
 <ITEM
@@ -38,7 +39,8 @@ NAME "sample-accurate-173000000"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/stereo-identif.wav"
 >
 >
 <ITEM
@@ -51,7 +53,8 @@ NAME "tc-accurate-01:00:09:00-173232000"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/stereo-identif.wav"
 >
 >
 <ITEM
@@ -64,7 +67,8 @@ NAME "sample-accuracy-173459321"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/stereo-identif.wav"
 >
 >
 >

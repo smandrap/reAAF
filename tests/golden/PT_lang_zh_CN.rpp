@@ -19,7 +19,8 @@ NAME "1000hz-18dbs16b44.1k-01"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.6666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/dumb/PT_lang_zh_hmmvHMYRhxgwBBBB.wav"
 >
 >
 >

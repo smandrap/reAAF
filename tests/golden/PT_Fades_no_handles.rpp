@@ -19,7 +19,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesxqgsZQZHvfxbVBBB.wav"
 >
 >
 <ITEM
@@ -32,7 +33,8 @@ NAME "1000hz-18dbs16b44.1k-01"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesffrwZQZHrrxbVBBB.wav"
 >
 >
 <ITEM
@@ -45,7 +47,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesqpyyZQZHqzxbVBBB.wav"
 >
 >
 <ITEM
@@ -58,7 +61,8 @@ NAME "1000hz-18dbs16b44.1k"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadeshpfcBRZHphybVBBB.wav"
 >
 >
 <ITEM
@@ -71,7 +75,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadeszqpfBRZHfvybVBBB.wav"
 >
 >
 >
@@ -90,7 +95,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesyhxmBRZHxfzbVBBB.wav"
 >
 >
 <ITEM
@@ -103,7 +109,8 @@ NAME "stereo-identif-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesvhcrBRZHrrzbVBBB.wav"
 >
 >
 <ITEM
@@ -116,7 +123,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadeswhmvBRZHqzzbVBBB.wav"
 >
 >
 <ITEM
@@ -129,7 +137,8 @@ NAME "stereo-identif-03.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesfcwxBRZHrhbcVBBB.wav"
 >
 >
 <ITEM
@@ -142,7 +151,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesvqbbCRZHmvbcVBBB.wav"
 >
 >
 >
@@ -161,7 +171,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesydqfCRZHggccVBBB.wav"
 >
 >
 <ITEM
@@ -174,7 +185,8 @@ NAME "stereo-identif-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesxhyhCRZHmsccVBBB.wav"
 >
 >
 <ITEM
@@ -187,7 +199,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadeszbgqCRZHpbdcVBBB.wav"
 >
 >
 <ITEM
@@ -200,7 +213,8 @@ NAME "stereo-identif-03.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesgxqsCRZHhmdcVBBB.wav"
 >
 >
 <ITEM
@@ -213,7 +227,8 @@ NAME "Fade "
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333333333
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/localshare/aaf/PT_FadesdmywCRZHhwdcVBBB.wav"
 >
 >
 >

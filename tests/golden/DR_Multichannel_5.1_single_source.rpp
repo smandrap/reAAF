@@ -25,7 +25,8 @@ NAME "5"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0416666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/5.1-SMPTE-channel-identif.wav"
 >
 >
 >

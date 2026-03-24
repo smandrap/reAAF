@@ -25,7 +25,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -38,7 +39,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.995262 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -51,7 +53,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.995262 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -74,7 +77,8 @@ PT 1.2000000000 3.4380902100 0
 PT 1.5200000000 0.0108756300 0
 PT 1.7600000000 1.0000000000 0
 >
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 >
@@ -93,7 +97,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -106,7 +111,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.995262 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -119,7 +125,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.995262 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -142,7 +149,8 @@ PT 1.2800000000 4.0000000000 0
 PT 1.5600000000 0.0209714700 0
 PT 1.7600000000 1.4252665200 0
 >
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 >

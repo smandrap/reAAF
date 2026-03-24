@@ -19,7 +19,8 @@ NAME "5.1-SMPTE-channel-identif-02.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_5.1_multi_source/PT_MultichaqmfmTWSQhqpsFPBB.wav"
 >
 >
 >
@@ -38,7 +39,8 @@ NAME "5.1-SMPTE-channel-identif-02.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_5.1_multi_source/PT_MultichahzrrTWSQbcqsFPBB.wav"
 >
 >
 >
@@ -57,7 +59,8 @@ NAME "5.1-SMPTE-channel-identif-02.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_5.1_multi_source/PT_MultichahxvwTWSQbrqsFPBB.wav"
 >
 >
 >
@@ -76,7 +79,8 @@ NAME "5.1-SMPTE-channel-identif-02.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_5.1_multi_source/PT_MultichayhhbVWSQfdrsFPBB.wav"
 >
 >
 >
@@ -95,7 +99,8 @@ NAME "5.1-SMPTE-channel-identif-02.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_5.1_multi_source/PT_MultichazrrfVWSQrsrsFPBB.wav"
 >
 >
 >
@@ -114,7 +119,8 @@ NAME "5.1-SMPTE-channel-identif-02.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_5.1_multi_source/PT_MultichadhmpVWSQhgssFPBB.wav"
 >
 >
 >

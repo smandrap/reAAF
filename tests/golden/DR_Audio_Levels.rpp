@@ -25,7 +25,8 @@ NAME "1000hz-18dbs16b44"
 VOLPAN 0.000011 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/LibAAFTestFiles/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -38,7 +39,8 @@ NAME "1000hz-18dbs16b44"
 VOLPAN 1.995262 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/LibAAFTestFiles/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -96,7 +98,8 @@ PT 2.7916666667 0.3845917881 0
 PT 2.8333333333 1.0000000000 0
 PT 3.0000000000 1.0000000000 0
 >
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/LibAAFTestFiles/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -154,7 +157,8 @@ PT 2.7916666667 0.3845917881 0
 PT 2.8333333333 1.0000000000 0
 PT 3.0000000000 1.0000000000 0
 >
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/LibAAFTestFiles/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 >
@@ -173,7 +177,8 @@ NAME "stereo-identif"
 VOLPAN 0.000011 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/stereo-identif.wav"
 >
 >
 <ITEM
@@ -186,7 +191,8 @@ NAME "stereo-identif"
 VOLPAN 1.995262 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/stereo-identif.wav"
 >
 >
 <ITEM
@@ -232,7 +238,8 @@ PT 1.5833333333 1.1091748476 0
 PT 1.6250000000 1.1748975515 0
 PT 1.9166666667 1.1748975515 0
 >
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/stereo-identif.wav"
 >
 >
 <ITEM
@@ -278,7 +285,8 @@ PT 1.5833333333 1.1091748476 0
 PT 1.6250000000 1.1748975515 0
 PT 1.9166666667 1.1748975515 0
 >
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://localhost/C:/Users/user/Desktop/res/stereo-identif.wav"
 >
 >
 >

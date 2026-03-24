@@ -25,7 +25,8 @@ NAME "1000hz"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE MP3
+FILE "file:///C:/Users/user/Desktop/LibAAFTestFiles/res/1000hz.mp3"
 >
 >
 >

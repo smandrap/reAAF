@@ -19,7 +19,8 @@ NAME "7.1-SMPTE-channel-identif.1-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.1000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_multi_source/PT_MultichaypsrHMHRqbccVQBB.wav"
 >
 >
 >
@@ -38,7 +39,8 @@ NAME "7.1-SMPTE-channel-identif.1-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.1000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_multi_source/PT_MultichabxcwHMHRwmccVQBB.wav"
 >
 >
 >
@@ -57,7 +59,8 @@ NAME "7.1-SMPTE-channel-identif.1-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.1000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_multi_source/PT_MultichawrmyHMHRswccVQBB.wav"
 >
 >
 >
@@ -76,7 +79,8 @@ NAME "7.1-SMPTE-channel-identif.1-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.1000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_multi_source/PT_MultichawzvbJMHRsddcVQBB.wav"
 >
 >
 >
@@ -95,7 +99,8 @@ NAME "7.1-SMPTE-channel-identif.1-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.1000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_multi_source/PT_MultichafwbfJMHRqqdcVQBB.wav"
 >
 >
 >
@@ -114,7 +119,8 @@ NAME "7.1-SMPTE-channel-identif.1-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.1000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_multi_source/PT_MultichaychhJMHRhydcVQBB.wav"
 >
 >
 >
@@ -133,7 +139,8 @@ NAME "7.1-SMPTE-channel-identif.1-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.1000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_multi_source/PT_MultichaqprpJMHRdgfcVQBB.wav"
 >
 >
 >
@@ -152,7 +159,8 @@ NAME "7.1-SMPTE-channel-identif.1-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.1000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_multi_source/PT_MultichaxrzrJMHRgsfcVQBB.wav"
 >
 >
 >

@@ -19,7 +19,8 @@ NAME "stereo-identif-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_stereo_multi_source/PT_MultichammsyJFRRzgmmQRBB.wav"
 >
 >
 >
@@ -38,7 +39,8 @@ NAME "stereo-identif-01.L"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0666666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_stereo_multi_source/PT_MultichapyccMFRRgvmmQRBB.wav"
 >
 >
 >

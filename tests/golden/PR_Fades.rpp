@@ -25,7 +25,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.9009000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -38,7 +39,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.9009000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -51,7 +53,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.9009000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -64,7 +67,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.9009000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -77,7 +81,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.7340666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -90,7 +95,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.7007000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 <ITEM
@@ -103,7 +109,8 @@ NAME "1000hz-18dbs16b44.1k.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.7340666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/res/1000hz-18dbs16b44.1k.wav"
 >
 >
 >
@@ -122,7 +129,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -135,7 +143,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -148,7 +157,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -161,7 +171,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -174,7 +185,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -187,7 +199,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 <ITEM
@@ -200,7 +213,8 @@ NAME "stereo-identif.wav"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0333666667
 LOOP 0
-<SOURCE EMPTY
+<SOURCE WAVE
+FILE "file://si.francetv.fr/process_limo/SDG/Utilisateurs/Adrien%20GESTA-FLINE/prjcts_prs/libaaf/fullres/stereo-identif.wav"
 >
 >
 >

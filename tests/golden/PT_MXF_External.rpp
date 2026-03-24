@@ -19,7 +19,8 @@ NAME "PT_MXF_ExtepwwsVYMTxgrsYBFR-01"
 VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 1.0000000000
 LOOP 0
-<SOURCE EMPTY
+<SOURCE VIDEO
+FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_MXF_ExtezdxyVYMTxgrsWRHR.mxf"
 >
 >
 >
