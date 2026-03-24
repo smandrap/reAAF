@@ -274,9 +274,56 @@ TEST_CASE("line: string exceeding 8192-byte stack buffer is emitted in full") {
     REQUIRE(sink.contains(expected));
 }
 
-// NOTE: the m_onError / vsnprintf-returns-negative path (RppWriter.cpp:51-56) is
-// not reachable in practice on POSIX — vsnprintf only returns negative on encoding
-// errors. It is untestable without mocking vsnprintf.
+// ---------------------------------------------------------------------------
+// setErrorHandler
+// ---------------------------------------------------------------------------
+
+TEST_CASE("setErrorHandler: handler is not called during normal writes") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    bool called = false;
+    w.setErrorHandler([&](RppWriter::ErrorKind, const char *) { called = true; });
+    { auto t = w.track("Name", 1.0, 0.0, 0, 0, 2); }
+    REQUIRE(!called);
+}
+
+TEST_CASE("setErrorHandler: handler is not called when large-string heap path is taken") {
+    // The heap path (RppWriter.cpp:43-48) handles oversized lines successfully —
+    // it is NOT an error condition, so the handler must not fire.
+    CapturingSink sink;
+    RppWriter w(&sink);
+    bool called = false;
+    w.setErrorHandler([&](RppWriter::ErrorKind, const char *) { called = true; });
+    const std::string big(8200, 'B');
+    { auto t = w.track(big.c_str(), 1.0, 0.0, 0, 0, 1); }
+    REQUIRE(!called);
+    REQUIRE(sink.contains("NAME \"" + big + "\""));
+}
+
+TEST_CASE("setErrorHandler: handler can be replaced mid-use") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    int calls_a = 0, calls_b = 0;
+    w.setErrorHandler([&](RppWriter::ErrorKind, const char *) { ++calls_a; });
+    { auto t = w.track("A", 1.0, 0.0, 0, 0, 1); }
+    w.setErrorHandler([&](RppWriter::ErrorKind, const char *) { ++calls_b; });
+    { auto t = w.track("B", 1.0, 0.0, 0, 0, 1); }
+    REQUIRE(calls_a == 0);
+    REQUIRE(calls_b == 0);
+}
+
+TEST_CASE("setErrorHandler: clearing the handler (empty function) does not crash on writes") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    w.setErrorHandler([](RppWriter::ErrorKind, const char *) {});
+    w.setErrorHandler({}); // clear
+    { auto t = w.track("X", 1.0, 0.0, 0, 0, 1); }
+    REQUIRE(!sink.lines.empty());
+}
+
+// NOTE: the m_onError invocation path (RppWriter.cpp:52-55) fires only when
+// vsnprintf returns negative. On POSIX this requires an encoding error and is not
+// triggerable through the public API without mocking vsnprintf.
 
 // ---------------------------------------------------------------------------
 // Nesting — track > item > source
