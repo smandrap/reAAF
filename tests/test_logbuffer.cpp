@@ -15,6 +15,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Standalone tests for LogBuffer ring buffer behaviour.
+
 #include "LogBuffer.h"
 
 #include <catch2/catch_all.hpp>
