@@ -26,34 +26,25 @@
 
 
 void RppWriter::line(const char *fmt, ...) const {
-    char buf[8192];
-    std::va_list ap;
+    // Assumes C99-compliant vsnprintf (returns chars needed, not -1, on overflow).
+    // VS2015+ CRT satisfies this; older MSVC did not.
+    char buf[256];
+    std::va_list ap, ap2;
     va_start(ap, fmt);
-    std::va_list ap2;
     va_copy(ap2, ap);
     const int written = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
 
-    if (written >= 0 && written < static_cast<int>(sizeof(buf))) {
+    if (written < static_cast<int>(sizeof(buf))) {
         va_end(ap2);
         m_sink->writeLine(buf);
         return;
     }
 
-    if (written >= static_cast<int>(sizeof(buf))) {
-        std::string large(static_cast<size_t>(written), '\0');
-        vsnprintf(large.data(), static_cast<size_t>(written) + 1, fmt, ap2);
-        va_end(ap2);
-        m_sink->writeLine(large.c_str());
-        return;
-    }
-
+    std::string large(static_cast<size_t>(written), '\0');
+    vsnprintf(large.data(), static_cast<size_t>(written) + 1, fmt, ap2);
     va_end(ap2);
-    if (m_onError) {
-        char errmsg[128];
-        snprintf(errmsg, sizeof(errmsg), "line formatting failed (vsnprintf returned %d)", written);
-        m_onError(ErrorKind::LineTruncated, errmsg);
-    }
+    m_sink->writeLine(large.c_str());
 }
 
 

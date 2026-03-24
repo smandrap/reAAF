@@ -130,14 +130,6 @@ int AafImporter::run() {
         return -1;
     }
 
-    m_writer.setErrorHandler([this](const RppWriter::ErrorKind kind, const char *msg) {
-        switch (kind) {
-            case RppWriter::ErrorKind::LineTruncated:
-                m_logBuffer.logf(LogEntry::ERR, "%s", msg);
-                break;
-        }
-    });
-
     aafi_set_debug(m_aafi.get(), VERB_WARNING, 0, nullptr, &AafImporter::libaafLogCallback, this);
     aafi_set_option_int(m_aafi.get(), "protools", PROTOOLS_ALL_OPT);
 

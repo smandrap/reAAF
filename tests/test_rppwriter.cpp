@@ -285,62 +285,16 @@ TEST_CASE("project: tcOffsetSec is forwarded to PROJOFFS") {
 // line() large-string path (buf overflow → heap allocation)
 // ---------------------------------------------------------------------------
 
-TEST_CASE("line: string exceeding 8192-byte stack buffer is emitted in full") {
-    // NAME \"<name>\" must exceed 8192 bytes.
-    // Format is: NAME "<escaped_name>" — overhead is 8 bytes, so name of 8192 chars overflows.
-    const std::string big(8200, 'A');
+TEST_CASE("line: string exceeding 256-byte stack buffer is emitted in full via heap path") {
+    // NAME "<escaped_name>" — overhead is 8 bytes, so a name > 248 chars overflows the stack buf.
+    const std::string big(300, 'A');
     CapturingSink sink;
     RppWriter w(&sink);
     { auto t = w.track(big.c_str(), 1.0, 0.0, 0, 0, 1); }
 
-    // Find the NAME line and verify the full name was written
     const std::string expected = "NAME \"" + big + "\"";
     REQUIRE(sink.contains(expected));
 }
-
-// ---------------------------------------------------------------------------
-// setErrorHandler
-// ---------------------------------------------------------------------------
-
-TEST_CASE("setErrorHandler: handler is not called during normal writes") {
-    CapturingSink sink;
-    RppWriter w(&sink);
-    bool called = false;
-    w.setErrorHandler([&](RppWriter::ErrorKind, const char *) { called = true; });
-    { auto t = w.track("Name", 1.0, 0.0, 0, 0, 2); }
-    REQUIRE(!called);
-}
-
-TEST_CASE("setErrorHandler: handler is not called when large-string heap path is taken") {
-    // The heap path (RppWriter.cpp:43-48) handles oversized lines successfully —
-    // it is NOT an error condition, so the handler must not fire.
-    CapturingSink sink;
-    RppWriter w(&sink);
-    bool called = false;
-    w.setErrorHandler([&](RppWriter::ErrorKind, const char *) { called = true; });
-    const std::string big(8200, 'B');
-    { auto t = w.track(big.c_str(), 1.0, 0.0, 0, 0, 1); }
-    REQUIRE(!called);
-    REQUIRE(sink.contains("NAME \"" + big + "\""));
-}
-
-TEST_CASE("setErrorHandler: handler can be replaced mid-use") {
-    CapturingSink sink;
-    RppWriter w(&sink);
-    int calls_a = 0, calls_b = 0;
-    w.setErrorHandler([&](RppWriter::ErrorKind, const char *) { ++calls_a; });
-    { auto t = w.track("A", 1.0, 0.0, 0, 0, 1); }
-    w.setErrorHandler([&](RppWriter::ErrorKind, const char *) { ++calls_b; });
-    { auto t = w.track("B", 1.0, 0.0, 0, 0, 1); }
-    REQUIRE(calls_a == 0);
-    REQUIRE(calls_b == 0);
-}
-
-// NOTE: the m_onError invocation path (RppWriter.cpp:52-55) fires only when
-// vsnprintf returns negative. On POSIX this requires an encoding error and is not
-// triggerable through the public API without mocking vsnprintf.
-// Clearing the handler via setErrorHandler({}) cannot be meaningfully tested
-// for crash safety: normal writes never reach the if (m_onError) guard at all.
 
 // ---------------------------------------------------------------------------
 // Nesting — track > item > source

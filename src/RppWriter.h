@@ -18,8 +18,6 @@
 #ifndef REAPER_AAF_RPPWRITER_H
 #define REAPER_AAF_RPPWRITER_H
 
-#include <functional>
-
 #include "IRppSink.h"
 
 // ---------------------------------------------------------------------------
@@ -39,13 +37,7 @@
 // ---------------------------------------------------------------------------
 class RppWriter {
 public:
-    enum class ErrorKind { LineTruncated };
-
     explicit RppWriter(IRppSink *sink) : m_sink(sink) {}
-
-    void setErrorHandler(std::function<void(ErrorKind, const char *)> handler) {
-        m_onError = std::move(handler);
-    }
 
     // Non-copyable — guards hold a reference back to the writer.
     RppWriter(const RppWriter &) = delete;
@@ -121,7 +113,6 @@ public:
 
 private:
     IRppSink *m_sink;  // not owned — lifetime tied to caller
-    std::function<void(ErrorKind, const char *)> m_onError;
 
     void line(const char *fmt, ...) const;
 };
