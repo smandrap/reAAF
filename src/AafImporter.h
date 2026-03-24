@@ -23,6 +23,7 @@
 
 #include "AafiHandle.h"
 #include "LogBuffer.h"
+#include "ReaperSink.h"
 #include "RppWriter.h"
 #include "FadeResolver.h"
 
@@ -46,6 +47,7 @@ public:
     int run();
 
 private:
+    ReaperSink m_reaperSink;
     RppWriter m_writer;
     AafiHandle m_aafi;
     std::string m_filePath;

@@ -20,7 +20,7 @@
 
 #include <functional>
 
-class ProjectStateContext;
+#include "IRppSink.h"
 
 // ---------------------------------------------------------------------------
 // RppWriter
@@ -41,7 +41,7 @@ class RppWriter {
 public:
     enum class ErrorKind { LineTruncated };
 
-    explicit RppWriter(ProjectStateContext *ctx) : m_ctx(ctx) {}
+    explicit RppWriter(IRppSink *sink) : m_sink(sink) {}
 
     void setErrorHandler(std::function<void(ErrorKind, const char *)> handler) {
         m_onError = std::move(handler);
@@ -120,7 +120,7 @@ public:
     void writeEnvPoint(double timeSec, double value) const;
 
 private:
-    ProjectStateContext *m_ctx;  // not owned — lifetime tied to caller's ProjectStateContext
+    IRppSink *m_sink;  // not owned — lifetime tied to caller
     std::function<void(ErrorKind, const char *)> m_onError;
 
     void line(const char *fmt, ...) const;

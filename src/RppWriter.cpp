@@ -20,7 +20,6 @@
 #include <cassert>
 
 #include "helpers.h"
-#include "reaper_plugin_functions.h"
 
 #include <cstdarg>
 #include <string>
@@ -37,7 +36,7 @@ void RppWriter::line(const char *fmt, ...) const {
 
     if (written >= 0 && written < static_cast<int>(sizeof(buf))) {
         va_end(ap2);
-        m_ctx->AddLine("%s", buf);
+        m_sink->writeLine(buf);
         return;
     }
 
@@ -45,7 +44,7 @@ void RppWriter::line(const char *fmt, ...) const {
         std::string large(static_cast<size_t>(written), '\0');
         vsnprintf(large.data(), static_cast<size_t>(written) + 1, fmt, ap2);
         va_end(ap2);
-        m_ctx->AddLine("%s", large.c_str());
+        m_sink->writeLine(large.c_str());
         return;
     }
 

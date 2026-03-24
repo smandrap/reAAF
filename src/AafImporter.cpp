@@ -117,7 +117,8 @@ void AafImporter::libaafLogCallback(aafLog *, void *, const int lib, const int t
 
 
 AafImporter::AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuffer &logBuffer)
-    : m_writer(ctx),
+    : m_reaperSink(ctx),
+      m_writer(&m_reaperSink),
       m_aafi(AafiHandle(aafi_alloc(nullptr))),
       m_filePath(filepath),
       m_extractDir(buildExtractDir(filepath)),
