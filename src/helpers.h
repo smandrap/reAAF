@@ -23,6 +23,7 @@
 #include <string>
 
 #include "libaaf/AAFTypes.h"
+#include "libaaf/AAFIface.h"
 
 
 [[nodiscard]] constexpr double rational_to_double(const aafRational_t r) noexcept {
@@ -67,7 +68,15 @@ inline std::string escape_rpp_string(const char *raw) {
 }
 
 
-int interpol_to_reaper_shape(uint32_t flags);
+// Map AAFInterpolation flags to REAPER fade shape index.
+// REAPER: 0=linear, 1=quarter-sine, 2=equal power, 3=slow start, 4=fast start, 5=bezier
+[[nodiscard]] inline int interpol_to_reaper_shape(const uint32_t flags) noexcept {
+    if (flags & AAFI_INTERPOL_LINEAR) return 0;
+    if (flags & AAFI_INTERPOL_POWER)  return 4;
+    if (flags & AAFI_INTERPOL_LOG)    return 3;
+    if (flags & AAFI_INTERPOL_BSPLINE) return 5;
+    return 1; // default: quarter-sine
+}
 
 bool ensure_dir(const std::string &path);
 

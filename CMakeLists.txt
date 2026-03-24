@@ -48,6 +48,14 @@ add_catch2_test(test_progressdialog_format SOURCES
         tests/test_progressdialog_format.cpp
         src/LogBuffer.cpp
 )
+add_catch2_test(test_helpers SOURCES
+        tests/test_helpers.cpp
+)
+target_link_libraries(test_helpers PRIVATE aaf-static)
+target_include_directories(test_helpers PRIVATE
+        ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
+        ${CMAKE_BINARY_DIR}/include
+)
 
 # -------------------------------------------------------------------------
 # Paths

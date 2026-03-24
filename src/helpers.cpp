@@ -25,17 +25,6 @@
 #include <cerrno>
 #include "helpers.h"
 #include "reaper_plugin_functions.h"
-#include "libaaf/AAFIface.h"
-
-// Map AAFInterpolation flags to REAPER fade shape index.
-// REAPER: 0=linear, 1=quarter-sine, 2=equal power, 3=slow start, 4=fast start, 5=bezier
-int interpol_to_reaper_shape(const uint32_t flags) {
-    if (flags & AAFI_INTERPOL_LINEAR) return 0;
-    if (flags & AAFI_INTERPOL_POWER) return 4;
-    if (flags & AAFI_INTERPOL_LOG) return 3;
-    if (flags & AAFI_INTERPOL_BSPLINE) return 5;
-    return 1; // default: quarter-sine
-}
 
 bool ensure_dir(const std::string &path) {
 #ifdef _WIN32
