@@ -25,7 +25,7 @@ function(add_catch2_test TARGET)
     add_executable(${TARGET} ${ARG_SOURCES})
     target_link_libraries(${TARGET} PRIVATE Catch2::Catch2WithMain trompeloeil::trompeloeil)
     target_include_directories(${TARGET} PRIVATE
-            src
+            ${CMAKE_SOURCE_DIR}/src
             ${CMAKE_SOURCE_DIR}/extern/reaper-sdk/WDL
     )
     set_target_properties(${TARGET} PROPERTIES
@@ -40,35 +40,7 @@ endfunction()
 # -------------------------------------------------------------------------
 # Unit tests
 # -------------------------------------------------------------------------
-add_catch2_test(test_logbuffer SOURCES
-        tests/test_logbuffer.cpp
-        src/LogBuffer.cpp
-)
-add_catch2_test(test_helpers SOURCES
-        tests/test_helpers.cpp
-)
-target_link_libraries(test_helpers PRIVATE aaf-static)
-target_include_directories(test_helpers PRIVATE
-        ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
-        ${CMAKE_BINARY_DIR}/include
-)
-add_catch2_test(test_faderesolver SOURCES
-        tests/test_faderesolver.cpp
-        src/FadeResolver.cpp
-)
-target_link_libraries(test_faderesolver PRIVATE aaf-static)
-target_include_directories(test_faderesolver PRIVATE
-        ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
-        ${CMAKE_BINARY_DIR}/include
-)
-add_catch2_test(test_rppwriter SOURCES
-        tests/test_rppwriter.cpp
-        src/RppWriter.cpp
-)
-target_include_directories(test_rppwriter PRIVATE
-        ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
-        ${CMAKE_BINARY_DIR}/include
-)
+add_subdirectory(tests)
 
 # -------------------------------------------------------------------------
 # Paths
