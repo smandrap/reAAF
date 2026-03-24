@@ -18,6 +18,7 @@
 #include <memory>
 #include "AafImporter.h"
 #include "LogBuffer.h"
+#include "ReaperSink.h"
 #include "PrefsPage.h"
 #include "LogDialog.h"
 #include "defines.h"
@@ -77,7 +78,8 @@ namespace {
         isAafImport = true;
 
         auto logBuffer = std::make_unique<LogBuffer>();
-        const int ok = AafImporter(ctx, fn, *logBuffer).run();
+        ReaperSink sink(ctx);
+        const int ok = AafImporter(&sink, fn, *logBuffer).run();
 
         const auto mode = PrefsPage::getVerbosity();
         if (mode == PrefsPage::LogVerbosity::NONE) return ok;

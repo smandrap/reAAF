@@ -22,8 +22,8 @@
 #include <string>
 
 #include "AafiHandle.h"
+#include "IRppSink.h"
 #include "LogBuffer.h"
-#include "ReaperSink.h"
 #include "RppWriter.h"
 #include "FadeResolver.h"
 
@@ -38,16 +38,14 @@ struct aafiVideoEssence;
 struct aafiTimelineItem;
 struct aafiAudioEssencePointer;
 struct aafiAudioEssenceFile;
-class ProjectStateContext;
 
 class AafImporter {
 public:
-    AafImporter(ProjectStateContext *ctx, const char *filepath, LogBuffer &logBuffer);
+    AafImporter(IRppSink *sink, const char *filepath, LogBuffer &logBuffer);
 
     int run();
 
 private:
-    ReaperSink m_reaperSink;
     RppWriter m_writer;
     AafiHandle m_aafi;
     std::string m_filePath;
