@@ -65,6 +65,14 @@ target_include_directories(test_faderesolver PRIVATE
         ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
         ${CMAKE_BINARY_DIR}/include
 )
+add_catch2_test(test_rppwriter SOURCES
+        tests/test_rppwriter.cpp
+        src/RppWriter.cpp
+)
+target_include_directories(test_rppwriter PRIVATE
+        ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
+        ${CMAKE_BINARY_DIR}/include
+)
 
 # -------------------------------------------------------------------------
 # Paths

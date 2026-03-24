@@ -1,0 +1,239 @@
+/*
+ * Copyright (C) 2026 Federico Manuppella
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+// Standalone tests for RppWriter using a CapturingSink.
+// Does NOT link ReaperSink.cpp or any REAPER SDK source.
+
+#include "RppWriter.h"
+#include "IRppSink.h"
+
+#include <catch2/catch_all.hpp>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+// ---------------------------------------------------------------------------
+// Test double
+// ---------------------------------------------------------------------------
+
+struct CapturingSink : IRppSink {
+    std::vector<std::string> lines;
+    void writeLine(const char *l) override { lines.push_back(l); }
+
+    bool contains(const std::string &s) const {
+        return std::any_of(lines.begin(), lines.end(),
+                           [&](const std::string &ln) { return ln == s; });
+    }
+    bool anyContains(const std::string &sub) const {
+        return std::any_of(lines.begin(), lines.end(),
+                           [&](const std::string &ln) { return ln.find(sub) != std::string::npos; });
+    }
+};
+
+// ---------------------------------------------------------------------------
+// Chunk RAII
+// ---------------------------------------------------------------------------
+
+TEST_CASE("Chunk: destructor emits closing >") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto t = w.track("X", 1.0, 0.0, 0, 0, 2); }
+    REQUIRE(sink.lines.back() == ">");
+}
+
+TEST_CASE("Chunk: explicit close() emits > and destructor does not double-close") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    {
+        auto t = w.track("X", 1.0, 0.0, 0, 0, 2);
+        t.close();
+        // destructor runs here — must not emit a second >
+    }
+    long closeCount = std::count(sink.lines.begin(), sink.lines.end(), ">");
+    REQUIRE(closeCount == 1);
+}
+
+TEST_CASE("Chunk: move — moved-from does not double-close") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    {
+        auto t1 = w.track("X", 1.0, 0.0, 0, 0, 2);
+        auto t2 = std::move(t1); // t1 is now moved-from
+        // t1 destructs here — should NOT emit >
+        // t2 destructs at end of block — should emit exactly one >
+    }
+    long closeCount = std::count(sink.lines.begin(), sink.lines.end(), ">");
+    REQUIRE(closeCount == 1);
+}
+
+// ---------------------------------------------------------------------------
+// track()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("track: emits <TRACK header, NAME, VOLPAN, MUTESOLO, NCHAN, >") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto t = w.track("Drums", 1.0, 0.0, 0, 0, 2); }
+
+    REQUIRE(sink.lines.at(0) == "<TRACK");
+    REQUIRE(sink.contains("NAME \"Drums\""));
+    REQUIRE(sink.anyContains("VOLPAN"));
+    REQUIRE(sink.anyContains("MUTESOLO"));
+    REQUIRE(sink.anyContains("NCHAN 2"));
+    REQUIRE(sink.lines.back() == ">");
+}
+
+TEST_CASE("track: null name is emitted as empty string") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto t = w.track(nullptr, 1.0, 0.0, 0, 0, 1); }
+    REQUIRE(sink.contains("NAME \"\""));
+}
+
+TEST_CASE("track: name with double-quotes is escaped") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto t = w.track("say \"hi\"", 1.0, 0.0, 0, 0, 1); }
+    REQUIRE(sink.contains("NAME \"say \\\"hi\\\"\""));
+}
+
+// ---------------------------------------------------------------------------
+// item()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("item: emits <ITEM header with POSITION, LENGTH, FADEIN, FADEOUT, >") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto i = w.item("clip", 1.0, 2.0, 0.5, 0, 0.25, 1, 1.0, 0.0, 0); }
+
+    REQUIRE(sink.lines.at(0) == "<ITEM");
+    REQUIRE(sink.anyContains("POSITION 1.0"));
+    REQUIRE(sink.anyContains("LENGTH 2.0"));
+    REQUIRE(sink.anyContains("FADEIN 0"));
+    REQUIRE(sink.anyContains("FADEOUT 1"));
+    REQUIRE(sink.lines.back() == ">");
+}
+
+TEST_CASE("item: mute flag is emitted") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto i = w.item("c", 0.0, 1.0, 0.0, 0, 0.0, 0, 1.0, 0.0, 1); }
+    REQUIRE(sink.anyContains("MUTE 1"));
+}
+
+// ---------------------------------------------------------------------------
+// source()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("source: emits <SOURCE TYPE, FILE, >") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto s = w.source("WAVE", "/audio/kick.wav"); }
+
+    REQUIRE(sink.lines.at(0) == "<SOURCE WAVE");
+    REQUIRE(sink.contains("FILE \"/audio/kick.wav\""));
+    REQUIRE(sink.lines.back() == ">");
+}
+
+TEST_CASE("source: path with backslashes is escaped") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto s = w.source("WAVE", "C:\\audio\\kick.wav"); }
+    REQUIRE(sink.contains("FILE \"C:\\\\audio\\\\kick.wav\""));
+}
+
+// ---------------------------------------------------------------------------
+// emptySource()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("emptySource: emits <SOURCE EMPTY and >") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto s = w.emptySource(); }
+    REQUIRE(sink.lines.at(0) == "<SOURCE EMPTY");
+    REQUIRE(sink.lines.back() == ">");
+}
+
+// ---------------------------------------------------------------------------
+// envelope()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("envelope: emits tag line, VIS, >") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto e = w.envelope("VOLENV"); }
+    REQUIRE(sink.lines.at(0) == "<VOLENV");
+    REQUIRE(sink.contains("VIS 1 1 1"));
+    REQUIRE(sink.lines.back() == ">");
+}
+
+TEST_CASE("envelope: arm=true emits ARM 1") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto e = w.envelope("VOLENV", true); }
+    REQUIRE(sink.contains("ARM 1"));
+}
+
+TEST_CASE("envelope: arm=false does not emit ARM 1") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto e = w.envelope("VOLENV", false); }
+    REQUIRE(!sink.contains("ARM 1"));
+}
+
+// ---------------------------------------------------------------------------
+// writeMarker() / writeEnvPoint()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("writeMarker: emits MARKER line with all fields") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    w.writeMarker(1, 3.5, "Intro", false, 0);
+    REQUIRE(sink.lines.size() == 1);
+    REQUIRE(sink.lines.at(0).rfind("MARKER 1", 0) == 0);
+    REQUIRE(sink.anyContains("\"Intro\""));
+}
+
+TEST_CASE("writeEnvPoint: emits PT line") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    w.writeEnvPoint(1.0, 0.5);
+    REQUIRE(sink.lines.size() == 1);
+    REQUIRE(sink.lines.at(0).rfind("PT", 0) == 0);
+}
+
+// ---------------------------------------------------------------------------
+// Nesting — track > item > source
+// ---------------------------------------------------------------------------
+
+TEST_CASE("nesting: track > item > source emits correct open/close order") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    {
+        auto t = w.track("T", 1.0, 0.0, 0, 0, 2);
+        {
+            auto i = w.item("C", 0.0, 1.0, 0.0, 0, 0.0, 0, 1.0, 0.0, 0);
+            { auto s = w.source("WAVE", "/f.wav"); }
+        }
+    }
+    // Must start with <TRACK and end with > (track close)
+    REQUIRE(sink.lines.front() == "<TRACK");
+    REQUIRE(sink.lines.back() == ">");
+    // Count three closing >
+    long closeCount = std::count(sink.lines.begin(), sink.lines.end(), ">");
+    REQUIRE(closeCount == 3);
+}
