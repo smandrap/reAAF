@@ -199,13 +199,29 @@ TEST_CASE("envelope: arm=false does not emit ARM 1") {
 // writeMarker() / writeEnvPoint()
 // ---------------------------------------------------------------------------
 
-TEST_CASE("writeMarker: emits MARKER line with all fields") {
+TEST_CASE("writeMarker: emits MARKER line with all fields, isRegionBoundary=false") {
     CapturingSink sink;
     RppWriter w(&sink);
     w.writeMarker(1, 3.5, "Intro", false, 0);
     REQUIRE(sink.lines.size() == 1);
     REQUIRE(sink.lines.at(0).rfind("MARKER 1", 0) == 0);
-    REQUIRE(sink.anyContains("\"Intro\""));
+    REQUIRE(sink.anyContains("\"Intro\" 0"));
+}
+
+TEST_CASE("writeMarker: isRegionBoundary=true sets flag to 1") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    w.writeMarker(1, 3.5, "Intro", true, 0);
+    REQUIRE(sink.lines.size() == 1);
+    REQUIRE(sink.anyContains("\"Intro\" 1"));
+}
+
+TEST_CASE("writeMarker: null name emits empty quoted string") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    w.writeMarker(2, 0.0, nullptr, false, 0);
+    REQUIRE(sink.lines.size() == 1);
+    REQUIRE(sink.anyContains("\"\""));
 }
 
 TEST_CASE("writeEnvPoint: emits PT line") {
