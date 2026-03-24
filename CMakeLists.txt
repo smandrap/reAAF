@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
-project(reAAF VERSION 0.3.0 LANGUAGES C CXX)
+
+# Version is the single source of truth — edit VERSION file
+file(READ "${CMAKE_SOURCE_DIR}/VERSION" REAAF_VERSION)
+string(STRIP "${REAAF_VERSION}" REAAF_VERSION)
+string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" REAAF_NUMERIC_VERSION "${REAAF_VERSION}")
+
+project(reAAF VERSION ${REAAF_NUMERIC_VERSION} LANGUAGES C CXX)
 if(APPLE)
     enable_language(OBJC OBJCXX)
 endif()
-
-# Pre-release suffix (e.g. "-beta3"). Leave empty for a stable release.
-set(REAAF_VERSION_SUFFIX "")
-set(REAAF_VERSION "${PROJECT_VERSION}${REAAF_VERSION_SUFFIX}")
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
