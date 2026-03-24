@@ -217,6 +217,68 @@ TEST_CASE("writeEnvPoint: emits PT line") {
 }
 
 // ---------------------------------------------------------------------------
+// project()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("project: emits <REAPER_PROJECT header, key lines, >") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto p = w.project(0.0, 120.0, 25, 0, 48000); }
+
+    REQUIRE(sink.lines.at(0) == "<REAPER_PROJECT 0.1");
+    REQUIRE(sink.anyContains("PROJOFFS"));
+    REQUIRE(sink.anyContains("MAXPROJLEN"));
+    REQUIRE(sink.anyContains("TIMEMODE"));
+    REQUIRE(sink.anyContains("SMPTESYNC"));
+    REQUIRE(sink.anyContains("SAMPLERATE 48000"));
+    REQUIRE(sink.lines.back() == ">");
+}
+
+TEST_CASE("project: maxProjLen is padded by 60 seconds") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto p = w.project(0.0, 100.0, 25, 0, 44100); }
+    // MAXPROJLEN should contain 160.0 (100 + 60)
+    REQUIRE(sink.anyContains("MAXPROJLEN 0 160."));
+}
+
+TEST_CASE("project: fps and isDrop are forwarded") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto p = w.project(0.0, 60.0, 30, 1, 48000); }
+    REQUIRE(sink.anyContains("TIMEMODE 1 5 -1 30 1"));
+    REQUIRE(sink.anyContains("SMPTESYNC 0 30"));
+}
+
+TEST_CASE("project: tcOffsetSec is forwarded to PROJOFFS") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto p = w.project(3.5, 60.0, 25, 0, 48000); }
+    REQUIRE(sink.anyContains("PROJOFFS 3.5"));
+}
+
+// ---------------------------------------------------------------------------
+// line() large-string path (buf overflow → heap allocation)
+// ---------------------------------------------------------------------------
+
+TEST_CASE("line: string exceeding 8192-byte stack buffer is emitted in full") {
+    // NAME \"<name>\" must exceed 8192 bytes.
+    // Format is: NAME "<escaped_name>" — overhead is 8 bytes, so name of 8192 chars overflows.
+    const std::string big(8200, 'A');
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto t = w.track(big.c_str(), 1.0, 0.0, 0, 0, 1); }
+
+    // Find the NAME line and verify the full name was written
+    const std::string expected = "NAME \"" + big + "\"";
+    REQUIRE(sink.contains(expected));
+}
+
+// NOTE: the m_onError / vsnprintf-returns-negative path (RppWriter.cpp:51-56) is
+// not reachable in practice on POSIX — vsnprintf only returns negative on encoding
+// errors. It is untestable without mocking vsnprintf.
+
+// ---------------------------------------------------------------------------
 // Nesting — track > item > source
 // ---------------------------------------------------------------------------
 
