@@ -79,6 +79,40 @@ TEST_CASE("logf: string exceeding 512-byte stack buffer is stored in full via he
 }
 
 // ---------------------------------------------------------------------------
+// hasErrorsOrWarnings()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("hasErrorsOrWarnings: false on empty buffer") {
+    TestableLogBuffer buf;
+    REQUIRE_FALSE(buf.hasErrorsOrWarnings());
+}
+
+TEST_CASE("hasErrorsOrWarnings: false after INFO-only entries") {
+    TestableLogBuffer buf;
+    buf.log(LogEntry::INFO, "ok");
+    REQUIRE_FALSE(buf.hasErrorsOrWarnings());
+}
+
+TEST_CASE("hasErrorsOrWarnings: true after a WARN entry") {
+    TestableLogBuffer buf;
+    buf.log(LogEntry::WARN, "something odd");
+    REQUIRE(buf.hasErrorsOrWarnings());
+}
+
+TEST_CASE("hasErrorsOrWarnings: true after an ERR entry") {
+    TestableLogBuffer buf;
+    buf.log(LogEntry::ERR, "something bad");
+    REQUIRE(buf.hasErrorsOrWarnings());
+}
+
+TEST_CASE("hasErrorsOrWarnings: true once set, stays true after subsequent INFO") {
+    TestableLogBuffer buf;
+    buf.log(LogEntry::ERR, "bad");
+    buf.log(LogEntry::INFO, "recovered");
+    REQUIRE(buf.hasErrorsOrWarnings());
+}
+
+// ---------------------------------------------------------------------------
 // ring overflow
 // ---------------------------------------------------------------------------
 
