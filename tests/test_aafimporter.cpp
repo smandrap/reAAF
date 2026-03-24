@@ -18,6 +18,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -65,7 +66,24 @@ TEST_CASE("AafImporter golden files", "[golden]") {
                 REQUIRE(f.is_open());
                 const std::string expected((std::istreambuf_iterator<char>(f)),
                                             std::istreambuf_iterator<char>());
-                REQUIRE(actual == expected);
+
+                if (actual != expected) {
+                    // Report every differing line
+                    std::istringstream actualStream(actual), expectedStream(expected);
+                    std::string actualLine, expectedLine;
+                    int lineNum = 0;
+                    while (true) {
+                        bool gotA = !!std::getline(actualStream, actualLine);
+                        bool gotE = !!std::getline(expectedStream, expectedLine);
+                        ++lineNum;
+                        if (!gotA && !gotE) break;
+                        if (actualLine != expectedLine) {
+                            FAIL_CHECK("line " << lineNum << " differs\n"
+                                 "  expected: " << expectedLine << "\n"
+                                 "  actual:   " << actualLine);
+                        }
+                    }
+                }
             }
         }
     }
