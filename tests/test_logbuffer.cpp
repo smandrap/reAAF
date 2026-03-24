@@ -32,7 +32,7 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-// Tests
+// log()
 // ---------------------------------------------------------------------------
 
 TEST_CASE("LogBuffer stores all severities") {
@@ -49,6 +49,38 @@ TEST_CASE("LogBuffer fills to capacity") {
         buf.log(LogEntry::INFO, "fill");
     REQUIRE(buf.count() == LogBuffer::kCapacity);
 }
+
+// ---------------------------------------------------------------------------
+// logf()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("logf: formats and stores a simple message") {
+    TestableLogBuffer buf;
+    buf.logf(LogEntry::INFO, "track %d of %d", 3, 10);
+    REQUIRE(buf.count() == 1);
+    REQUIRE(buf.entryAt(0).text == "track 3 of 10");
+}
+
+TEST_CASE("logf: stores the correct severity") {
+    TestableLogBuffer buf;
+    buf.logf(LogEntry::ERR, "bad path: %s", "/missing/file.wav");
+    REQUIRE(buf.entryAt(0).severity == LogEntry::ERR);
+}
+
+TEST_CASE("logf: string exceeding 512-byte stack buffer is stored in full via heap path") {
+    // The stack buf in logf is 512 bytes. A format result > 511 chars triggers
+    // the heap allocation fallback. Overhead for "x%s" is 1 byte, so 512 'A's
+    // push written to 512 which equals sizeof(buf) and takes the heap path.
+    const std::string big(512, 'A');
+    TestableLogBuffer buf;
+    buf.logf(LogEntry::WARN, "x%s", big.c_str());
+    REQUIRE(buf.count() == 1);
+    REQUIRE(buf.entryAt(0).text == "x" + big);
+}
+
+// ---------------------------------------------------------------------------
+// ring overflow
+// ---------------------------------------------------------------------------
 
 TEST_CASE("LogBuffer ring overflow: sentinel inserted, count stays at capacity") {
     // On kCapacity+1 push: oldest entry evicted, a sentinel WARN is inserted,
