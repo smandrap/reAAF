@@ -121,11 +121,19 @@ TEST_CASE("item: emits <ITEM header with POSITION, LENGTH, FADEIN, FADEOUT, >") 
     { auto i = w.item("clip", 1.0, 2.0, 0.5, 0, 0.25, 1, 1.0, 0.0, 0); }
 
     REQUIRE(sink.lines.at(0) == "<ITEM");
+    REQUIRE(sink.anyContains("NAME \"clip\""));
     REQUIRE(sink.anyContains("POSITION 1.0"));
     REQUIRE(sink.anyContains("LENGTH 2.0"));
     REQUIRE(sink.anyContains("FADEIN 0"));
     REQUIRE(sink.anyContains("FADEOUT 1"));
     REQUIRE(sink.lines.back() == ">");
+}
+
+TEST_CASE("item: nullptr for name results in empty name") {
+    CapturingSink sink;
+    RppWriter w(&sink);
+    { auto i = w.item(nullptr, 0, 1, 0, 0, 0, 0, 0, 0, 0); }
+    REQUIRE(sink.anyContains("NAME \"\""));
 }
 
 TEST_CASE("item: mute flag is emitted") {
@@ -328,18 +336,11 @@ TEST_CASE("setErrorHandler: handler can be replaced mid-use") {
     REQUIRE(calls_b == 0);
 }
 
-TEST_CASE("setErrorHandler: clearing the handler (empty function) does not crash on writes") {
-    CapturingSink sink;
-    RppWriter w(&sink);
-    w.setErrorHandler([](RppWriter::ErrorKind, const char *) {});
-    w.setErrorHandler({}); // clear
-    { auto t = w.track("X", 1.0, 0.0, 0, 0, 1); }
-    REQUIRE(!sink.lines.empty());
-}
-
 // NOTE: the m_onError invocation path (RppWriter.cpp:52-55) fires only when
 // vsnprintf returns negative. On POSIX this requires an encoding error and is not
 // triggerable through the public API without mocking vsnprintf.
+// Clearing the handler via setErrorHandler({}) cannot be meaningfully tested
+// for crash safety: normal writes never reach the if (m_onError) guard at all.
 
 // ---------------------------------------------------------------------------
 // Nesting — track > item > source
