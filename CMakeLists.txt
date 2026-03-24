@@ -56,6 +56,15 @@ target_include_directories(test_helpers PRIVATE
         ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
         ${CMAKE_BINARY_DIR}/include
 )
+add_catch2_test(test_faderesolver SOURCES
+        tests/test_faderesolver.cpp
+        src/FadeResolver.cpp
+)
+target_link_libraries(test_faderesolver PRIVATE aaf-static)
+target_include_directories(test_faderesolver PRIVATE
+        ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
+        ${CMAKE_BINARY_DIR}/include
+)
 
 # -------------------------------------------------------------------------
 # Paths
