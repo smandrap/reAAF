@@ -15,11 +15,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # -------------------------------------------------------------------------
-# Helper: standalone unit-test binary (no REAPER SDK required)
+# Test frameworks (Catch2 + trompeloeil, no REAPER SDK required)
 # -------------------------------------------------------------------------
-function(add_unit_test TARGET)
+add_subdirectory(extern/Catch2)
+add_subdirectory(extern/trompeloeil)
+
+function(add_catch2_test TARGET)
     cmake_parse_arguments(ARG "" "" "SOURCES" ${ARGN})
     add_executable(${TARGET} ${ARG_SOURCES})
+    target_link_libraries(${TARGET} PRIVATE Catch2::Catch2WithMain trompeloeil::trompeloeil)
     target_include_directories(${TARGET} PRIVATE
             src
             ${CMAKE_SOURCE_DIR}/extern/reaper-sdk/WDL
@@ -28,7 +32,6 @@ function(add_unit_test TARGET)
             CXX_STANDARD 17
             CXX_STANDARD_REQUIRED ON
     )
-    # pthread is part of libSystem on macOS — no explicit link needed there
     if(UNIX AND NOT APPLE)
         target_link_libraries(${TARGET} PRIVATE pthread)
     endif()
@@ -37,11 +40,11 @@ endfunction()
 # -------------------------------------------------------------------------
 # Unit tests
 # -------------------------------------------------------------------------
-add_unit_test(test_logbuffer SOURCES
+add_catch2_test(test_logbuffer SOURCES
         tests/test_logbuffer.cpp
         src/LogBuffer.cpp
 )
-add_unit_test(test_progressdialog_format SOURCES
+add_catch2_test(test_progressdialog_format SOURCES
         tests/test_progressdialog_format.cpp
         src/LogBuffer.cpp
 )
