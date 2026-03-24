@@ -15,7 +15,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Standalone tests for LogBuffer ring buffer behaviour.
+// Standalone tests for LogBuffer and LogEntry formatting.
 
 #include "LogBuffer.h"
 
@@ -30,6 +30,40 @@ public:
     int count() const { return size(); }
     LogEntry entryAt(int idx) const { return at(idx); }
 };
+
+// ---------------------------------------------------------------------------
+// formatEntry — formats a LogEntry as a displayable string with severity prefix.
+// ---------------------------------------------------------------------------
+
+static std::string formatEntry(const LogEntry& e)
+{
+    const char* prefix = "";
+    switch (e.severity) {
+        case LogEntry::ERR:  prefix = "[ERROR]"; break;
+        case LogEntry::WARN: prefix = "[WARN]";  break;
+        case LogEntry::INFO: prefix = "[INFO]";  break;
+    }
+    return std::string(prefix) + " " + e.text;
+}
+
+// ---------------------------------------------------------------------------
+// formatEntry()
+// ---------------------------------------------------------------------------
+
+TEST_CASE("formatEntry: ERROR prefix") {
+    LogEntry e; e.severity = LogEntry::ERR; e.text = "disk error";
+    REQUIRE(formatEntry(e) == "[ERROR] disk error");
+}
+
+TEST_CASE("formatEntry: WARN prefix") {
+    LogEntry e; e.severity = LogEntry::WARN; e.text = "missing file";
+    REQUIRE(formatEntry(e) == "[WARN] missing file");
+}
+
+TEST_CASE("formatEntry: INFO prefix") {
+    LogEntry e; e.severity = LogEntry::INFO; e.text = "Starting import...";
+    REQUIRE(formatEntry(e) == "[INFO] Starting import...");
+}
 
 // ---------------------------------------------------------------------------
 // log()

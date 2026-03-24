@@ -44,10 +44,6 @@ add_catch2_test(test_logbuffer SOURCES
         tests/test_logbuffer.cpp
         src/LogBuffer.cpp
 )
-add_catch2_test(test_progressdialog_format SOURCES
-        tests/test_progressdialog_format.cpp
-        src/LogBuffer.cpp
-)
 add_catch2_test(test_helpers SOURCES
         tests/test_helpers.cpp
 )
