@@ -12,6 +12,15 @@ Most of what you expect from an AAF importer. In particular, most of what LibAAF
 
 ---
 
+## AAF Format Support
+
+AAF has inherent limitations regardless of the importer.
+For more info, see [this document](docs/aaf-format-support.md).
+
+BEFORE YOU REPORT A BUG, **READ THE DOCUMENT.**
+
+---
+
 ## Usage
 
 Drag/Drop AAF files in REAPER, or use File > Open dialog.
