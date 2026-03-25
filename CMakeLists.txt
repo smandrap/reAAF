@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 # Version is the single source of truth — edit VERSION file
 file(READ "${CMAKE_SOURCE_DIR}/VERSION" REAAF_VERSION)
 string(STRIP "${REAAF_VERSION}" REAAF_VERSION)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/VERSION")
 string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" REAAF_NUMERIC_VERSION "${REAAF_VERSION}")
 
 project(reAAF VERSION ${REAAF_NUMERIC_VERSION} LANGUAGES C CXX)
@@ -53,7 +54,7 @@ set(LIBAAF_DIR "${CMAKE_SOURCE_DIR}/extern/LibAAF" CACHE PATH "Path to agfline/L
 # Version header
 # -------------------------------------------------------------------------
 configure_file(src/version.h.in ${CMAKE_BINARY_DIR}/generated/version.h)
-configure_file(src/resource.rc.in ${CMAKE_BINARY_DIR}/generated/resource.rc)
+configure_file(src/resource.rc.in ${CMAKE_SOURCE_DIR}/src/resource.rc)
 
 # -------------------------------------------------------------------------
 # LibAAF — use its own build system, static only, no tools/docs/tests
@@ -144,23 +145,6 @@ if (NOT WIN32)
     target_include_directories(reaper_aaf PRIVATE
             ${REAPER_SDK_DIR}/WDL/swell
     )
-
-    find_program(PHP_EXECUTABLE php REQUIRED)
-    set(SWELL_RESGEN "${REAPER_SDK_DIR}/WDL/swell/swell_resgen.php")
-    set(SWELL_RESGEN_OUT_DIR "${CMAKE_BINARY_DIR}/generated")
-    add_custom_command(
-            OUTPUT "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_dlg"
-            "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_menu"
-            COMMAND ${PHP_EXECUTABLE} "${SWELL_RESGEN}" --quiet resource.rc
-            WORKING_DIRECTORY "${SWELL_RESGEN_OUT_DIR}"
-            MAIN_DEPENDENCY "${CMAKE_BINARY_DIR}/generated/resource.rc"
-            DEPENDS "${SWELL_RESGEN}"
-            COMMENT "Transpiling resource.rc → resource.rc_mac_dlg (SWELL)"
-    )
-    add_custom_target(swell_resources
-            DEPENDS "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_dlg"
-    )
-    add_dependencies(reaper_aaf swell_resources)
 endif ()
 
 # -------------------------------------------------------------------------

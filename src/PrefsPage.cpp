@@ -21,6 +21,7 @@
 #include "PrefsPage.h"
 #include "reaper_plugin_functions.h"
 #include "resource.h"
+#include "version.h"
 #include "wdltypes.h"
 
 
@@ -88,6 +89,7 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
         SendMessage(combo, CB_SETCURSEL, static_cast<int>(PrefsPage::getVerbosity()), 0);
         CheckDlgButton(hwnd, IDC_CHECK_ZOOM,
                        PrefsPage::getZoomAfterImport() ? BST_CHECKED : BST_UNCHECKED);
+        SetDlgItemText(hwnd, IDC_VERSION_LABEL, "v" REAAF_VERSION_STRING);
         EnableWindow(GetDlgItem(hwnd, IDC_VERSION_LABEL), FALSE);
         return 1;
     }
