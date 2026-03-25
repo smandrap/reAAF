@@ -1,0 +1,84 @@
+
+ ByteOrder            : Little-Endian (0x4949)
+ LastModified         : 2024-01-31 00:40:18.00
+ AAF ObjSpec Version  : 1.1
+ ObjectModel Version  : 1
+ Operational Pattern  : AAFUID_NULL
+
+
+
+ CompanyName          : Digidesign, Inc.
+ ProductName          : ProTools
+ ProductVersion       : 23.12.0.136 AAFVersionReleased (1)
+ ProductVersionString : 23.12.0.136
+ ProductID            : { 0x319414f6 0x5852 0x4050 { 0xa4 0xeb 0x98 0x1e 0x64 0x3f 0x33 0xa2 } }
+ Date                 : 2024-01-31 00:40:12.00
+ ToolkitVersion       : 1.1.6.0 AAFVersionBeta (4)
+ Platform             : AAFSDK (Win64)
+ GenerationAUID       : { 0x594bf1de 0x1223 0x43a7 { 0xba 0x5c 0xa3 0xd6 0x7a 0xd6 0xfe 0xc3 } }
+
+
+
+ Composition Name            : PT_Fades
+
+ TC EditRrate                : 30/1
+ TC FPS                      : 30 NDF
+
+ Composition Start (EU)      : 0
+ Composition Start (samples) : 0
+ Composition Start           : 00:00:00:00
+
+ Composition End (EU)        : 1027 (EditRate: 30/1)
+ Composition End (samples)   : 1509690
+ Composition End             : 00:00:34:07
+
+ Dominant Sample Rate        : 44100
+ Dominant Sample Size        : 16 bits
+
+ Metadata:
+ - Name: "Comment"  Text: ""
+
+
+Tracks & Clips :
+================
+
+
+ AudioTrack[1] ::  EditRate: 30/1 (30.00)  Format: MONO  Name: "Audio 1"
+ ├── Clip (1):  Start: 1295070  Len: 22050  End: 1317120  SourceOffset: 0  Channels: 1
+ │   └── SourceFile [ch 1]: "Fade "
+ │
+ ├── Clip (2):  Start: 1317120  Len: 60270  End: 1377390  SourceOffset: 1470  Channels: 1
+ │   └── SourceFile [ch 1]: "1000hz-18dbs16b44.1k-01"
+ │
+ ├── Clip (3):  Start: 1377390  Len: 30870  End: 1408260  SourceOffset: 1470  Channels: 1
+ │   └── SourceFile [ch 1]: "Fade _1"
+ │
+ ├── Clip (4):  Start: 1408260  Len: 82320  End: 1490580  SourceOffset: 1470  Channels: 1
+ │   └── SourceFile [ch 1]: "1000hz-18dbs16b44.1k"
+ │
+ └── Clip (5):  Start: 1490580  Len: 19110  End: 1509690  SourceOffset: 1470  Channels: 1
+     └── SourceFile [ch 1]: "Fade _2"
+  
+
+ AudioTrack[2] ::  EditRate: 30/1 (30.00)  Format: STEREO  Name: "Audio 2"
+ ├── Clip (1):  Start: 1347990  Len: 16170  End: 1364160  SourceOffset: 0  Channels: 2
+ │   ├── SourceFile [ch 1]: "Fade _3"
+ │   └── SourceFile [ch 1]: "Fade _4"
+ │
+ ├── Clip (2):  Start: 1364160  Len: 11760  End: 1375920  SourceOffset: 1470  Channels: 2
+ │   ├── SourceFile [ch 1]: "stereo-identif-01.L"
+ │   └── SourceFile [ch 1]: "stereo-identif-01.R"
+ │
+ ├── Clip (3):  Start: 1375920  Len: 32340  End: 1408260  SourceOffset: 1470  Channels: 2
+ │   ├── SourceFile [ch 1]: "Fade _5"
+ │   └── SourceFile [ch 1]: "Fade _6"
+ │
+ ├── Clip (4):  Start: 1408260  Len: 13230  End: 1421490  SourceOffset: 1470  Channels: 2
+ │   ├── SourceFile [ch 1]: "stereo-identif-03.L"
+ │   └── SourceFile [ch 1]: "stereo-identif-03.R"
+ │
+ └── Clip (5):  Start: 1421490  Len: 16170  End: 1437660  SourceOffset: 1470  Channels: 2
+     ├── SourceFile [ch 1]: "Fade _7"
+     └── SourceFile [ch 1]: "Fade _8"
+  
+

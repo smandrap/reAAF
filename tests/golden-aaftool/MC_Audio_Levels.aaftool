@@ -1,0 +1,83 @@
+
+ ByteOrder            : Little-Endian (0x4949)
+ LastModified         : 2024-01-27 17:46:27.00
+ AAF ObjSpec Version  : 1.1
+ ObjectModel Version  : 1
+ Operational Pattern  : AAFOPDef_EditProtocol
+
+
+
+ CompanyName          : Avid Technology, Inc.
+ ProductName          : Avid Media Composer 23.12
+ ProductVersion       : 23.12.0.0 AAFVersionReleased (1)
+ ProductVersionString : Unknown version
+ ProductID            : { 0xd0b7c06e 0xcd3d 0x4ad7 { 0xac 0xfb 0xf0 0x3a 0x4f 0x42 0xa2 0x31 } }
+ Date                 : 2024-01-27 17:46:27.00
+ ToolkitVersion       : 2.0.9.124 AAFVersionReleased (1)
+ Platform             : AAFSDK (Win64)
+ GenerationAUID       : { 0xbb3d8e34 0x8494 0x4a2d { 0x9a 0xfa 0x17 0xdd 0x02 0xa7 0x9b 0xe7 } }
+
+
+
+ Composition Name            : MC_Audio_Levels.Exporté.14
+
+ TC EditRrate                : 30000/1001
+ TC FPS                      : 30 NDF
+
+ Composition Start (EU)      : 108000
+ Composition Start (samples) : 172972800
+ Composition Start           : 01:00:00:00
+
+ Composition End (EU)        : 108090 (EditRate: 30000/1001)
+ Composition End (samples)   : 173116944
+ Composition End             : 01:00:03:00
+
+ Dominant Sample Rate        : 48000
+ Dominant Sample Size        : 16 bits
+
+
+Tracks & Clips :
+================
+
+ VideoTrack[1] ::  EditRate: 30000/1001 (29.97)
+
+
+ AudioTrack[1] ::  EditRate: 30000/1001 (29.97)  Format: MONO
+ ├── Clip (1):  Start: 172972800  Len: 48048  End: 173020848  SourceOffset: 48048  Channels: 1  VolumeAutomation: YES
+ │   ├── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
+ │   └── Clip Volume Automation ──────────────────────
+ │       _time: 0.000000   _value: 1.000000 (+01.0 dB)
+ │       _time: 0.433333   _value: 0.004842 (+00.0 dB)
+ │       _time: 0.966667   _value: 1.000000 (+01.0 dB)
+ │
+ └── Clip (2):  Start: 173020848  Len: 48048  End: 173068896  SourceOffset: 64064  Channels: 1  Gain: 1.412538  VolumeAutomation: YES
+     ├── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
+     └── Clip Volume Automation ──────────────────────
+         _time: 0.000000   _value: 1.000000 (+01.0 dB)
+         _time: 0.366667   _value: 0.000030 (+00.0 dB)
+         _time: 0.666667   _value: 2.871290 (+02.9 dB)
+         _time: 0.966667   _value: 1.000000 (+01.0 dB)
+  
+
+ AudioTrack[2] ::  EditRate: 30000/1001 (29.97)  Format: MONO
+ └── Clip (1):  Start: 172972800  Len: 48048  End: 173020848  SourceOffset: 48048  Channels: 1  VolumeAutomation: YES
+     ├── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
+     └── Clip Volume Automation ──────────────────────
+         _time: 0.433333   _value: 2.511886 (+02.5 dB)
+  
+
+ AudioTrack[3] ::  EditRate: 30000/1001 (29.97)  Format: MONO  Solo: SOLO
+ └── Clip (1):  Start: 172972800  Len: 48048  End: 173020848  SourceOffset: 0  Channels: 1  Gain: 1.258925  ClipName: "1000hz-18dbs16b44.1k.wav.Sub.01"
+     └── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
+  
+
+ AudioTrack[4] ::  EditRate: 30000/1001 (29.97)  Format: MONO
+ └── Clip (1):  Start: 172972800  Len: 144144  End: 173116944  SourceOffset: 0  Channels: 1  Gain: 1.193100
+     └── SourceFile [ch 1]: "A1000hz-18dbs16b44.1k.wav"
+  
+
+ AudioTrack[5] ::  EditRate: 30000/1001 (29.97)  Format: MONO
+ └── Clip (1):  Start: 172972800  Len: 144144  End: 173116944  SourceOffset: 0  Channels: 1  Gain: 1.995262
+     └── SourceFile [ch 1]: "A1000hz-18dbs16b44.1k.wav"
+  
+

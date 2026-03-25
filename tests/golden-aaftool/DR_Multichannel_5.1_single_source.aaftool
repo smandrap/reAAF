@@ -1,0 +1,54 @@
+
+ ByteOrder            : Little-Endian (0x4949)
+ LastModified         : 2024-01-09 22:45:19.00
+ AAF ObjSpec Version  : 1.1
+ ObjectModel Version  : 1
+ Operational Pattern  : AAFUID_NULL
+
+
+
+ CompanyName          : Blackmagic Design
+ ProductName          : DaVinci Resolve
+ ProductVersion       : 18.5.0.0 AAFVersionReleased (1)
+ ProductVersionString : Unknown version
+ ProductID            : { 0x64a8d1aa 0x7ffd 0x0000 { 0x09 0x04 0x58 0x05 0x00 0x00 0x00 0x00 } }
+ Date                 : 2024-01-09 22:45:19.00
+ ToolkitVersion       : 1.1.6.0 AAFVersionReleased (1)
+ Platform             : AAFSDK (Win32)
+ GenerationAUID       : { 0x72d24b02 0x8ac1 0x4977 { 0x84 0xe0 0xe4 0x19 0xcf 0xd6 0x2c 0x6f } }
+
+
+
+ Composition Name            : DR_Multichannel_5.1_single_source
+
+ TC EditRrate                : 24/1
+ TC FPS                      : 24 NDF
+
+ Composition Start (EU)      : 0
+ Composition Start (samples) : 0
+ Composition Start           : 00:00:00:00
+
+ Composition End (EU)        : 14720000 (EditRate: 48000/1)
+ Composition End (samples)   : 13524000
+ Composition End             : 00:05:06:16
+
+ Dominant Sample Rate        : 44100
+ Dominant Sample Size        : 16 bits
+
+
+Tracks & Clips :
+================
+
+ VideoTrack[1] ::  EditRate: 24/1 (24.00)
+
+
+ AudioTrack[1] ::  EditRate: 48000/1 (48000.00)  Format: 5.1  Name: "Audio 1"
+ └── Clip (1):  Start: 13215779  Len: 306787  End: 13522566  SourceOffset: 1837  Channels: 6
+     ├── SourceFile [ch 1]: "5"
+     ├── SourceFile [ch 2]: "5_1"
+     ├── SourceFile [ch 3]: "5_2"
+     ├── SourceFile [ch 4]: "5_3"
+     ├── SourceFile [ch 5]: "5_4"
+     └── SourceFile [ch 6]: "5_5"
+  
+

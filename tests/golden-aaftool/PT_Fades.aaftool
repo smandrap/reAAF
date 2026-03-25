@@ -1,0 +1,67 @@
+
+ ByteOrder            : Little-Endian (0x4949)
+ LastModified         : 2024-01-31 00:50:07.00
+ AAF ObjSpec Version  : 1.1
+ ObjectModel Version  : 1
+ Operational Pattern  : AAFUID_NULL
+
+
+
+ CompanyName          : Digidesign, Inc.
+ ProductName          : ProTools
+ ProductVersion       : 23.12.0.136 AAFVersionReleased (1)
+ ProductVersionString : 23.12.0.136
+ ProductID            : { 0x319414f6 0x5852 0x4050 { 0xa4 0xeb 0x98 0x1e 0x64 0x3f 0x33 0xa2 } }
+ Date                 : 2024-01-31 00:50:03.00
+ ToolkitVersion       : 1.1.6.0 AAFVersionBeta (4)
+ Platform             : AAFSDK (Win64)
+ GenerationAUID       : { 0x9ddb35dd 0x8d16 0x40a7 { 0x84 0x6c 0x63 0x47 0x20 0xca 0xdb 0x94 } }
+
+
+
+ Composition Name            : PT_Fades
+
+ TC EditRrate                : 30/1
+ TC FPS                      : 30 NDF
+
+ Composition Start (EU)      : 0
+ Composition Start (samples) : 0
+ Composition Start           : 00:00:00:00
+
+ Composition End (EU)        : 1027 (EditRate: 30/1)
+ Composition End (samples)   : 1509690
+ Composition End             : 00:00:34:07
+
+ Dominant Sample Rate        : 44100
+ Dominant Sample Size        : 16 bits
+
+ Metadata:
+ - Name: "Comment"  Text: ""
+
+
+Tracks & Clips :
+================
+
+
+ AudioTrack[1] ::  EditRate: 30/1 (30.00)  Format: MONO  Name: "Audio 1"
+ ├── Clip (1):  Start: 1295070  Len: 113190  End: 1408260  SourceOffset: 0  Channels: 1  FadeIn: CURV_LIN (22050)
+ │   └── SourceFile [ch 1]: "1000hz-18dbs16b44.1k-01"
+ │
+ ├── X-FADE: CURV_LIN  Length: 30870  CutPoint: 14700
+ │
+ └── Clip (2):  Start: 1377390  Len: 132300  End: 1509690  SourceOffset: 1470  Channels: 1  FadeOut: CURV_LIN (19110)
+     └── SourceFile [ch 1]: "1000hz-18dbs16b44.1k"
+  
+
+ AudioTrack[2] ::  EditRate: 30/1 (30.00)  Format: STEREO  Name: "Audio 2"
+ ├── Clip (1):  Start: 1347990  Len: 60270  End: 1408260  SourceOffset: 0  Channels: 2  FadeIn: CURV_LIN (16170)
+ │   ├── SourceFile [ch 1]: "stereo-identif-01.L"
+ │   └── SourceFile [ch 1]: "stereo-identif-01.R"
+ │
+ ├── X-FADE: CURV_LIN  Length: 32340  CutPoint: 16170
+ │
+ └── Clip (2):  Start: 1375920  Len: 61740  End: 1437660  SourceOffset: 13230  Channels: 2  FadeOut: CURV_LIN (16170)
+     ├── SourceFile [ch 1]: "stereo-identif-03.L"
+     └── SourceFile [ch 1]: "stereo-identif-03.R"
+  
+
