@@ -157,7 +157,7 @@ if (WIN32)
             WIN32_LEAN_AND_MEAN
             NOMINMAX
     )
-    target_sources(reaper_aaf PRIVATE ${CMAKE_BINARY_DIR}/generated/resource.rc)
+    target_sources(reaper_aaf PRIVATE ${CMAKE_SOURCE_DIR}/src/resource.rc)
     set(REAPER_PLUGINS_DIR "$ENV{APPDATA}/REAPER/UserPlugins")
     add_custom_command(TARGET reaper_aaf POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
