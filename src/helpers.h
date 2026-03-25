@@ -19,8 +19,13 @@
 #define REAPER_AAF_HELPERS_H
 
 #include <algorithm>
+#include <cstdint>
 #include <cstring>
 #include <string>
+
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#endif
 
 #include "libaaf/AAFIface.h"
 #include "libaaf/AAFTypes.h"
@@ -99,6 +104,42 @@ inline std::string escape_rpp_string(const char *raw) {
     if ( flags & AAFI_INTERPOL_BSPLINE )
         return 5;
     return 1; // default: quarter-sine
+}
+
+// Strip extension and append "-media" to build the embedded-essence extract dir.
+inline std::string buildExtractDir(const char *filepath) {
+    std::string p(filepath);
+    if ( const auto dot = p.rfind('.'); dot != std::string::npos )
+        p.resize(dot);
+    p += "-media";
+    return p;
+}
+
+// Map a file extension to the REAPER source type string.
+inline const char *rppSourceTypeFromPath(const char *filePath) {
+    const char *srcType = "WAVE";
+    if ( const char *ext = strrchr(filePath, '.') ) {
+        if ( strcasecmp(ext, ".mp3") == 0 )
+            srcType = "MP3";
+        else if ( strcasecmp(ext, ".flac") == 0 )
+            srcType = "FLAC";
+        else if ( strcasecmp(ext, ".ogg") == 0 )
+            srcType = "VORBIS";
+        else if ( strcasecmp(ext, ".mxf") == 0 )
+            srcType = "VIDEO";
+    }
+    return srcType;
+}
+
+// Compute the REAPER isDrop timecode flag from AAF timecode fields.
+// Returns: 0 = integer fps, 1 = drop-frame, 2 = non-drop fractional
+[[nodiscard]] inline uint8_t computeTimecodeIsDrop(const int fps, const int denominator,
+                                                   const int drop) noexcept {
+    if ( denominator == 1 )
+        return 0; // integer fps — REAPER ignores drop for these
+    if ( fps == 24 )
+        return 2; // 23.976 is always non-drop
+    return drop > 0 ? 1 : 2;
 }
 
 bool ensure_dir(const std::string &path);
