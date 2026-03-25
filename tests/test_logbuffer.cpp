@@ -26,7 +26,7 @@
 // encapsulation in production, but can verify ring buffer state in tests.
 // ---------------------------------------------------------------------------
 class TestableLogBuffer : public LogBuffer {
-public:
+  public:
     int count() const { return size(); }
     LogEntry entryAt(int idx) const { return at(idx); }
 };
@@ -35,13 +35,18 @@ public:
 // formatEntry — formats a LogEntry as a displayable string with severity prefix.
 // ---------------------------------------------------------------------------
 
-static std::string formatEntry(const LogEntry& e)
-{
-    const char* prefix = "";
-    switch (e.severity) {
-        case LogEntry::ERR:  prefix = "[ERROR]"; break;
-        case LogEntry::WARN: prefix = "[WARN]";  break;
-        case LogEntry::INFO: prefix = "[INFO]";  break;
+static std::string formatEntry(const LogEntry &e) {
+    const char *prefix = "";
+    switch ( e.severity ) {
+    case LogEntry::ERR:
+        prefix = "[ERROR]";
+        break;
+    case LogEntry::WARN:
+        prefix = "[WARN]";
+        break;
+    case LogEntry::INFO:
+        prefix = "[INFO]";
+        break;
     }
     return std::string(prefix) + " " + e.text;
 }
@@ -51,17 +56,23 @@ static std::string formatEntry(const LogEntry& e)
 // ---------------------------------------------------------------------------
 
 TEST_CASE("formatEntry: ERROR prefix") {
-    LogEntry e; e.severity = LogEntry::ERR; e.text = "disk error";
+    LogEntry e;
+    e.severity = LogEntry::ERR;
+    e.text = "disk error";
     REQUIRE(formatEntry(e) == "[ERROR] disk error");
 }
 
 TEST_CASE("formatEntry: WARN prefix") {
-    LogEntry e; e.severity = LogEntry::WARN; e.text = "missing file";
+    LogEntry e;
+    e.severity = LogEntry::WARN;
+    e.text = "missing file";
     REQUIRE(formatEntry(e) == "[WARN] missing file");
 }
 
 TEST_CASE("formatEntry: INFO prefix") {
-    LogEntry e; e.severity = LogEntry::INFO; e.text = "Starting import...";
+    LogEntry e;
+    e.severity = LogEntry::INFO;
+    e.text = "Starting import...";
     REQUIRE(formatEntry(e) == "[INFO] Starting import...");
 }
 
@@ -71,15 +82,15 @@ TEST_CASE("formatEntry: INFO prefix") {
 
 TEST_CASE("LogBuffer stores all severities") {
     TestableLogBuffer buf;
-    buf.log(LogEntry::INFO,  "info");
-    buf.log(LogEntry::WARN,  "warn");
+    buf.log(LogEntry::INFO, "info");
+    buf.log(LogEntry::WARN, "warn");
     buf.log(LogEntry::ERR, "error");
     REQUIRE(buf.count() == 3);
 }
 
 TEST_CASE("LogBuffer fills to capacity") {
     TestableLogBuffer buf;
-    for (int i = 0; i < LogBuffer::kCapacity; ++i)
+    for ( int i = 0; i < LogBuffer::kCapacity; ++i )
         buf.log(LogEntry::INFO, "fill");
     REQUIRE(buf.count() == LogBuffer::kCapacity);
 }
@@ -154,7 +165,7 @@ TEST_CASE("LogBuffer ring overflow: sentinel inserted, count stays at capacity")
     // On kCapacity+1 push: oldest entry evicted, a sentinel WARN is inserted,
     // new entry stored — count stays at kCapacity.
     TestableLogBuffer buf;
-    for (int i = 0; i < LogBuffer::kCapacity; ++i)
+    for ( int i = 0; i < LogBuffer::kCapacity; ++i )
         buf.log(LogEntry::INFO, "fill");
 
     buf.log(LogEntry::ERR, "overflow entry");
@@ -162,15 +173,11 @@ TEST_CASE("LogBuffer ring overflow: sentinel inserted, count stays at capacity")
     REQUIRE(buf.count() == LogBuffer::kCapacity);
 
     const LogEntry sentinel = buf.entryAt(buf.count() - 2);
-    const LogEntry newest   = buf.entryAt(buf.count() - 1);
+    const LogEntry newest = buf.entryAt(buf.count() - 1);
 
-    SECTION("sentinel severity is WARN") {
-        REQUIRE(sentinel.severity == LogEntry::WARN);
-    }
+    SECTION("sentinel severity is WARN") { REQUIRE(sentinel.severity == LogEntry::WARN); }
     SECTION("sentinel text matches exact format") {
         REQUIRE(sentinel.text == "1 earlier entry was dropped (buffer full)");
     }
-    SECTION("newest entry is the overflow entry") {
-        REQUIRE(newest.text == "overflow entry");
-    }
+    SECTION("newest entry is the overflow entry") { REQUIRE(newest.text == "overflow entry"); }
 }

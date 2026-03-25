@@ -1,0 +1,26 @@
+BasedOnStyle: LLVM
+
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 100
+
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignOperands: true
+AlignTrailingComments: false
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: false
+  AfterClass: false
+  AfterControlStatement: false
+
+NamespaceIndentation: None
+
+AlwaysBreakTemplateDeclarations: MultiLine
+
+SpacesInConditionalStatement: true
+SpacesInParentheses: false
+
+InsertNewlineAtEOF: true
+MaxEmptyLinesToKeep: 2

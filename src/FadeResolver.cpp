@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026 Federico Manuppella
+ * Copyright (C) 2026 Federico Manuppella
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,16 @@ XFadeMap buildXFadeMap(const aafiAudioTrack *track) {
     aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
         const aafiTransition *xf = aafi_timelineItemToCrossFade(ti);
-        if (!xf) continue;
-        if (!(xf->flags & AAFI_TRANS_XFADE)) continue;
+        if ( !xf )
+            continue;
+        if ( !(xf->flags & AAFI_TRANS_XFADE) )
+            continue;
 
         // Use separate fields so a clip between two xfades keeps both.
-        if (ti->prev) m[ti->prev].fadeOut = xf;
-        if (ti->next) m[ti->next].fadeIn = xf;
+        if ( ti->prev )
+            m[ti->prev].fadeOut = xf;
+        if ( ti->next )
+            m[ti->next].fadeIn = xf;
     }
     return m;
 }
@@ -39,21 +43,22 @@ static ResolvedFade resolveFromTransition(const aafiTransition *t, const aafRati
     return {pos_to_seconds(t->len, editRate), interpol_to_reaper_shape(t->flags)};
 }
 
-ResolvedFade resolveFadeIn(aafiAudioClip *clip, const aafiTimelineItem *ti, const XFadeMap &xFadeMap, const aafRational_t *editRate) {
-    if (const aafiTransition *t = aafi_getFadeIn(clip))
+ResolvedFade resolveFadeIn(aafiAudioClip *clip, const aafiTimelineItem *ti,
+                           const XFadeMap &xFadeMap, const aafRational_t *editRate) {
+    if ( const aafiTransition *t = aafi_getFadeIn(clip) )
         return resolveFromTransition(t, editRate);
 
-    if (const auto it = xFadeMap.find(ti); it != xFadeMap.end() && it->second.fadeIn)
+    if ( const auto it = xFadeMap.find(ti); it != xFadeMap.end() && it->second.fadeIn )
         return resolveFromTransition(it->second.fadeIn, editRate);
 
     return {};
 }
 
-ResolvedFade resolveFadeOut(aafiAudioClip *clip, const aafiTimelineItem *ti, const XFadeMap &xFadeMap,
-    const aafRational_t *editRate) {
-    if (const aafiTransition *t = aafi_getFadeOut(clip))
+ResolvedFade resolveFadeOut(aafiAudioClip *clip, const aafiTimelineItem *ti,
+                            const XFadeMap &xFadeMap, const aafRational_t *editRate) {
+    if ( const aafiTransition *t = aafi_getFadeOut(clip) )
         return resolveFromTransition(t, editRate);
-    if (const auto it = xFadeMap.find(ti); it != xFadeMap.end() && it->second.fadeOut)
+    if ( const auto it = xFadeMap.find(ti); it != xFadeMap.end() && it->second.fadeOut )
         return resolveFromTransition(it->second.fadeOut, editRate);
     return {};
 }

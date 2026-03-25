@@ -6,9 +6,9 @@ string(STRIP "${REAAF_VERSION}" REAAF_VERSION)
 string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" REAAF_NUMERIC_VERSION "${REAAF_VERSION}")
 
 project(reAAF VERSION ${REAAF_NUMERIC_VERSION} LANGUAGES C CXX)
-if(APPLE)
+if (APPLE)
     enable_language(OBJC OBJCXX)
-endif()
+endif ()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -33,9 +33,9 @@ function(add_catch2_test TARGET)
             CXX_STANDARD 17
             CXX_STANDARD_REQUIRED ON
     )
-    if(UNIX AND NOT APPLE)
+    if (UNIX AND NOT APPLE)
         target_link_libraries(${TARGET} PRIVATE pthread)
-    endif()
+    endif ()
 endfunction()
 
 # -------------------------------------------------------------------------
@@ -47,7 +47,7 @@ add_subdirectory(tests)
 # Paths
 # -------------------------------------------------------------------------
 set(REAPER_SDK_DIR "${CMAKE_SOURCE_DIR}/extern/reaper-sdk" CACHE PATH "Path to justinfrankel/reaper-sdk checkout")
-set(LIBAAF_DIR     "${CMAKE_SOURCE_DIR}/extern/LibAAF"     CACHE PATH "Path to agfline/LibAAF checkout")
+set(LIBAAF_DIR "${CMAKE_SOURCE_DIR}/extern/LibAAF" CACHE PATH "Path to agfline/LibAAF checkout")
 
 # -------------------------------------------------------------------------
 # Version header
@@ -63,11 +63,11 @@ set(_SAVE_ARCHIVE_DIR ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 set(_SAVE_LIBRARY_DIR ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
 set(_SAVE_RUNTIME_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
-set(BUILD_STATIC_LIB ON  CACHE BOOL "" FORCE)
+set(BUILD_STATIC_LIB ON CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIB OFF CACHE BOOL "" FORCE)
-set(BUILD_TOOLS      OFF CACHE BOOL "" FORCE)
-set(BUILD_DOC        OFF CACHE BOOL "" FORCE)
-set(BUILD_UNIT_TEST  OFF CACHE BOOL "" FORCE)
+set(BUILD_TOOLS OFF CACHE BOOL "" FORCE)
+set(BUILD_DOC OFF CACHE BOOL "" FORCE)
+set(BUILD_UNIT_TEST OFF CACHE BOOL "" FORCE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON CACHE BOOL "" FORCE)
 add_subdirectory(${LIBAAF_DIR} extern/LibAAF)
 
@@ -139,7 +139,7 @@ target_compile_definitions(reaper_aaf PRIVATE
 #   resource_swell.cpp can #include the auto-generated file. resource.rc
 #   remains the single source of truth for dialog layout on all platforms.
 # -------------------------------------------------------------------------
-if(NOT WIN32)
+if (NOT WIN32)
     target_include_directories(reaper_aaf PRIVATE
             ${REAPER_SDK_DIR}/WDL/swell
     )
@@ -148,24 +148,24 @@ if(NOT WIN32)
     set(SWELL_RESGEN "${REAPER_SDK_DIR}/WDL/swell/swell_resgen.php")
     set(SWELL_RESGEN_OUT_DIR "${CMAKE_BINARY_DIR}/generated")
     add_custom_command(
-            OUTPUT  "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_dlg"
-                    "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_menu"
+            OUTPUT "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_dlg"
+            "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_menu"
             COMMAND ${PHP_EXECUTABLE} "${SWELL_RESGEN}" --quiet resource.rc
             WORKING_DIRECTORY "${SWELL_RESGEN_OUT_DIR}"
             MAIN_DEPENDENCY "${CMAKE_BINARY_DIR}/generated/resource.rc"
-            DEPENDS         "${SWELL_RESGEN}"
+            DEPENDS "${SWELL_RESGEN}"
             COMMENT "Transpiling resource.rc → resource.rc_mac_dlg (SWELL)"
     )
     add_custom_target(swell_resources
             DEPENDS "${SWELL_RESGEN_OUT_DIR}/resource.rc_mac_dlg"
     )
     add_dependencies(reaper_aaf swell_resources)
-endif()
+endif ()
 
 # -------------------------------------------------------------------------
 # Platform specifics
 # -------------------------------------------------------------------------
-if(WIN32)
+if (WIN32)
     set_target_properties(reaper_aaf PROPERTIES SUFFIX ".dll")
     target_compile_definitions(reaper_aaf PRIVATE
             _CRT_SECURE_NO_WARNINGS
@@ -181,7 +181,7 @@ if(WIN32)
             COMMENT "Copying to REAPER UserPlugins..."
     )
 
-elseif(APPLE)
+elseif (APPLE)
     set_target_properties(reaper_aaf PROPERTIES
             SUFFIX ".dylib"
             OSX_ARCHITECTURES "${CMAKE_OSX_ARCHITECTURES}"
@@ -200,7 +200,7 @@ elseif(APPLE)
             COMMENT "Copying to REAPER UserPlugins..."
     )
 
-else()  # Linux
+else ()  # Linux
     set_target_properties(reaper_aaf PROPERTIES SUFFIX ".so")
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE dl)
@@ -208,4 +208,4 @@ else()  # Linux
             ${REAPER_SDK_DIR}/WDL/swell/swell-modstub-generic.cpp
             src/resource_swell.cpp
     )
-endif()
+endif ()

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026 Federico Manuppella
+ * Copyright (C) 2026 Federico Manuppella
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,8 @@ extern "C" {
 }
 
 // Why bother? To prevent a very unlikely memory leak in case AafImporter constructor fails after
-// calling aafi_alloc(). In that (incredibly unlikely) case, aafi_release is never called. RAII it is.
+// calling aafi_alloc(). In that (incredibly unlikely) case, aafi_release is never called. RAII it
+// is.
 
 struct AafiHandle {
     AAF_Iface *ptr = nullptr;
@@ -39,15 +40,19 @@ struct AafiHandle {
 
     // move-assignment
     AafiHandle &operator=(AafiHandle &&other) noexcept {
-        if (this != &other) {
-            if (ptr) aafi_release(&ptr);
+        if ( this != &other ) {
+            if ( ptr )
+                aafi_release(&ptr);
             ptr = other.ptr;
             other.ptr = nullptr;
         }
         return *this;
     }
 
-    ~AafiHandle() { if (ptr) aafi_release(&ptr); } // autorelease on scope end
+    ~AafiHandle() {
+        if ( ptr )
+            aafi_release(&ptr);
+    } // autorelease on scope end
 
     AAF_Iface *operator->() const { return ptr; }
     [[nodiscard]] AAF_Iface *get() const { return ptr; }
@@ -55,4 +60,4 @@ struct AafiHandle {
 };
 
 
-#endif //REAPER_AAF_AAFIHANDLE_H
+#endif // REAPER_AAF_AAFIHANDLE_H

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026 Federico Manuppella
+ * Copyright (C) 2026 Federico Manuppella
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 //   }  // <-- ">" emitted here for TRACK
 // ---------------------------------------------------------------------------
 class RppWriter {
-public:
+  public:
     explicit RppWriter(IRppSink *sink) : m_sink(sink) {}
 
     // Non-copyable — guards hold a reference back to the writer.
@@ -50,9 +50,9 @@ public:
     // -----------------------------------------------------------------------
     class Chunk {
         friend class RppWriter;
-    public:
-        Chunk(Chunk &&other) noexcept
-            : m_writer(other.m_writer), m_closed(other.m_closed) {
+
+      public:
+        Chunk(Chunk &&other) noexcept : m_writer(other.m_writer), m_closed(other.m_closed) {
             other.m_closed = true; // moved-from guard must not double-close
         }
 
@@ -60,7 +60,7 @@ public:
 
         // Explicit early close
         void close() {
-            if (!m_closed) {
+            if ( !m_closed ) {
                 m_writer.line(">");
                 m_closed = true;
             }
@@ -70,7 +70,7 @@ public:
 
         Chunk &operator=(const Chunk &) = delete;
 
-    private:
+      private:
         explicit Chunk(RppWriter &w) : m_writer(w), m_closed(false) {}
 
         RppWriter &m_writer;
@@ -83,16 +83,15 @@ public:
     // (which would open AND immediately close the chunk on the same line).
     // -----------------------------------------------------------------------
 
-    [[nodiscard]] Chunk project(double tcOffsetSec, double maxProjLen, int fps, int isDrop, unsigned samplerate);
+    [[nodiscard]] Chunk project(double tcOffsetSec, double maxProjLen, int fps, int isDrop,
+                                unsigned samplerate);
 
-    [[nodiscard]] Chunk track(const char *name, double vol, double pan, int mute, int solo, int nchan);
+    [[nodiscard]] Chunk track(const char *name, double vol, double pan, int mute, int solo,
+                              int nchan);
 
-    [[nodiscard]] Chunk item(const char *name,
-                             double posSec, double lenSec,
-                             double fadeInLen, int fadeInShape,
-                             double fadeOutLen, int fadeOutShape,
-                             double gainLin, double srcOffsSec,
-                             int mute);
+    [[nodiscard]] Chunk item(const char *name, double posSec, double lenSec, double fadeInLen,
+                             int fadeInShape, double fadeOutLen, int fadeOutShape, double gainLin,
+                             double srcOffsSec, int mute);
 
     // source() is self-closing (FILE line + ">") — no inner content needed.
     // Returns a guard anyway for symmetry and in case callers need .close().
@@ -107,12 +106,13 @@ public:
     // -----------------------------------------------------------------------
     // Flat line-level writers (no matching close needed)
     // -----------------------------------------------------------------------
-    void writeMarker(int id, double timeSec, const char *name, bool isRegionBoundary, int color) const;
+    void writeMarker(int id, double timeSec, const char *name, bool isRegionBoundary,
+                     int color) const;
 
     void writeEnvPoint(double timeSec, double value) const;
 
-private:
-    IRppSink *m_sink;  // not owned — lifetime tied to caller
+  private:
+    IRppSink *m_sink; // not owned — lifetime tied to caller
 
     void line(const char *fmt, ...) const;
 };

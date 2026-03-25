@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026 Federico Manuppella
+ * Copyright (C) 2026 Federico Manuppella
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,21 +16,23 @@
  */
 
 #ifdef _WIN32
-#   include <windows.h>
-#   include <direct.h>
+#include <direct.h>
+#include <windows.h>
 #else
-#   include <sys/stat.h>
+#include <sys/stat.h>
 #endif
 
-#include <cerrno>
 #include "helpers.h"
 #include "reaper_plugin_functions.h"
+#include <cerrno>
 
 bool ensure_dir(const std::string &path) {
 #ifdef _WIN32
-    if (_mkdir(path.c_str()) == 0 || errno == EEXIST) return true;
+    if ( _mkdir(path.c_str()) == 0 || errno == EEXIST )
+        return true;
 #else
-    if (mkdir(path.c_str(), 0755) == 0 || errno == EEXIST) return true;
+    if ( mkdir(path.c_str(), 0755) == 0 || errno == EEXIST )
+        return true;
 #endif
     return false;
 }
@@ -43,4 +45,3 @@ void rlog(const char *fmt, ...) {
     va_end(ap);
     ShowConsoleMsg(buf);
 }
-

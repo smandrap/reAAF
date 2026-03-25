@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026 Federico Manuppella
+ * Copyright (C) 2026 Federico Manuppella
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ void RppWriter::line(const char *fmt, ...) const {
     const int written = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
 
-    if (written < static_cast<int>(sizeof(buf))) {
+    if ( written < static_cast<int>(sizeof(buf)) ) {
         va_end(ap2);
         m_sink->writeLine(buf);
         return;
@@ -48,11 +48,12 @@ void RppWriter::line(const char *fmt, ...) const {
 }
 
 
-auto RppWriter::project(const double tcOffsetSec, const double maxProjLen,const int fps, const int isDrop,
-                        const unsigned samplerate) -> Chunk {
+auto RppWriter::project(const double tcOffsetSec, const double maxProjLen, const int fps,
+                        const int isDrop, const unsigned samplerate) -> Chunk {
     line("<REAPER_PROJECT 0.1");
     line("PROJOFFS %.10f 0 0", tcOffsetSec);
-    line("MAXPROJLEN 0 %.10f", maxProjLen + 60); // Limit project length 1 min after composition length
+    line("MAXPROJLEN 0 %.10f", maxProjLen + 60);
+    // Limit project length 1 min after composition length
     line("TIMEMODE 1 5 -1 %d %d 0 -1", fps, isDrop);
     line("SMPTESYNC 0 %d 100 40 1000 300 0 0 0 0 0", fps);
     line("SAMPLERATE %u 0 0", samplerate);
@@ -60,8 +61,8 @@ auto RppWriter::project(const double tcOffsetSec, const double maxProjLen,const 
 }
 
 
-auto RppWriter::track(const char *name, const double vol, const double pan,
-                      const int mute, const int solo, const int nchan) -> Chunk {
+auto RppWriter::track(const char *name, const double vol, const double pan, const int mute,
+                      const int solo, const int nchan) -> Chunk {
     line("<TRACK");
     line("NAME \"%s\"", name ? escape_rpp_string(name).c_str() : "");
     line("VOLPAN %.6f %.6f -1 -1 1", vol, pan);
@@ -71,11 +72,9 @@ auto RppWriter::track(const char *name, const double vol, const double pan,
 }
 
 
-auto RppWriter::item(const char *name,
-                     const double posSec, const double lenSec,
-                     const double fadeInLen, const int fadeInShape,
-                     const double fadeOutLen, const int fadeOutShape,
-                     const double gainLin, const double srcOffsSec,
+auto RppWriter::item(const char *name, const double posSec, const double lenSec,
+                     const double fadeInLen, const int fadeInShape, const double fadeOutLen,
+                     const int fadeOutShape, const double gainLin, const double srcOffsSec,
                      const int mute) -> Chunk {
     line("<ITEM");
     line("POSITION %.10f", posSec);
@@ -106,20 +105,17 @@ auto RppWriter::emptySource() -> Chunk {
 auto RppWriter::envelope(const char *tag, const bool arm) -> Chunk {
     line("<%s", tag);
     line("VIS 1 1 1");
-    if (arm) line("ARM 1");
+    if ( arm )
+        line("ARM 1");
     return Chunk{*this};
 }
 
-void RppWriter::writeMarker(const int id, const double timeSec, const char *name, const bool isRegionBoundary,
-                            const int color) const {
-    line("MARKER %d %.10f \"%s\" %d %d 1",
-         id, timeSec,
-         name ? escape_rpp_string(name).c_str() : "",
-         isRegionBoundary ? 1 : 0,
-         color);
+void RppWriter::writeMarker(const int id, const double timeSec, const char *name,
+                            const bool isRegionBoundary, const int color) const {
+    line("MARKER %d %.10f \"%s\" %d %d 1", id, timeSec, name ? escape_rpp_string(name).c_str() : "",
+         isRegionBoundary ? 1 : 0, color);
 }
 
 void RppWriter::writeEnvPoint(const double timeSec, const double value) const {
     line("PT %.10f %.10f 0", timeSec, value);
 }
-

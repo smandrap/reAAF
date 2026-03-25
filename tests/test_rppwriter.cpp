@@ -18,13 +18,13 @@
 // Standalone tests for RppWriter using a CapturingSink.
 // Does NOT link ReaperSink.cpp or any REAPER SDK source.
 
-#include "RppWriter.h"
 #include "IRppSink.h"
+#include "RppWriter.h"
 
-#include <catch2/catch_all.hpp>
-#include <vector>
-#include <string>
 #include <algorithm>
+#include <catch2/catch_all.hpp>
+#include <string>
+#include <vector>
 
 // ---------------------------------------------------------------------------
 // Test double
@@ -38,9 +38,11 @@ struct CapturingSink : IRppSink {
         return std::any_of(lines.begin(), lines.end(),
                            [&](const std::string &ln) { return ln == s; });
     }
+
     bool anyContains(const std::string &sub) const {
-        return std::any_of(lines.begin(), lines.end(),
-                           [&](const std::string &ln) { return ln.find(sub) != std::string::npos; });
+        return std::any_of(lines.begin(), lines.end(), [&](const std::string &ln) {
+            return ln.find(sub) != std::string::npos;
+        });
     }
 };
 
@@ -48,14 +50,20 @@ struct CapturingSink : IRppSink {
 // Chunk RAII
 // ---------------------------------------------------------------------------
 
-TEST_CASE("Chunk: destructor emits closing >") {
+TEST_CASE(
+
+    "Chunk: destructor emits closing >") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto t = w.track("X", 1.0, 0.0, 0, 0, 2); }
+    {
+        auto t = w.track("X", 1.0, 0.0, 0, 0, 2);
+    }
     REQUIRE(sink.lines.back() == ">");
 }
 
-TEST_CASE("Chunk: explicit close() emits > and destructor does not double-close") {
+TEST_CASE(
+
+    "Chunk: explicit close() emits > and destructor does not double-close") {
     CapturingSink sink;
     RppWriter w(&sink);
     {
@@ -67,7 +75,9 @@ TEST_CASE("Chunk: explicit close() emits > and destructor does not double-close"
     REQUIRE(closeCount == 1);
 }
 
-TEST_CASE("Chunk: move — moved-from does not double-close") {
+TEST_CASE(
+
+    "Chunk: move — moved-from does not double-close") {
     CapturingSink sink;
     RppWriter w(&sink);
     {
@@ -84,10 +94,14 @@ TEST_CASE("Chunk: move — moved-from does not double-close") {
 // track()
 // ---------------------------------------------------------------------------
 
-TEST_CASE("track: emits <TRACK header, NAME, VOLPAN, MUTESOLO, NCHAN, >") {
+TEST_CASE(
+
+    "track: emits <TRACK header, NAME, VOLPAN, MUTESOLO, NCHAN, >") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto t = w.track("Drums", 1.0, 0.0, 0, 0, 2); }
+    {
+        auto t = w.track("Drums", 1.0, 0.0, 0, 0, 2);
+    }
 
     REQUIRE(sink.lines.at(0) == "<TRACK");
     REQUIRE(sink.contains("NAME \"Drums\""));
@@ -97,17 +111,25 @@ TEST_CASE("track: emits <TRACK header, NAME, VOLPAN, MUTESOLO, NCHAN, >") {
     REQUIRE(sink.lines.back() == ">");
 }
 
-TEST_CASE("track: null name is emitted as empty string") {
+TEST_CASE(
+
+    "track: null name is emitted as empty string") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto t = w.track(nullptr, 1.0, 0.0, 0, 0, 1); }
+    {
+        auto t = w.track(nullptr, 1.0, 0.0, 0, 0, 1);
+    }
     REQUIRE(sink.contains("NAME \"\""));
 }
 
-TEST_CASE("track: name with double-quotes is escaped") {
+TEST_CASE(
+
+    "track: name with double-quotes is escaped") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto t = w.track("say \"hi\"", 1.0, 0.0, 0, 0, 1); }
+    {
+        auto t = w.track("say \"hi\"", 1.0, 0.0, 0, 0, 1);
+    }
     REQUIRE(sink.contains("NAME \"say \\\"hi\\\"\""));
 }
 
@@ -115,10 +137,14 @@ TEST_CASE("track: name with double-quotes is escaped") {
 // item()
 // ---------------------------------------------------------------------------
 
-TEST_CASE("item: emits <ITEM header with POSITION, LENGTH, FADEIN, FADEOUT, >") {
+TEST_CASE(
+
+    "item: emits <ITEM header with POSITION, LENGTH, FADEIN, FADEOUT, >") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto i = w.item("clip", 1.0, 2.0, 0.5, 0, 0.25, 1, 1.0, 0.0, 0); }
+    {
+        auto i = w.item("clip", 1.0, 2.0, 0.5, 0, 0.25, 1, 1.0, 0.0, 0);
+    }
 
     REQUIRE(sink.lines.at(0) == "<ITEM");
     REQUIRE(sink.anyContains("NAME \"clip\""));
@@ -129,17 +155,25 @@ TEST_CASE("item: emits <ITEM header with POSITION, LENGTH, FADEIN, FADEOUT, >") 
     REQUIRE(sink.lines.back() == ">");
 }
 
-TEST_CASE("item: nullptr for name results in empty name") {
+TEST_CASE(
+
+    "item: nullptr for name results in empty name") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto i = w.item(nullptr, 0, 1, 0, 0, 0, 0, 0, 0, 0); }
+    {
+        auto i = w.item(nullptr, 0, 1, 0, 0, 0, 0, 0, 0, 0);
+    }
     REQUIRE(sink.anyContains("NAME \"\""));
 }
 
-TEST_CASE("item: mute flag is emitted") {
+TEST_CASE(
+
+    "item: mute flag is emitted") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto i = w.item("c", 0.0, 1.0, 0.0, 0, 0.0, 0, 1.0, 0.0, 1); }
+    {
+        auto i = w.item("c", 0.0, 1.0, 0.0, 0, 0.0, 0, 1.0, 0.0, 1);
+    }
     REQUIRE(sink.anyContains("MUTE 1"));
 }
 
@@ -147,20 +181,28 @@ TEST_CASE("item: mute flag is emitted") {
 // source()
 // ---------------------------------------------------------------------------
 
-TEST_CASE("source: emits <SOURCE TYPE, FILE, >") {
+TEST_CASE(
+
+    "source: emits <SOURCE TYPE, FILE, >") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto s = w.source("WAVE", "/audio/kick.wav"); }
+    {
+        auto s = w.source("WAVE", "/audio/kick.wav");
+    }
 
     REQUIRE(sink.lines.at(0) == "<SOURCE WAVE");
     REQUIRE(sink.contains("FILE \"/audio/kick.wav\""));
     REQUIRE(sink.lines.back() == ">");
 }
 
-TEST_CASE("source: path with backslashes is escaped") {
+TEST_CASE(
+
+    "source: path with backslashes is escaped") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto s = w.source("WAVE", "C:\\audio\\kick.wav"); }
+    {
+        auto s = w.source("WAVE", "C:\\audio\\kick.wav");
+    }
     REQUIRE(sink.contains("FILE \"C:\\\\audio\\\\kick.wav\""));
 }
 
@@ -168,10 +210,14 @@ TEST_CASE("source: path with backslashes is escaped") {
 // emptySource()
 // ---------------------------------------------------------------------------
 
-TEST_CASE("emptySource: emits <SOURCE EMPTY and >") {
+TEST_CASE(
+
+    "emptySource: emits <SOURCE EMPTY and >") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto s = w.emptySource(); }
+    {
+        auto s = w.emptySource();
+    }
     REQUIRE(sink.lines.at(0) == "<SOURCE EMPTY");
     REQUIRE(sink.lines.back() == ">");
 }
@@ -180,26 +226,38 @@ TEST_CASE("emptySource: emits <SOURCE EMPTY and >") {
 // envelope()
 // ---------------------------------------------------------------------------
 
-TEST_CASE("envelope: emits tag line, VIS, >") {
+TEST_CASE(
+
+    "envelope: emits tag line, VIS, >") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto e = w.envelope("VOLENV"); }
+    {
+        auto e = w.envelope("VOLENV");
+    }
     REQUIRE(sink.lines.at(0) == "<VOLENV");
     REQUIRE(sink.contains("VIS 1 1 1"));
     REQUIRE(sink.lines.back() == ">");
 }
 
-TEST_CASE("envelope: arm=true emits ARM 1") {
+TEST_CASE(
+
+    "envelope: arm=true emits ARM 1") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto e = w.envelope("VOLENV", true); }
+    {
+        auto e = w.envelope("VOLENV", true);
+    }
     REQUIRE(sink.contains("ARM 1"));
 }
 
-TEST_CASE("envelope: arm=false does not emit ARM 1") {
+TEST_CASE(
+
+    "envelope: arm=false does not emit ARM 1") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto e = w.envelope("VOLENV", false); }
+    {
+        auto e = w.envelope("VOLENV", false);
+    }
     REQUIRE(!sink.contains("ARM 1"));
 }
 
@@ -207,7 +265,9 @@ TEST_CASE("envelope: arm=false does not emit ARM 1") {
 // writeMarker() / writeEnvPoint()
 // ---------------------------------------------------------------------------
 
-TEST_CASE("writeMarker: emits MARKER line with all fields, isRegionBoundary=false") {
+TEST_CASE(
+
+    "writeMarker: emits MARKER line with all fields, isRegionBoundary=false") {
     CapturingSink sink;
     RppWriter w(&sink);
     w.writeMarker(1, 3.5, "Intro", false, 0);
@@ -216,7 +276,9 @@ TEST_CASE("writeMarker: emits MARKER line with all fields, isRegionBoundary=fals
     REQUIRE(sink.anyContains("\"Intro\" 0"));
 }
 
-TEST_CASE("writeMarker: isRegionBoundary=true sets flag to 1") {
+TEST_CASE(
+
+    "writeMarker: isRegionBoundary=true sets flag to 1") {
     CapturingSink sink;
     RppWriter w(&sink);
     w.writeMarker(1, 3.5, "Intro", true, 0);
@@ -224,7 +286,9 @@ TEST_CASE("writeMarker: isRegionBoundary=true sets flag to 1") {
     REQUIRE(sink.anyContains("\"Intro\" 1"));
 }
 
-TEST_CASE("writeMarker: null name emits empty quoted string") {
+TEST_CASE(
+
+    "writeMarker: null name emits empty quoted string") {
     CapturingSink sink;
     RppWriter w(&sink);
     w.writeMarker(2, 0.0, nullptr, false, 0);
@@ -232,7 +296,9 @@ TEST_CASE("writeMarker: null name emits empty quoted string") {
     REQUIRE(sink.anyContains("\"\""));
 }
 
-TEST_CASE("writeEnvPoint: emits PT line") {
+TEST_CASE(
+
+    "writeEnvPoint: emits PT line") {
     CapturingSink sink;
     RppWriter w(&sink);
     w.writeEnvPoint(1.0, 0.5);
@@ -244,10 +310,14 @@ TEST_CASE("writeEnvPoint: emits PT line") {
 // project()
 // ---------------------------------------------------------------------------
 
-TEST_CASE("project: emits <REAPER_PROJECT header, key lines, >") {
+TEST_CASE(
+
+    "project: emits <REAPER_PROJECT header, key lines, >") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto p = w.project(0.0, 120.0, 25, 0, 48000); }
+    {
+        auto p = w.project(0.0, 120.0, 25, 0, 48000);
+    }
 
     REQUIRE(sink.lines.at(0) == "<REAPER_PROJECT 0.1");
     REQUIRE(sink.anyContains("PROJOFFS"));
@@ -258,26 +328,38 @@ TEST_CASE("project: emits <REAPER_PROJECT header, key lines, >") {
     REQUIRE(sink.lines.back() == ">");
 }
 
-TEST_CASE("project: maxProjLen is padded by 60 seconds") {
+TEST_CASE(
+
+    "project: maxProjLen is padded by 60 seconds") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto p = w.project(0.0, 100.0, 25, 0, 44100); }
+    {
+        auto p = w.project(0.0, 100.0, 25, 0, 44100);
+    }
     // MAXPROJLEN should contain 160.0 (100 + 60)
     REQUIRE(sink.anyContains("MAXPROJLEN 0 160."));
 }
 
-TEST_CASE("project: fps and isDrop are forwarded") {
+TEST_CASE(
+
+    "project: fps and isDrop are forwarded") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto p = w.project(0.0, 60.0, 30, 1, 48000); }
+    {
+        auto p = w.project(0.0, 60.0, 30, 1, 48000);
+    }
     REQUIRE(sink.anyContains("TIMEMODE 1 5 -1 30 1"));
     REQUIRE(sink.anyContains("SMPTESYNC 0 30"));
 }
 
-TEST_CASE("project: tcOffsetSec is forwarded to PROJOFFS") {
+TEST_CASE(
+
+    "project: tcOffsetSec is forwarded to PROJOFFS") {
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto p = w.project(3.5, 60.0, 25, 0, 48000); }
+    {
+        auto p = w.project(3.5, 60.0, 25, 0, 48000);
+    }
     REQUIRE(sink.anyContains("PROJOFFS 3.5"));
 }
 
@@ -285,12 +367,16 @@ TEST_CASE("project: tcOffsetSec is forwarded to PROJOFFS") {
 // line() large-string path (buf overflow → heap allocation)
 // ---------------------------------------------------------------------------
 
-TEST_CASE("line: string exceeding 256-byte stack buffer is emitted in full via heap path") {
+TEST_CASE(
+
+    "line: string exceeding 256-byte stack buffer is emitted in full via heap path") {
     // NAME "<escaped_name>" — overhead is 8 bytes, so a name > 248 chars overflows the stack buf.
     const std::string big(300, 'A');
     CapturingSink sink;
     RppWriter w(&sink);
-    { auto t = w.track(big.c_str(), 1.0, 0.0, 0, 0, 1); }
+    {
+        auto t = w.track(big.c_str(), 1.0, 0.0, 0, 0, 1);
+    }
 
     const std::string expected = "NAME \"" + big + "\"";
     REQUIRE(sink.contains(expected));
@@ -300,14 +386,18 @@ TEST_CASE("line: string exceeding 256-byte stack buffer is emitted in full via h
 // Nesting — track > item > source
 // ---------------------------------------------------------------------------
 
-TEST_CASE("nesting: track > item > source emits correct open/close order") {
+TEST_CASE(
+
+    "nesting: track > item > source emits correct open/close order") {
     CapturingSink sink;
     RppWriter w(&sink);
     {
         auto t = w.track("T", 1.0, 0.0, 0, 0, 2);
         {
             auto i = w.item("C", 0.0, 1.0, 0.0, 0, 0.0, 0, 1.0, 0.0, 0);
-            { auto s = w.source("WAVE", "/f.wav"); }
+            {
+                auto s = w.source("WAVE", "/f.wav");
+            }
         }
     }
     // Must start with <TRACK and end with > (track close)

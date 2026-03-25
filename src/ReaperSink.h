@@ -24,8 +24,10 @@ class ProjectStateContext;
 
 struct ReaperSink : IRppSink {
     explicit ReaperSink(ProjectStateContext *ctx) : m_ctx(ctx) {}
+
     void writeLine(const char *line) override;
-private:
+
+  private:
     ProjectStateContext *m_ctx;
 };
 

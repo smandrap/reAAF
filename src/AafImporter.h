@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026 Federico Manuppella
+ * Copyright (C) 2026 Federico Manuppella
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@
 #include <string>
 
 #include "AafiHandle.h"
+#include "FadeResolver.h"
 #include "IRppSink.h"
 #include "LogBuffer.h"
 #include "RppWriter.h"
-#include "FadeResolver.h"
 
 // Forward declarations
 struct AAF_Iface;
@@ -40,18 +40,18 @@ struct aafiAudioEssencePointer;
 struct aafiAudioEssenceFile;
 
 class AafImporter {
-public:
+  public:
     AafImporter(IRppSink *sink, const char *filepath, LogBuffer &logBuffer);
 
     int run();
 
-private:
+  private:
     RppWriter m_writer;
     AafiHandle m_aafi;
     std::string m_filePath;
     std::string m_extractDir;
     bool m_extractDirCreated = false;
-    LogBuffer& m_logBuffer;
+    LogBuffer &m_logBuffer;
 
     static void libaafLogCallback(aafLog *log, void *userData, int lib, int type,
                                   const char *srcFile, const char *srcFunc, int line,
@@ -64,31 +64,23 @@ private:
     void processTrackAutomation(const aafiAudioTrack *track, double compLen);
 
     void processTrack_Audio(const aafiAudioTrack *track);
-
     void processTrack_Video(const aafiVideoTrack *track);
 
-    void processItem_Audio(aafiAudioClip *clip,
-                           const aafiTimelineItem *ti,
-                           const aafRational_t *trackEditRate,
-                           const XFadeMap &xFadeMap,
+    void processItem_Audio(aafiAudioClip *clip, const aafiTimelineItem *ti,
+                           const aafRational_t *trackEditRate, const XFadeMap &xFadeMap,
                            const aafiAudioEssencePointer *essPtr);
 
     void processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate);
-
     // Returns true on success; sets ess->usable_file_path as a side effect via libaaf.
     bool extractEmbeddedEssence(aafiAudioEssenceFile *ess);
 
     void processSource_Audio(const aafiAudioEssencePointer *essPtr);
-
     void processSource_Video(const aafiVideoEssence *ess);
 
     void processMarkers() const;
 
-    void processEnvelope(const aafiAudioGain *gain,
-                         double segLenSec,
-                         const char *tag,
-                         const std::function<double(double)> &transform,
-                         bool arm = false);
+    void processEnvelope(const aafiAudioGain *gain, double segLenSec, const char *tag,
+                         const std::function<double(double)> &transform, bool arm = false);
 };
 
 #endif // REAPER_AAF_AAFIMPORTER_H

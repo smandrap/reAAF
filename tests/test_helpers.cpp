@@ -27,21 +27,11 @@
 // ---------------------------------------------------------------------------
 
 TEST_CASE("rational_to_double") {
-    SECTION("zero denominator returns 0") {
-        REQUIRE(rational_to_double({1, 0}) == 0.0);
-    }
-    SECTION("integer fraction") {
-        REQUIRE(rational_to_double({25, 1}) == Catch::Approx(25.0));
-    }
-    SECTION("proper fraction") {
-        REQUIRE(rational_to_double({1, 4}) == Catch::Approx(0.25));
-    }
-    SECTION("negative numerator") {
-        REQUIRE(rational_to_double({-3, 4}) == Catch::Approx(-0.75));
-    }
-    SECTION("zero numerator") {
-        REQUIRE(rational_to_double({0, 48000}) == 0.0);
-    }
+    SECTION("zero denominator returns 0") { REQUIRE(rational_to_double({1, 0}) == 0.0); }
+    SECTION("integer fraction") { REQUIRE(rational_to_double({25, 1}) == Catch::Approx(25.0)); }
+    SECTION("proper fraction") { REQUIRE(rational_to_double({1, 4}) == Catch::Approx(0.25)); }
+    SECTION("negative numerator") { REQUIRE(rational_to_double({-3, 4}) == Catch::Approx(-0.75)); }
+    SECTION("zero numerator") { REQUIRE(rational_to_double({0, 48000}) == 0.0); }
 }
 
 // ---------------------------------------------------------------------------
@@ -49,9 +39,7 @@ TEST_CASE("rational_to_double") {
 // ---------------------------------------------------------------------------
 
 TEST_CASE("pos_to_seconds") {
-    SECTION("null editRate returns 0") {
-        REQUIRE(pos_to_seconds(100, nullptr) == 0.0);
-    }
+    SECTION("null editRate returns 0") { REQUIRE(pos_to_seconds(100, nullptr) == 0.0); }
     SECTION("zero editRate returns 0") {
         aafRational_t zero{0, 1};
         REQUIRE(pos_to_seconds(100, &zero) == 0.0);
@@ -79,24 +67,14 @@ TEST_CASE("pos_to_seconds") {
 // ---------------------------------------------------------------------------
 
 TEST_CASE("escape_rpp_string") {
-    SECTION("null input returns empty string") {
-        REQUIRE(escape_rpp_string(nullptr).empty());
-    }
-    SECTION("clean string passes through") {
-        REQUIRE(escape_rpp_string("hello") == "hello");
-    }
-    SECTION("backslash is doubled") {
-        REQUIRE(escape_rpp_string("a\\b") == "a\\\\b");
-    }
+    SECTION("null input returns empty string") { REQUIRE(escape_rpp_string(nullptr).empty()); }
+    SECTION("clean string passes through") { REQUIRE(escape_rpp_string("hello") == "hello"); }
+    SECTION("backslash is doubled") { REQUIRE(escape_rpp_string("a\\b") == "a\\\\b"); }
     SECTION("double-quote is escaped") {
         REQUIRE(escape_rpp_string("say \"hi\"") == "say \\\"hi\\\"");
     }
-    SECTION("newline is escaped") {
-        REQUIRE(escape_rpp_string("line1\nline2") == "line1\\nline2");
-    }
-    SECTION("carriage return is escaped") {
-        REQUIRE(escape_rpp_string("a\rb") == "a\\rb");
-    }
+    SECTION("newline is escaped") { REQUIRE(escape_rpp_string("line1\nline2") == "line1\\nline2"); }
+    SECTION("carriage return is escaped") { REQUIRE(escape_rpp_string("a\rb") == "a\\rb"); }
     SECTION("control character below 0x20 becomes space") {
         REQUIRE(escape_rpp_string("\x01\x1F") == "  ");
     }
@@ -110,21 +88,11 @@ TEST_CASE("escape_rpp_string") {
 // ---------------------------------------------------------------------------
 
 TEST_CASE("clamp_volume") {
-    SECTION("below 0 clamped to 0") {
-        REQUIRE(clamp_volume(-1.0) == 0.0);
-    }
-    SECTION("above 4 clamped to 4") {
-        REQUIRE(clamp_volume(5.0) == 4.0);
-    }
-    SECTION("value in range passes through") {
-        REQUIRE(clamp_volume(1.5) == Catch::Approx(1.5));
-    }
-    SECTION("boundary 0 is inclusive") {
-        REQUIRE(clamp_volume(0.0) == 0.0);
-    }
-    SECTION("boundary 4 is inclusive") {
-        REQUIRE(clamp_volume(4.0) == 4.0);
-    }
+    SECTION("below 0 clamped to 0") { REQUIRE(clamp_volume(-1.0) == 0.0); }
+    SECTION("above 4 clamped to 4") { REQUIRE(clamp_volume(5.0) == 4.0); }
+    SECTION("value in range passes through") { REQUIRE(clamp_volume(1.5) == Catch::Approx(1.5)); }
+    SECTION("boundary 0 is inclusive") { REQUIRE(clamp_volume(0.0) == 0.0); }
+    SECTION("boundary 4 is inclusive") { REQUIRE(clamp_volume(4.0) == 4.0); }
 }
 
 // ---------------------------------------------------------------------------
@@ -132,18 +100,10 @@ TEST_CASE("clamp_volume") {
 // ---------------------------------------------------------------------------
 
 TEST_CASE("clamp_pan") {
-    SECTION("below -1 clamped to -1") {
-        REQUIRE(clamp_pan(-2.0) == -1.0);
-    }
-    SECTION("above 1 clamped to 1") {
-        REQUIRE(clamp_pan(2.0) == 1.0);
-    }
-    SECTION("value in range passes through") {
-        REQUIRE(clamp_pan(0.5) == Catch::Approx(0.5));
-    }
-    SECTION("center (0) passes through") {
-        REQUIRE(clamp_pan(0.0) == 0.0);
-    }
+    SECTION("below -1 clamped to -1") { REQUIRE(clamp_pan(-2.0) == -1.0); }
+    SECTION("above 1 clamped to 1") { REQUIRE(clamp_pan(2.0) == 1.0); }
+    SECTION("value in range passes through") { REQUIRE(clamp_pan(0.5) == Catch::Approx(0.5)); }
+    SECTION("center (0) passes through") { REQUIRE(clamp_pan(0.0) == 0.0); }
 }
 
 // ---------------------------------------------------------------------------

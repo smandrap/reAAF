@@ -17,8 +17,8 @@
 
 #include "LogBuffer.h"
 
-#include <cstdio>   // snprintf, vsnprintf
-#include <cstdarg>  // va_list
+#include <cstdarg> // va_list
+#include <cstdio> // snprintf, vsnprintf
 #include <string>
 
 // ---------------------------------------------------------------------------
@@ -35,9 +35,7 @@
 //   m_count never exceeds kCapacity.
 // ---------------------------------------------------------------------------
 
-void LogBuffer::log(const LogEntry::Severity sev, const char *msg) {
-    push(LogEntry(sev, msg));
-}
+void LogBuffer::log(const LogEntry::Severity sev, const char *msg) { push(LogEntry(sev, msg)); }
 
 void LogBuffer::logf(const LogEntry::Severity sev, const char *fmt, ...) {
     va_list ap;
@@ -49,7 +47,7 @@ void LogBuffer::logf(const LogEntry::Severity sev, const char *fmt, ...) {
     const int written = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
 
-    if (written < static_cast<int>(sizeof(buf))) {
+    if ( written < static_cast<int>(sizeof(buf)) ) {
         va_end(ap2);
         push(LogEntry(sev, buf));
         return;
@@ -64,12 +62,12 @@ void LogBuffer::logf(const LogEntry::Severity sev, const char *fmt, ...) {
 bool LogBuffer::hasErrorsOrWarnings() const { return m_hasErrorsOrWarnings; }
 
 void LogBuffer::push(const LogEntry &entry) {
-    if (entry.severity == LogEntry::ERR || entry.severity == LogEntry::WARN) {
+    if ( entry.severity == LogEntry::ERR || entry.severity == LogEntry::WARN ) {
         m_hasErrorsOrWarnings = true;
     }
 
-    if (m_count == kCapacity) {
-        if (!m_overflowing) {
+    if ( m_count == kCapacity ) {
+        if ( !m_overflowing ) {
             static constexpr char kSentinel[] = "1 earlier entry was dropped (buffer full)";
             m_entries[m_head] = LogEntry(LogEntry::WARN, kSentinel);
             m_head = (m_head + 1) % kCapacity;
@@ -90,9 +88,7 @@ void LogBuffer::push(const LogEntry &entry) {
 // Test-only accessors
 // ---------------------------------------------------------------------------
 
-int LogBuffer::size() const {
-    return m_count;
-}
+int LogBuffer::size() const { return m_count; }
 
 const LogEntry &LogBuffer::at(const int idx) const {
     // idx 0 = oldest, idx m_count-1 = newest.
@@ -101,4 +97,3 @@ const LogEntry &LogBuffer::at(const int idx) const {
     const int ring = (oldest + idx) % kCapacity;
     return m_entries[ring];
 }
-

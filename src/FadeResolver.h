@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026 Federico Manuppella
+ * Copyright (C) 2026 Federico Manuppella
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,10 +43,10 @@ struct ResolvedFade {
     int shape = 1; // default: sine
 };
 
-ResolvedFade resolveFadeIn(aafiAudioClip *clip, const aafiTimelineItem *ti, const XFadeMap &xFadeMap,
-                           const aafRational_t *editRate);
+ResolvedFade resolveFadeIn(aafiAudioClip *clip, const aafiTimelineItem *ti,
+                           const XFadeMap &xFadeMap, const aafRational_t *editRate);
 
-ResolvedFade resolveFadeOut(aafiAudioClip *clip, const aafiTimelineItem *ti, const XFadeMap &xFadeMap,
-                            const aafRational_t *editRate);
+ResolvedFade resolveFadeOut(aafiAudioClip *clip, const aafiTimelineItem *ti,
+                            const XFadeMap &xFadeMap, const aafRational_t *editRate);
 
-#endif //REAPER_AAF_XFADEMAP_H
+#endif // REAPER_AAF_XFADEMAP_H
