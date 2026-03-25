@@ -1,11 +1,26 @@
 @description reAAF
-@version 0.3.0
+@version 0.3.1
 @author smandrap
 @link https://github.com/smandrap/reAAF
 @about
   AAF session importer for REAPER. See the repository for details.
 @changelog
-  - Add preference to fully zoom project after AAF import
+  ### Fix:
+  
+  - Use original file path if no usable path is found in AAF essence, to have opportunity to relink the media.
+  
+  ### Docs:
+  
+  - Add info about aaf format support across daws. (on GitHub docs folder)
+  
+  ### Tests:
+  
+  - Support automated tests against LibAAF supplied AAF files and aaftool output (can be improved, but can verify
+    regressions)
+  
+  ### Other:
+  
+  - Huge under the hood changes.
 @provides
   [darwin-arm64] reaper_reAAF-arm64.dylib    https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-arm64.dylib
   [darwin64]     reaper_reAAF-x86_64.dylib   https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-x86_64.dylib
