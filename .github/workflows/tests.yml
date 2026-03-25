@@ -1,0 +1,38 @@
+name: Tests
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Fetch WDL headers
+        shell: bash
+        run: |
+          mkdir -p extern/reaper-sdk
+          git clone --depth 1  https://github.com/justinfrankel/WDL.git /tmp/WDL
+          mv /tmp/WDL/WDL extern/reaper-sdk/WDL
+
+      - name: Set up sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+
+      - name: Configure
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+      - name: Build tests
+        run: cmake --build build --target all_tests
+
+      - name: Run tests
+        run: ctest --test-dir build/tests --output-on-failure

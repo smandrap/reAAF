@@ -40,7 +40,23 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Get SDK/WDL SHAs for cache key
+        id: sdk-key
+        shell: bash
+        run: |
+          SDK_SHA=$(git ls-remote https://github.com/justinfrankel/reaper-sdk.git HEAD | cut -f1 | head -c12)
+          WDL_SHA=$(git ls-remote https://github.com/justinfrankel/WDL.git main | cut -f1 | head -c12)
+          echo "key=${{ runner.os }}-reaper-sdk-${SDK_SHA}-${WDL_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Cache REAPER SDK + WDL
+        id: cache-sdk
+        uses: actions/cache@v4
+        with:
+          path: extern/reaper-sdk
+          key: ${{ steps.sdk-key.outputs.key }}
+
       - name: Clone REAPER SDK and WDL
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
         shell: bash
         run: |
           git clone --depth 1 https://github.com/justinfrankel/reaper-sdk.git extern/reaper-sdk
@@ -55,11 +71,14 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: ilammy/msvc-dev-cmd@v1
 
+      - name: Set up sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+
       - name: Configure
-        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_arch_flag }}
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_arch_flag }} -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build --config Release --target reaper_aaf
 
       - name: Strip debug symbols (macOS)
         if: runner.os == 'macOS'
