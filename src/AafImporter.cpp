@@ -16,6 +16,7 @@
  */
 
 #include "AafImporter.h"
+#include "AafEmitter.h"
 #include "AafiHandle.h"
 #include "FadeResolver.h"
 #include "LogBuffer.h"
@@ -35,29 +36,6 @@ struct TrackLayout {
     int count;
     int nchan;
 };
-
-std::string buildExtractDir(const char *filepath) {
-    std::string p(filepath);
-    if ( const auto dot = p.rfind('.'); dot != std::string::npos )
-        p.resize(dot);
-    p += "-media";
-    return p;
-}
-
-const char *rppSourceTypeFromPath(const char *filePath) {
-    auto srcType = "WAVE";
-    if ( const char *ext = strrchr(filePath, '.') ) {
-        if ( strcasecmp(ext, ".mp3") == 0 )
-            srcType = "MP3";
-        else if ( strcasecmp(ext, ".flac") == 0 )
-            srcType = "FLAC";
-        else if ( strcasecmp(ext, ".ogg") == 0 )
-            srcType = "VORBIS";
-        else if ( strcasecmp(ext, ".mxf") == 0 )
-            srcType = "VIDEO";
-    }
-    return srcType;
-}
 
 double resolveConstantGain(const aafiAudioGain *gain, const double defaultValue = 1.0) {
     if ( gain && gain->flags & AAFI_AUDIO_GAIN_CONSTANT && gain->pts_cnt >= 1 && gain->value )
@@ -145,53 +123,11 @@ int AafImporter::run() {
     if ( !loadFile() )
         return -1;
 
-    if ( m_aafi->compositionName && m_aafi->compositionName[0] != '\0' )
-        m_logBuffer.logf(LogEntry::INFO, "Composition: %s", m_aafi->compositionName);
-
-    m_logBuffer.logf(LogEntry::INFO, "Audio tracks: %u  |  Sample rate: %u Hz  |  Bit depth: %u",
-                     m_aafi->Audio->track_count, m_aafi->Audio->samplerate,
-                     m_aafi->Audio->samplesize);
-
-    if ( m_aafi->Audio->samplerate == 0 )
-        m_logBuffer.log(LogEntry::WARN, "Sample rate missing from AAF, defaulting to 48000 Hz");
-
-    const uint32_t samplerate = m_aafi->Audio->samplerate > 0 ? m_aafi->Audio->samplerate : 48000u;
-
-    const double tcOffset =
-        pos_to_seconds(m_aafi->compositionStart, m_aafi->compositionStart_editRate);
-
-    const double maxProjLen =
-        pos_to_seconds(m_aafi->compositionLength, m_aafi->compositionStart_editRate);
-
-    int fps = 25;
-    uint8_t isDrop = 0;
-
-    if ( m_aafi->Timecode ) {
-        fps = m_aafi->Timecode->fps;
-
-        // isDrop: 0 = integer fps, 1 = drop, 2 = non-drop fractional (23.976 or 29.97 ND)
-        // REAPER doesn't support (non-)drop frame for integer timecodes.
-        // Why those are even a thing is beyond me, but anyway, forget them.
-        const bool isFrac = m_aafi->Timecode->edit_rate->denominator != 1;
-        // TODO: extract and simplify this, it's a shitty one-liner
-        isDrop = isFrac ? (fps == 24 ? 2 : (m_aafi->Timecode->drop > 0 ? 1 : 2)) : 0;
-
-        m_logBuffer.logf(LogEntry::INFO, "Timecode: %d fps%s", fps,
-                         isDrop == 1 ? " drop" : (isDrop == 2 ? " non-drop" : ""));
-    }
-
-    // Guard destroyed at end of scope, emits closing ">" for REAPER_PROJECT
-    auto proj = m_writer.project(tcOffset, maxProjLen, fps, isDrop, samplerate);
-
-    processMarkers();
-
-    const aafiAudioTrack *track = nullptr;
-
-    const aafiVideoTrack *vtrack = nullptr;
-    AAFI_foreachVideoTrack(m_aafi, vtrack) { processTrack_Video(vtrack); }
-
-    AAFI_foreachAudioTrack(m_aafi, track) { processTrack_Audio(track); }
-
+    CompositionData comp = extractComposition();
+    auto proj =
+        m_writer.project(comp.tcOffset, comp.maxProjLen, comp.fps, comp.isDrop, comp.samplerate);
+    AafEmitter emitter(m_writer);
+    emitter.emit(comp);
     return 0;
 }
 
@@ -210,20 +146,84 @@ bool AafImporter::loadFile() const {
     return true;
 }
 
-// TODO: move this to anon namespace
-void AafImporter::processTrackAutomation(const aafiAudioTrack *track, const double compLen) {
-    if ( track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE) )
-        processEnvelope(track->gain, compLen, "VOLENV2",
-                        [](const double v) { return clamp_volume(v); });
+CompositionData AafImporter::extractComposition() {
+    if ( m_aafi->compositionName && m_aafi->compositionName[0] != '\0' )
+        m_logBuffer.logf(LogEntry::INFO, "Composition: %s", m_aafi->compositionName);
 
-    if ( track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE) )
-        processEnvelope(
-            track->pan, compLen, "PANENV2",
-            [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
-            /*arm=*/true);
+    m_logBuffer.logf(LogEntry::INFO, "Audio tracks: %u  |  Sample rate: %u Hz  |  Bit depth: %u",
+                     m_aafi->Audio->track_count, m_aafi->Audio->samplerate,
+                     m_aafi->Audio->samplesize);
+
+    if ( m_aafi->Audio->samplerate == 0 )
+        m_logBuffer.log(LogEntry::WARN, "Sample rate missing from AAF, defaulting to 48000 Hz");
+
+    CompositionData comp;
+    comp.samplerate = m_aafi->Audio->samplerate > 0 ? m_aafi->Audio->samplerate : 48000u;
+    comp.tcOffset = pos_to_seconds(m_aafi->compositionStart, m_aafi->compositionStart_editRate);
+    comp.maxProjLen = pos_to_seconds(m_aafi->compositionLength, m_aafi->compositionStart_editRate);
+
+    comp.fps = 25;
+    comp.isDrop = 0;
+
+    if ( m_aafi->Timecode ) {
+        comp.fps = m_aafi->Timecode->fps;
+        comp.isDrop = computeTimecodeIsDrop(comp.fps, m_aafi->Timecode->edit_rate->denominator,
+                                            m_aafi->Timecode->drop);
+        m_logBuffer.logf(LogEntry::INFO, "Timecode: %d fps%s", comp.fps,
+                         comp.isDrop == 1 ? " drop" : (comp.isDrop == 2 ? " non-drop" : ""));
+    }
+
+    comp.markers = extractMarkers();
+
+    const aafiVideoTrack *vtrack = nullptr;
+    AAFI_foreachVideoTrack(m_aafi, vtrack) {
+        comp.videoTracks.push_back(extractVideoTrack(vtrack));
+    }
+
+    const aafiAudioTrack *track = nullptr;
+    AAFI_foreachAudioTrack(m_aafi, track) {
+        auto subtracks = extractAudioTrack(track);
+        for ( auto &st : subtracks )
+            comp.audioTracks.push_back(std::move(st));
+    }
+
+    return comp;
 }
 
-void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
+std::vector<MarkerData> AafImporter::extractMarkers() const {
+    std::vector<MarkerData> result;
+    int id = 1;
+    int markerCount = 0, regionCount = 0;
+    const aafiMarker *m = nullptr;
+    AAFI_foreachMarker(m_aafi, m) {
+        const double t = pos_to_seconds(m->start, m->edit_rate);
+
+        const bool hasColor = m->RGBColor[0] || m->RGBColor[1] || m->RGBColor[2];
+        const int color = hasColor ? aafiColorToReaper(m->RGBColor) : 0;
+
+        MarkerData md;
+        md.id = id++;
+        md.t = t;
+        md.name = m->name ? m->name : "";
+        md.color = color;
+
+        if ( m->length == 0 ) {
+            md.isRegion = false;
+            result.push_back(std::move(md));
+            ++markerCount;
+        } else {
+            md.isRegion = true;
+            md.endT = pos_to_seconds(m->start + m->length, m->edit_rate);
+            result.push_back(std::move(md));
+            ++regionCount;
+        }
+    }
+    if ( markerCount + regionCount > 0 )
+        m_logBuffer.logf(LogEntry::INFO, "Markers: %d  |  Regions: %d", markerCount, regionCount);
+    return result;
+}
+
+std::vector<AudioTrackData> AafImporter::extractAudioTrack(const aafiAudioTrack *track) {
     const char *trackName = track->name ? track->name : "";
 
     m_logBuffer.logf(LogEntry::INFO, "Audio track %u: \"%s\"  clips: %d", track->number, trackName,
@@ -243,8 +243,6 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
     const XFadeMap xFadeMap = buildXFadeMap(track);
 
     // Pre-pass: count required REAPER tracks and channel count.
-    // essenceFile->channels > 1 means interleaved — single track, break.
-    // Otherwise, each pointer is a separate mono file — one track per pointer.
     int requiredTracks = 1;
     int nchan = 2;
     aafiTimelineItem *ti = nullptr;
@@ -261,65 +259,77 @@ void AafImporter::processTrack_Audio(const aafiAudioTrack *track) {
         m_logBuffer.logf(LogEntry::INFO, "Track %u split into %d mono sub-tracks", track->number,
                          requiredTracks);
 
+    std::vector<AudioTrackData> result;
+    result.reserve(static_cast<size_t>(requiredTracks));
+
     for ( int trackIdx = 0; trackIdx < requiredTracks; ++trackIdx ) {
-        std::string fullName = requiredTracks > 1
-                                   ? std::string(trackName) + "_" + std::to_string(trackIdx + 1)
-                                   : trackName;
+        AudioTrackData at;
+        at.name = requiredTracks > 1 ? std::string(trackName) + "_" + std::to_string(trackIdx + 1)
+                                     : trackName;
+        at.vol = vol;
+        at.pan = pan;
+        at.mute = mute;
+        at.solo = solo;
+        at.nchan = requiredTracks == 1 ? nchan : 2;
 
-        auto w_trk =
-            m_writer.track(fullName.c_str(), vol, pan, mute, solo, requiredTracks == 1 ? nchan : 2);
-
-        processTrackAutomation(track, compLen);
+        extractTrackAutomation(track, compLen, at);
 
         AAFI_foreachTrackItem(track, ti) {
             auto *clip = aafi_timelineItemToAudioClip(ti);
             if ( !clip )
                 continue;
-
-            const auto ptr = getAudioEssencePtr(clip, trackIdx);
+            const auto *ptr = getAudioEssencePtr(clip, trackIdx);
             if ( !ptr )
                 continue;
-
-            processItem_Audio(clip, ti, track->edit_rate, xFadeMap, ptr);
+            at.clips.push_back(extractClip(clip, ti, track->edit_rate, xFadeMap, ptr));
         }
+
+        result.push_back(std::move(at));
     }
+
+    return result;
 }
 
-void AafImporter::processTrack_Video(const aafiVideoTrack *track) {
+VideoTrackData AafImporter::extractVideoTrack(const aafiVideoTrack *track) {
     m_logBuffer.logf(LogEntry::INFO, "Video track %u", track->number);
-    auto w_trk = m_writer.track("VIDEO", 1.0, 0.0, 0, 0, 1);
+    VideoTrackData vt;
     const aafiTimelineItem *ti = nullptr;
     AAFI_foreachTrackItem(track, ti) {
         if ( ti->type == AAFI_VIDEO_CLIP )
-            processItem_Video(static_cast<aafiVideoClip *>(ti->data), track->edit_rate);
+            vt.clips.push_back(
+                extractVideoClip(static_cast<const aafiVideoClip *>(ti->data), track->edit_rate));
     }
+    return vt;
 }
 
-
-void AafImporter::processItem_Audio(aafiAudioClip *clip, const aafiTimelineItem *ti,
-                                    const aafRational_t *trackEditRate, const XFadeMap &xFadeMap,
-                                    const aafiAudioEssencePointer *essPtr) {
-    const double pos = pos_to_seconds(clip->pos, trackEditRate);
-    const double len = pos_to_seconds(clip->len, trackEditRate);
-    const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
-    const double gainLin = clamp_volume(resolveConstantGain(clip->gain));
+ClipData AafImporter::extractClip(aafiAudioClip *clip, const aafiTimelineItem *ti,
+                                  const aafRational_t *trackEditRate, const XFadeMap &xFadeMap,
+                                  const aafiAudioEssencePointer *essPtr) {
+    ClipData cd;
+    cd.pos = pos_to_seconds(clip->pos, trackEditRate);
+    cd.len = pos_to_seconds(clip->len, trackEditRate);
+    cd.srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
+    cd.gain = clamp_volume(resolveConstantGain(clip->gain));
+    cd.mute = clip->mute != 0 ? 1 : 0;
 
     const auto [fadeInLen, fadeInShape] = resolveFadeIn(clip, ti, xFadeMap, trackEditRate);
     const auto [fadeOutLen, fadeOutShape] = resolveFadeOut(clip, ti, xFadeMap, trackEditRate);
+    cd.fadeInLen = fadeInLen;
+    cd.fadeInShape = fadeInShape;
+    cd.fadeOutLen = fadeOutLen;
+    cd.fadeOutShape = fadeOutShape;
 
     const char *clipName = resolveClipName(clip);
+    cd.name = clipName ? clipName : "";
 
     if ( clip->mute )
         m_logBuffer.logf(LogEntry::WARN, "Clip \"%s\" is muted",
                          clipName[0] ? clipName : "(unnamed)");
 
-    auto w_itm = m_writer.item(clipName, pos, len, fadeInLen, fadeInShape, fadeOutLen, fadeOutShape,
-                               gainLin, srcOffset, clip->mute != 0 ? 1 : 0);
-
     // Per-clip varying gain automation
     if ( clip->automation && (clip->automation->flags & AAFI_AUDIO_GAIN_VARIABLE) ) {
-        processEnvelope(clip->automation, len, "VOLENV",
-                        [](const double v) { return clamp_volume(v); });
+        cd.automation = extractEnvelope(clip->automation, cd.len, "VOLENV",
+                                        [](const double v) { return clamp_volume(v); });
     }
 
     if ( essPtr && essPtr->essenceFile ) {
@@ -336,23 +346,22 @@ void AafImporter::processItem_Audio(aafiAudioClip *clip, const aafiTimelineItem 
         else if ( fadeOutLen > 0.0 )
             snprintf(fadeStr, sizeof(fadeStr), "  fadeOut: %.3fs", fadeOutLen);
         m_logBuffer.logf(LogEntry::INFO, "Source: \"%s\"  %u Hz / %u-bit / %uch  @ %.3fs%s",
-                         essName, ess->samplerate, ess->samplesize, ess->channels, pos, fadeStr);
+                         essName, ess->samplerate, ess->samplesize, ess->channels, cd.pos, fadeStr);
     }
 
-    processSource_Audio(essPtr);
-    // 'w_itm' destructor fires here ">"
+    cd.source = resolveAudioSource(essPtr);
+    return cd;
 }
 
-void AafImporter::processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate) {
-    const double pos = pos_to_seconds(clip->pos, trackEditRate);
-    const double len = pos_to_seconds(clip->len, trackEditRate);
-    const double srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
-
-    const char *clipName = clip->Essence ? clip->Essence->name : "Video";
-
-    auto w_itm = m_writer.item(clipName, pos, len, 0.0, 0, 0.0, 0, 1.0, srcOffset, 0);
-
-    processSource_Video(clip->Essence);
+VideoClipData AafImporter::extractVideoClip(const aafiVideoClip *clip,
+                                            const aafRational_t *trackEditRate) {
+    VideoClipData vc;
+    vc.pos = pos_to_seconds(clip->pos, trackEditRate);
+    vc.len = pos_to_seconds(clip->len, trackEditRate);
+    vc.srcOffset = pos_to_seconds(clip->essence_offset, trackEditRate);
+    vc.name = clip->Essence ? clip->Essence->name : "Video";
+    vc.source = resolveVideoSource(clip->Essence);
+    return vc;
 }
 
 bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
@@ -381,11 +390,10 @@ bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
     return true;
 }
 
-void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
+SourceData AafImporter::resolveAudioSource(const aafiAudioEssencePointer *essPtr) {
     if ( !essPtr || !essPtr->essenceFile ) {
         m_logBuffer.logf(LogEntry::ERR, "Missing source essence in clip");
-        m_writer.emptySource();
-        return;
+        return {}; // empty → emptySource()
     }
 
     aafiAudioEssenceFile *ess = essPtr->essenceFile;
@@ -394,9 +402,8 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
         if ( !extractEmbeddedEssence(ess) ) {
             m_logBuffer.logf(LogEntry::ERR, "embedded extraction failed: %s",
                              ess->unique_name ? ess->unique_name : "(unnamed)");
-            auto w_src = m_writer.source(rppSourceTypeFromPath(ess->original_file_path),
-                                         ess->original_file_path);
-            return;
+            return {rppSourceTypeFromPath(ess->original_file_path),
+                    ess->original_file_path ? ess->original_file_path : ""};
         }
     }
 
@@ -404,74 +411,62 @@ void AafImporter::processSource_Audio(const aafiAudioEssencePointer *essPtr) {
     if ( !filePath || *filePath == '\0' ) {
         m_logBuffer.logf(LogEntry::WARN, "no usable path for '%s'",
                          ess->unique_name ? ess->unique_name : "(unnamed)");
-        auto w_src = m_writer.source(rppSourceTypeFromPath(ess->original_file_path),
-                                     ess->original_file_path);
-        return;
+        return {rppSourceTypeFromPath(ess->original_file_path),
+                ess->original_file_path ? ess->original_file_path : ""};
     }
 
-    auto w_src = m_writer.source(rppSourceTypeFromPath(filePath), filePath);
+    return {rppSourceTypeFromPath(filePath), filePath};
 }
 
-void AafImporter::processSource_Video(const aafiVideoEssence *ess) {
+SourceData AafImporter::resolveVideoSource(const aafiVideoEssence *ess) {
     if ( !ess ) {
         m_logBuffer.log(LogEntry::ERR, "Missing source essence in clip");
-        m_writer.emptySource();
-        return;
+        return {}; // empty → emptySource()
     }
     if ( !ess->usable_file_path || *ess->usable_file_path == '\0' ) {
         m_logBuffer.log(LogEntry::WARN, "Video essence has no usable path");
-        auto w_src = m_writer.source(rppSourceTypeFromPath(ess->original_file_path),
-                                     ess->original_file_path);
-        return;
+        return {rppSourceTypeFromPath(ess->original_file_path),
+                ess->original_file_path ? ess->original_file_path : ""};
     }
 
     m_logBuffer.logf(LogEntry::INFO, "Processed video: '%s'", ess->usable_file_path);
-    auto w_src = m_writer.source("VIDEO", ess->usable_file_path);
+    return {"VIDEO", ess->usable_file_path};
 }
 
+void AafImporter::extractTrackAutomation(const aafiAudioTrack *track, const double compLen,
+                                         AudioTrackData &out) {
+    if ( track->gain && (track->gain->flags & AAFI_AUDIO_GAIN_VARIABLE) )
+        out.gainEnv = extractEnvelope(track->gain, compLen, "VOLENV2",
+                                      [](const double v) { return clamp_volume(v); });
 
-void AafImporter::processMarkers() const {
-    int id = 1;
-    int markerCount = 0, regionCount = 0;
-    const aafiMarker *m = nullptr;
-    AAFI_foreachMarker(m_aafi, m) {
-        const double t = pos_to_seconds(m->start, m->edit_rate);
-
-        const bool hasColor = m->RGBColor[0] || m->RGBColor[1] || m->RGBColor[2];
-        const int color = hasColor ? aafiColorToReaper(m->RGBColor) : 0;
-
-        if ( m->length == 0 ) {
-            m_writer.writeMarker(id++, t, m->name, false, color);
-            ++markerCount;
-            continue;
-        }
-        // it's a region
-        const double endT = pos_to_seconds(m->start + m->length, m->edit_rate);
-        m_writer.writeMarker(id, t, m->name, true, color);
-        m_writer.writeMarker(id++, endT, "", true, color);
-        ++regionCount;
-    }
-    if ( markerCount + regionCount > 0 )
-        m_logBuffer.logf(LogEntry::INFO, "Markers: %d  |  Regions: %d", markerCount, regionCount);
+    if ( track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE) )
+        out.panEnv = extractEnvelope(
+            track->pan, compLen, "PANENV2",
+            [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
+            /*arm=*/true);
 }
 
-void AafImporter::processEnvelope(const aafiAudioGain *gain, const double segLenSec,
-                                  const char *tag, const std::function<double(double)> &transform,
-                                  const bool arm) {
+std::optional<EnvelopeData>
+AafImporter::extractEnvelope(const aafiAudioGain *gain, const double segLenSec, const char *tag,
+                             const std::function<double(double)> &transform, const bool arm) {
     if ( !gain )
-        return;
+        return std::nullopt;
     if ( !(gain->flags & AAFI_AUDIO_GAIN_VARIABLE) )
-        return;
+        return std::nullopt;
     if ( gain->pts_cnt == 0 || !gain->time || !gain->value )
-        return;
+        return std::nullopt;
 
-    auto w_env = m_writer.envelope(tag, arm);
+    EnvelopeData env;
+    env.tag = tag;
+    env.arm = arm;
+    env.points.reserve(gain->pts_cnt);
 
     for ( unsigned int i = 0; i < gain->pts_cnt; ++i ) {
         const double frac = rational_to_double(gain->time[i]); // 0.0 .. 1.0
         const double t = frac * segLenSec;
         const double val = transform(rational_to_double(gain->value[i]));
-        m_writer.writeEnvPoint(t, val);
+        env.points.push_back({t, val});
     }
-    // 'env' destructor fires here ">"
+
+    return env;
 }

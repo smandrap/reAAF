@@ -19,8 +19,11 @@
 #define REAPER_AAF_AAFIMPORTER_H
 
 #include <functional>
+#include <optional>
 #include <string>
+#include <vector>
 
+#include "AafData.h"
 #include "AafiHandle.h"
 #include "FadeResolver.h"
 #include "IRppSink.h"
@@ -61,26 +64,30 @@ class AafImporter {
 
     [[nodiscard]] bool loadFile() const;
 
-    void processTrackAutomation(const aafiAudioTrack *track, double compLen);
+    // Extraction phase — reads LibAAF structs, returns data model
+    [[nodiscard]] CompositionData extractComposition();
+    [[nodiscard]] std::vector<MarkerData> extractMarkers() const;
+    [[nodiscard]] std::vector<AudioTrackData> extractAudioTrack(const aafiAudioTrack *track);
+    [[nodiscard]] VideoTrackData extractVideoTrack(const aafiVideoTrack *track);
 
-    void processTrack_Audio(const aafiAudioTrack *track);
-    void processTrack_Video(const aafiVideoTrack *track);
+    [[nodiscard]] ClipData extractClip(aafiAudioClip *clip, const aafiTimelineItem *ti,
+                                       const aafRational_t *trackEditRate, const XFadeMap &xFadeMap,
+                                       const aafiAudioEssencePointer *essPtr);
 
-    void processItem_Audio(aafiAudioClip *clip, const aafiTimelineItem *ti,
-                           const aafRational_t *trackEditRate, const XFadeMap &xFadeMap,
-                           const aafiAudioEssencePointer *essPtr);
+    [[nodiscard]] VideoClipData extractVideoClip(const aafiVideoClip *clip,
+                                                 const aafRational_t *trackEditRate);
 
-    void processItem_Video(const aafiVideoClip *clip, const aafRational_t *trackEditRate);
+    void extractTrackAutomation(const aafiAudioTrack *track, double compLen, AudioTrackData &out);
+
+    [[nodiscard]] std::optional<EnvelopeData>
+    extractEnvelope(const aafiAudioGain *gain, double segLenSec, const char *tag,
+                    const std::function<double(double)> &transform, bool arm = false);
+
     // Returns true on success; sets ess->usable_file_path as a side effect via libaaf.
     bool extractEmbeddedEssence(aafiAudioEssenceFile *ess);
 
-    void processSource_Audio(const aafiAudioEssencePointer *essPtr);
-    void processSource_Video(const aafiVideoEssence *ess);
-
-    void processMarkers() const;
-
-    void processEnvelope(const aafiAudioGain *gain, double segLenSec, const char *tag,
-                         const std::function<double(double)> &transform, bool arm = false);
+    [[nodiscard]] SourceData resolveAudioSource(const aafiAudioEssencePointer *essPtr);
+    [[nodiscard]] SourceData resolveVideoSource(const aafiVideoEssence *ess);
 };
 
 #endif // REAPER_AAF_AAFIMPORTER_H
