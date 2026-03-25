@@ -1,3 +1,6 @@
+# -------------------------------------------------------------------------
+# Individual test executables
+# -------------------------------------------------------------------------
 add_catch2_test(test_logbuffer SOURCES
         test_logbuffer.cpp
         ${CMAKE_SOURCE_DIR}/src/LogBuffer.cpp
@@ -66,3 +69,27 @@ target_compile_definitions(test_aafimporter_mr PRIVATE
         AAF_TEST_DIR="${CMAKE_SOURCE_DIR}/extern/LibAAF/test/aaf"
         GOLDEN_AAFTOOL_DIR="${CMAKE_SOURCE_DIR}/tests/golden-aaftool"
 )
+
+# -------------------------------------------------------------------------
+# Meta-target to build all tests at once
+# -------------------------------------------------------------------------
+add_custom_target(all_tests
+        DEPENDS
+        test_logbuffer
+        test_helpers
+        test_faderesolver
+        test_rppwriter
+        test_aafimporter
+        test_aafimporter_mr
+)
+
+# -------------------------------------------------------------------------
+# Enable CTest integration for easier running
+# -------------------------------------------------------------------------
+enable_testing()
+add_test(NAME test_logbuffer COMMAND test_logbuffer)
+add_test(NAME test_helpers COMMAND test_helpers)
+add_test(NAME test_faderesolver COMMAND test_faderesolver)
+add_test(NAME test_rppwriter COMMAND test_rppwriter)
+add_test(NAME test_aafimporter COMMAND test_aafimporter)
+add_test(NAME test_aafimporter_mr COMMAND test_aafimporter_mr)
