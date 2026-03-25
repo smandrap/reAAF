@@ -40,6 +40,19 @@ struct CapturingSink : IRppSink {
         return out;
     }
 };
+
+// Replace the machine-specific AAF test dir with a stable placeholder so
+// golden files are portable across machines and CI environments.
+std::string normalize_paths(std::string s) {
+    const std::string from = AAF_TEST_DIR;
+    const std::string to = "<AAF_TEST_DIR>";
+    std::string::size_type pos = 0;
+    while ( (pos = s.find(from, pos)) != std::string::npos ) {
+        s.replace(pos, from.size(), to);
+        pos += to.size();
+    }
+    return s;
+}
 } // namespace
 
 TEST_CASE(
@@ -59,7 +72,7 @@ TEST_CASE(
             AafImporter imp(&sink, entry.path().string().c_str(), log);
             imp.run();
 
-            const std::string actual = sink.joined();
+            const std::string actual = normalize_paths(sink.joined());
             const fs::path goldenPath = fs::path(GOLDEN_DIR) / (stem + ".rpp");
 
             if ( update ) {

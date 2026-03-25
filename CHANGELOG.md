@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.1] - 2026-03-25
+
+### Fix:
+
+- Use original file path if no usable path is found in AAF essence, to have opportunity to relink the media.
+
+### Docs:
+
+- Add info about aaf format support across daws. (on GitHub docs folder)
+
+### Tests:
+
+- Support automated tests against LibAAF supplied AAF files and aaftool output (can be improved, but can verify
+  regressions)
+
+### Other:
+
+- Huge under the hood changes.
+
 ## [0.3.0] - 2026-03-24
 
 - Add preference to fully zoom project after AAF import

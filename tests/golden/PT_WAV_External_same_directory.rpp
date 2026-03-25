@@ -20,7 +20,7 @@ VOLPAN 1.000000 0.000000 1.000000 -1
 SOFFS 0.0000000000
 LOOP 0
 <SOURCE WAVE
-FILE "/Users/federico/Desktop/reaper_aaf/extern/LibAAF/test/aaf/PT_WAV_ExtehcrfPFTBxvdzJCBB.wav"
+FILE "<AAF_TEST_DIR>/PT_WAV_ExtehcrfPFTBxvdzJCBB.wav"
 >
 >
 >
