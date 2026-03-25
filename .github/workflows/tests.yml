@@ -18,11 +18,26 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Get WDL SHA for cache key
+        id: wdl-key
+        shell: bash
+        run: |
+          WDL_SHA=$(git ls-remote https://github.com/justinfrankel/WDL.git HEAD | cut -f1 | head -c12)
+          echo "key=wdl-${WDL_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Cache WDL headers
+        id: cache-wdl
+        uses: actions/cache@v4
+        with:
+          path: extern/reaper-sdk/WDL
+          key: ${{ steps.wdl-key.outputs.key }}
+
       - name: Fetch WDL headers
+        if: steps.cache-wdl.outputs.cache-hit != 'true'
         shell: bash
         run: |
           mkdir -p extern/reaper-sdk
-          git clone --depth 1  https://github.com/justinfrankel/WDL.git /tmp/WDL
+          git clone --depth 1 https://github.com/justinfrankel/WDL.git /tmp/WDL
           mv /tmp/WDL/WDL extern/reaper-sdk/WDL
 
       - name: Set up sccache
