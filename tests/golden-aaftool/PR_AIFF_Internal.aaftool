@@ -43,7 +43,7 @@ Tracks & Clips :
 
 
  AudioTrack[1] ::  EditRate: 30000/1001 (29.97)  Format: MONO  Name: "Audio 1"
- └── Clip (1):  Start: 172799828  Len: 48048  End: 172847876  SourceOffset: 1601  Channels: 1  Gain: 1.000000
+ └── Clip (1):  Start: 172799828  Len: 48048  End: 172847876  SourceOffset: 1601  Channels: 1  Gain: +00.0 dB
      └── SourceFile [ch ALL]: "1000hz-18dbs16b44.1k.wav"
   
 

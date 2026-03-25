@@ -49,7 +49,7 @@ Tracks & Clips :
  ├── Clip (2):  Start: 66150  Len: 42336  End: 108486  SourceOffset: 0  Channels: 1
  │   └── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
  │
- └── Clip (3):  Start: 132300  Len: 42336  End: 174636  SourceOffset: 0  Channels: 1  Gain: 1.000000
+ └── Clip (3):  Start: 132300  Len: 42336  End: 174636  SourceOffset: 0  Channels: 1  Gain: +00.0 dB
      └── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
   
 

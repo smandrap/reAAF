@@ -46,38 +46,38 @@ Tracks & Clips :
  ├── Clip (1):  Start: 172972800  Len: 48048  End: 173020848  SourceOffset: 48048  Channels: 1  VolumeAutomation: YES
  │   ├── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
  │   └── Clip Volume Automation ──────────────────────
- │       _time: 0.000000   _value: 1.000000 (+01.0 dB)
- │       _time: 0.433333   _value: 0.004842 (+00.0 dB)
- │       _time: 0.966667   _value: 1.000000 (+01.0 dB)
+ │       _time: 0.000000   _value: 1.000000 (+00.0 dB)
+ │       _time: 0.433333   _value: 0.004842 (-46.3 dB)
+ │       _time: 0.966667   _value: 1.000000 (+00.0 dB)
  │
- └── Clip (2):  Start: 173020848  Len: 48048  End: 173068896  SourceOffset: 64064  Channels: 1  Gain: 1.412538  VolumeAutomation: YES
+ └── Clip (2):  Start: 173020848  Len: 48048  End: 173068896  SourceOffset: 64064  Channels: 1  Gain: +03.0 dB  VolumeAutomation: YES
      ├── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
      └── Clip Volume Automation ──────────────────────
-         _time: 0.000000   _value: 1.000000 (+01.0 dB)
-         _time: 0.366667   _value: 0.000030 (+00.0 dB)
-         _time: 0.666667   _value: 2.871290 (+02.9 dB)
-         _time: 0.966667   _value: 1.000000 (+01.0 dB)
+         _time: 0.000000   _value: 1.000000 (+00.0 dB)
+         _time: 0.366667   _value: 0.000030 (-90.4 dB)
+         _time: 0.666667   _value: 2.871290 (+09.2 dB)
+         _time: 0.966667   _value: 1.000000 (+00.0 dB)
   
 
  AudioTrack[2] ::  EditRate: 30000/1001 (29.97)  Format: MONO
  └── Clip (1):  Start: 172972800  Len: 48048  End: 173020848  SourceOffset: 48048  Channels: 1  VolumeAutomation: YES
      ├── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
      └── Clip Volume Automation ──────────────────────
-         _time: 0.433333   _value: 2.511886 (+02.5 dB)
+         _time: 0.433333   _value: 2.511886 (+08.0 dB)
   
 
  AudioTrack[3] ::  EditRate: 30000/1001 (29.97)  Format: MONO  Solo: SOLO
- └── Clip (1):  Start: 172972800  Len: 48048  End: 173020848  SourceOffset: 0  Channels: 1  Gain: 1.258925  ClipName: "1000hz-18dbs16b44.1k.wav.Sub.01"
+ └── Clip (1):  Start: 172972800  Len: 48048  End: 173020848  SourceOffset: 0  Channels: 1  Gain: +02.0 dB  ClipName: "1000hz-18dbs16b44.1k.wav.Sub.01"
      └── SourceFile [ch 1]: "1000hz-18dbs16b44.1k.wav"
   
 
  AudioTrack[4] ::  EditRate: 30000/1001 (29.97)  Format: MONO
- └── Clip (1):  Start: 172972800  Len: 144144  End: 173116944  SourceOffset: 0  Channels: 1  Gain: 1.193100
+ └── Clip (1):  Start: 172972800  Len: 144144  End: 173116944  SourceOffset: 0  Channels: 1  Gain: +01.5 dB
      └── SourceFile [ch 1]: "A1000hz-18dbs16b44.1k.wav"
   
 
  AudioTrack[5] ::  EditRate: 30000/1001 (29.97)  Format: MONO
- └── Clip (1):  Start: 172972800  Len: 144144  End: 173116944  SourceOffset: 0  Channels: 1  Gain: 1.995262
+ └── Clip (1):  Start: 172972800  Len: 144144  End: 173116944  SourceOffset: 0  Channels: 1  Gain: +06.0 dB
      └── SourceFile [ch 1]: "A1000hz-18dbs16b44.1k.wav"
   
 
