@@ -1,6 +1,7 @@
 # -------------------------------------------------------------------------
 # Individual test executables
 # -------------------------------------------------------------------------
+
 add_catch2_test(test_logbuffer SOURCES
         test_logbuffer.cpp
         ${CMAKE_SOURCE_DIR}/src/LogBuffer.cpp
@@ -85,6 +86,7 @@ target_compile_definitions(test_aafimporter_mr PRIVATE
 # -------------------------------------------------------------------------
 # Meta-target to build all tests at once
 # -------------------------------------------------------------------------
+
 add_custom_target(all_tests
         DEPENDS
         test_logbuffer
@@ -97,13 +99,22 @@ add_custom_target(all_tests
 )
 
 # -------------------------------------------------------------------------
-# Enable CTest integration for easier running
+# Catch2 + CTest integration
 # -------------------------------------------------------------------------
+
+include(CTest)
 enable_testing()
-add_test(NAME test_logbuffer COMMAND test_logbuffer)
-add_test(NAME test_helpers COMMAND test_helpers)
-add_test(NAME test_faderesolver COMMAND test_faderesolver)
-add_test(NAME test_rppwriter COMMAND test_rppwriter)
-add_test(NAME test_aafemitter COMMAND test_aafemitter)
-add_test(NAME test_aafimporter COMMAND test_aafimporter)
-add_test(NAME test_aafimporter_mr COMMAND test_aafimporter_mr)
+
+include(Catch)
+
+# Automatically discover and register all Catch2 test cases
+catch_discover_tests(test_logbuffer)
+catch_discover_tests(test_helpers)
+catch_discover_tests(test_faderesolver)
+catch_discover_tests(test_rppwriter)
+catch_discover_tests(test_aafemitter)
+catch_discover_tests(test_aafimporter)
+catch_discover_tests(test_aafimporter_mr)
+
+# Optional: meta test to run everything via CTest
+#add_test(NAME all_tests COMMAND ${CMAKE_CTEST_COMMAND})
