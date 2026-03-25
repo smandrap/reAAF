@@ -123,10 +123,10 @@ int AafImporter::run() {
     if ( !loadFile() )
         return -1;
 
-    CompositionData comp = extractComposition();
+    const CompositionData comp = extractComposition();
     auto proj =
         m_writer.project(comp.tcOffset, comp.maxProjLen, comp.fps, comp.isDrop, comp.samplerate);
-    AafEmitter emitter(m_writer);
+    const AafEmitter emitter(m_writer);
     emitter.emit(comp);
     return 0;
 }
@@ -290,7 +290,7 @@ std::vector<AudioTrackData> AafImporter::extractAudioTrack(const aafiAudioTrack 
     return result;
 }
 
-VideoTrackData AafImporter::extractVideoTrack(const aafiVideoTrack *track) {
+VideoTrackData AafImporter::extractVideoTrack(const aafiVideoTrack *track) const {
     m_logBuffer.logf(LogEntry::INFO, "Video track %u", track->number);
     VideoTrackData vt;
     const aafiTimelineItem *ti = nullptr;
@@ -324,7 +324,7 @@ ClipData AafImporter::extractClip(aafiAudioClip *clip, const aafiTimelineItem *t
 
     if ( clip->mute )
         m_logBuffer.logf(LogEntry::WARN, "Clip \"%s\" is muted",
-                         clipName[0] ? clipName : "(unnamed)");
+                         cd.name[0] ? clipName : "(unnamed)");
 
     // Per-clip varying gain automation
     if ( clip->automation && (clip->automation->flags & AAFI_AUDIO_GAIN_VARIABLE) ) {
@@ -354,7 +354,7 @@ ClipData AafImporter::extractClip(aafiAudioClip *clip, const aafiTimelineItem *t
 }
 
 VideoClipData AafImporter::extractVideoClip(const aafiVideoClip *clip,
-                                            const aafRational_t *trackEditRate) {
+                                            const aafRational_t *trackEditRate) const {
     VideoClipData vc;
     vc.pos = pos_to_seconds(clip->pos, trackEditRate);
     vc.len = pos_to_seconds(clip->len, trackEditRate);
@@ -418,7 +418,7 @@ SourceData AafImporter::resolveAudioSource(const aafiAudioEssencePointer *essPtr
     return {rppSourceTypeFromPath(filePath), filePath};
 }
 
-SourceData AafImporter::resolveVideoSource(const aafiVideoEssence *ess) {
+SourceData AafImporter::resolveVideoSource(const aafiVideoEssence *ess) const {
     if ( !ess ) {
         m_logBuffer.log(LogEntry::ERR, "Missing source essence in clip");
         return {}; // empty → emptySource()

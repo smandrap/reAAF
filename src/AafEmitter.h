@@ -34,19 +34,19 @@ class AafEmitter {
     explicit AafEmitter(RppWriter &writer);
 
     // Emit markers + all video and audio tracks (no outer PROJECT chunk).
-    void emit(const CompositionData &comp);
+    void emit(const CompositionData &comp) const;
 
-    void emitMarkers(const std::vector<MarkerData> &markers);
-    void emitAudioTrack(const AudioTrackData &track);
-    void emitVideoTrack(const VideoTrackData &track);
-    void emitClip(const ClipData &clip);
-    void emitEnvelope(const EnvelopeData &env);
-    void emitSource(const SourceData &source);
+    void emitMarkers(const std::vector<MarkerData> &markers) const;
+    void emitAudioTrack(const AudioTrackData &track) const;
+    void emitVideoTrack(const VideoTrackData &track) const;
+    void emitClip(const ClipData &clip) const;
+    void emitEnvelope(const EnvelopeData &env) const;
+    void emitSource(const SourceData &source) const;
 
   private:
     RppWriter &m_writer;
 
-    void emitVideoClip(const VideoClipData &clip);
+    void emitVideoClip(const VideoClipData &clip) const;
 };
 
 #endif // REAPER_AAF_AAFEMITTER_H

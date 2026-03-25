@@ -68,18 +68,20 @@ class AafImporter {
     [[nodiscard]] CompositionData extractComposition();
     [[nodiscard]] std::vector<MarkerData> extractMarkers() const;
     [[nodiscard]] std::vector<AudioTrackData> extractAudioTrack(const aafiAudioTrack *track);
-    [[nodiscard]] VideoTrackData extractVideoTrack(const aafiVideoTrack *track);
+
+    [[nodiscard]] VideoTrackData extractVideoTrack(const aafiVideoTrack *track) const;
 
     [[nodiscard]] ClipData extractClip(aafiAudioClip *clip, const aafiTimelineItem *ti,
                                        const aafRational_t *trackEditRate, const XFadeMap &xFadeMap,
                                        const aafiAudioEssencePointer *essPtr);
 
     [[nodiscard]] VideoClipData extractVideoClip(const aafiVideoClip *clip,
-                                                 const aafRational_t *trackEditRate);
+                                                 const aafRational_t *trackEditRate) const;
 
-    void extractTrackAutomation(const aafiAudioTrack *track, double compLen, AudioTrackData &out);
+    static void extractTrackAutomation(const aafiAudioTrack *track, double compLen,
+                                       AudioTrackData &out);
 
-    [[nodiscard]] std::optional<EnvelopeData>
+    [[nodiscard]] static std::optional<EnvelopeData>
     extractEnvelope(const aafiAudioGain *gain, double segLenSec, const char *tag,
                     const std::function<double(double)> &transform, bool arm = false);
 
@@ -87,7 +89,8 @@ class AafImporter {
     bool extractEmbeddedEssence(aafiAudioEssenceFile *ess);
 
     [[nodiscard]] SourceData resolveAudioSource(const aafiAudioEssencePointer *essPtr);
-    [[nodiscard]] SourceData resolveVideoSource(const aafiVideoEssence *ess);
+
+    [[nodiscard]] SourceData resolveVideoSource(const aafiVideoEssence *ess) const;
 };
 
 #endif // REAPER_AAF_AAFIMPORTER_H

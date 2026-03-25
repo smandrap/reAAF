@@ -117,7 +117,7 @@ inline std::string buildExtractDir(const char *filepath) {
 
 // Map a file extension to the REAPER source type string.
 inline const char *rppSourceTypeFromPath(const char *filePath) {
-    const char *srcType = "WAVE";
+    auto srcType = "WAVE";
     if ( const char *ext = strrchr(filePath, '.') ) {
         if ( strcasecmp(ext, ".mp3") == 0 )
             srcType = "MP3";
