@@ -38,6 +38,7 @@ add_catch2_test(test_aafimporter SOURCES
         test_aafimporter.cpp
         helpers_stubs.cpp
         ${CMAKE_SOURCE_DIR}/src/AafImporter.cpp
+        ${CMAKE_SOURCE_DIR}/src/AafEmitter.cpp
         ${CMAKE_SOURCE_DIR}/src/RppWriter.cpp
         ${CMAKE_SOURCE_DIR}/src/FadeResolver.cpp
         ${CMAKE_SOURCE_DIR}/src/LogBuffer.cpp
@@ -52,10 +53,21 @@ target_compile_definitions(test_aafimporter PRIVATE
         GOLDEN_DIR="${CMAKE_SOURCE_DIR}/tests/golden"
 )
 
+add_catch2_test(test_aafemitter SOURCES
+        test_aafemitter.cpp
+        ${CMAKE_SOURCE_DIR}/src/AafEmitter.cpp
+        ${CMAKE_SOURCE_DIR}/src/RppWriter.cpp
+)
+target_include_directories(test_aafemitter PRIVATE
+        ${CMAKE_SOURCE_DIR}/extern/LibAAF/include
+        ${CMAKE_BINARY_DIR}/include
+)
+
 add_catch2_test(test_aafimporter_mr SOURCES
         test_aafimporter_mr.cpp
         helpers_stubs.cpp
         ${CMAKE_SOURCE_DIR}/src/AafImporter.cpp
+        ${CMAKE_SOURCE_DIR}/src/AafEmitter.cpp
         ${CMAKE_SOURCE_DIR}/src/RppWriter.cpp
         ${CMAKE_SOURCE_DIR}/src/FadeResolver.cpp
         ${CMAKE_SOURCE_DIR}/src/LogBuffer.cpp
@@ -79,6 +91,7 @@ add_custom_target(all_tests
         test_helpers
         test_faderesolver
         test_rppwriter
+        test_aafemitter
         test_aafimporter
         test_aafimporter_mr
 )
@@ -91,5 +104,6 @@ add_test(NAME test_logbuffer COMMAND test_logbuffer)
 add_test(NAME test_helpers COMMAND test_helpers)
 add_test(NAME test_faderesolver COMMAND test_faderesolver)
 add_test(NAME test_rppwriter COMMAND test_rppwriter)
+add_test(NAME test_aafemitter COMMAND test_aafemitter)
 add_test(NAME test_aafimporter COMMAND test_aafimporter)
 add_test(NAME test_aafimporter_mr COMMAND test_aafimporter_mr)
