@@ -40,11 +40,31 @@ jobs:
           git clone --depth 1 https://github.com/justinfrankel/WDL.git /tmp/WDL
           mv /tmp/WDL/WDL extern/reaper-sdk/WDL
 
+      - name: Compute dependency cache key
+        id: dep-key
+        shell: bash
+        run: |
+          echo "key=${{ runner.os }}-deps-$(git rev-parse HEAD:extern/Catch2 | head -c12)-$(git rev-parse HEAD:extern/LibAAF | head -c12)" >> $GITHUB_OUTPUT
+
+      - name: Cache compiled dependencies (Catch2 + LibAAF)
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/extern/Catch2
+            build/extern/LibAAF
+          key: ${{ steps.dep-key.outputs.key }}
+
       - name: Set up sccache
         uses: mozilla-actions/sccache-action@v0.0.9
 
       - name: Configure
         run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+      - name: Touch cached dependency artifacts
+        if: steps.cache-deps.outputs.cache-hit == 'true'
+        shell: bash
+        run: find build/extern -name "*.a" -exec touch {} +
 
       - name: Build tests
         run: cmake --build build --target all_tests
