@@ -88,6 +88,7 @@ add_library(reaper_aaf MODULE
         src/ReaperSink.cpp
         src/RppWriter.cpp
         src/AafImporter.cpp
+        src/AafEmitter.cpp
         src/FadeResolver.cpp
         src/LogBuffer.cpp
         src/PrefsPage.cpp
