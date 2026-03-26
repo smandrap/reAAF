@@ -425,7 +425,7 @@ SourceData AafImporter::resolveVideoSource(const aafiVideoEssence *ess) const {
     }
     if ( !ess->usable_file_path || *ess->usable_file_path == '\0' ) {
         m_logBuffer.logf(LogEntry::WARN, "'%s': Video has no usable path, using original path",
-                         ess->unique_name);
+                         ess->unique_name ? ess->unique_name : "(unnamed)");
         return {rppSourceTypeFromPath(ess->original_file_path),
                 ess->original_file_path ? ess->original_file_path : ""};
     }
