@@ -2,6 +2,12 @@
 
 REAPER extension that imports AAF (Advanced Authoring Format) session files as REAPER projects, relying on [LibAAF](https://github.com/agfline/LibAAF).
 
+[![Build](https://github.com/smandrap/reAAF/actions/workflows/build.yml/badge.svg)](https://github.com/smandrap/reAAF/actions/workflows/build.yml)
+[![Tests](https://github.com/smandrap/reAAF/actions/workflows/tests.yml/badge.svg)](https://github.com/smandrap/reAAF/actions/workflows/tests.yml)
+[![CodeQL](https://github.com/smandrap/reAAF/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/smandrap/reAAF/actions/workflows/github-code-scanning/codeql)
+
+---
+
 > **reAAF is read-only** : it imports AAF files into REAPER, it does not add capability to export them. It is not meant as a replacement for [AATranslator](https://www.aatranslator.com.au/). If you need advanced AAF support, or support for a wide range of other formats, you should buy AATranslator.
 
 ---
