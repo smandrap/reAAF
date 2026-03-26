@@ -30,6 +30,8 @@ namespace {
 void setupListView(HWND hwnd) {
     // Set up ListView extended styles and columns.
     HWND hwndList = GetDlgItem(hwnd, IDC_LOG_LIST);
+    if ( !hwndList )
+        return;
     ListView_SetExtendedListViewStyleEx(hwndList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 
     LVCOLUMN col = {};
@@ -94,7 +96,8 @@ void setClipboardText(HWND hwnd, const std::string &text) {
     if ( wlen <= 0 )
         return;
     std::vector<wchar_t> wbuf(wlen);
-    MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wbuf.data(), wlen);
+    if ( MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wbuf.data(), wlen) <= 0 )
+        return;
     const HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, wlen * sizeof(wchar_t));
     if ( !mem )
         return;
@@ -114,7 +117,7 @@ void setClipboardText(HWND hwnd, const std::string &text) {
         GlobalFree(mem);
     CloseClipboard();
 #else
-    HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, static_cast<int>(text.size()) + 1);
+    HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
     if ( !mem )
         return;
     const auto dst = static_cast<char *>(GlobalLock(mem));
@@ -131,6 +134,11 @@ void setClipboardText(HWND hwnd, const std::string &text) {
     }
     EmptyClipboard();
     const unsigned int fmt = RegisterClipboardFormat("SWELL__CF_TEXT");
+    if ( !fmt ) {
+        GlobalFree(mem);
+        CloseClipboard();
+        return;
+    }
     SetClipboardData(fmt, mem);
     CloseClipboard();
 #endif
@@ -303,6 +311,8 @@ auto LogDialog::insertRows(HWND hwndList) const -> InsertResult {
 
 void LogDialog::populate() const {
     HWND hwndList = GetDlgItem(m_hwnd, IDC_LOG_LIST);
+    if ( !hwndList )
+        return;
 
     const SelectionState sel = saveListViewSelection(hwndList);
 
