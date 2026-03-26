@@ -42,10 +42,6 @@ class PrefsPage {
     static bool getZoomAfterImport();
 
     static void setZoomAfterImport(bool v);
-
-    // Factory function stored in g_prefs_reg.create — REAPER calls this to create
-    // the preferences panel child HWND. Do not call directly.
-    static HWND createHwnd(HWND par);
 };
 
 #endif // REAPER_AAF_PREFSPAGE_H

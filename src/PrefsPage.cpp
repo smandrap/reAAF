@@ -37,15 +37,17 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, UINT msg, WPARAM wParam, L
 extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 
-static prefs_page_register_t g_prefs_reg = {
+static HWND createHwnd(HWND par);
+
+static prefs_page_register_t s_reg = {
     "reaper_aaf_prefs", // idstr — globally unique
     "AAF Import", // displayname — shown in REAPER Preferences tree
-    PrefsPage::createHwnd, 0x9a, "", 0};
+    createHwnd,         0x9a, "", 0};
 
 
-void PrefsPage::registerPage() { plugin_register("prefpage", &g_prefs_reg); }
+void PrefsPage::registerPage() { plugin_register("prefpage", &s_reg); }
 
-void PrefsPage::unregisterPage() { plugin_register("-prefpage", &g_prefs_reg); }
+void PrefsPage::unregisterPage() { plugin_register("-prefpage", &s_reg); }
 
 PrefsPage::LogVerbosity PrefsPage::getVerbosity() {
     if ( !HasExtState(kSection, kKeyVerb) )
@@ -130,10 +132,10 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
 }
 
 // ---------------------------------------------------------------------------
-// PrefsPage::createHwnd — create child HWND embedded in REAPER Preferences pane
+// createHwnd — create child HWND embedded in REAPER Preferences pane
 // ---------------------------------------------------------------------------
 
-HWND PrefsPage::createHwnd(HWND par) {
+static HWND createHwnd(HWND par) {
     // CreateDialog with resource ID IDD_AAF_PREFS creates a child window.
     // On macOS/Linux this uses the resource defined in resource_swell.cpp.
     // On Windows this uses the resource defined in resource.rc.
