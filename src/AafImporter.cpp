@@ -102,7 +102,7 @@ void AafImporter::libaafLogCallback(aafLog *, void *, const int lib, const int t
     if ( !msg || !user )
         return;
     const auto *self = static_cast<AafImporter *>(user);
-    self->m_logBuffer.log(LogEntry::WARN, msg);
+    self->m_logBuffer.log(LogEntry::DEBUG, msg);
 }
 
 

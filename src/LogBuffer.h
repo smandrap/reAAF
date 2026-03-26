@@ -27,14 +27,13 @@
 // ---------------------------------------------------------------------------
 
 struct LogEntry {
-    enum Severity { ERR, WARN, INFO } severity = INFO;
+    enum Severity { ERR, WARN, INFO, DEBUG } severity = INFO;
 
     std::string text;
 
     LogEntry() = default;
 
-    LogEntry(const Severity sev, const char *msg)
-        : severity(sev), text(msg ? msg : "") {}
+    LogEntry(const Severity sev, const char *msg) : severity(sev), text(msg ? msg : "") {}
 };
 
 // ---------------------------------------------------------------------------
@@ -48,7 +47,7 @@ struct LogEntry {
 // ---------------------------------------------------------------------------
 
 class LogBuffer {
-public:
+  public:
     // We preallocate all 2000 entries upfront (~64 KB on heap).
     // This is overkill for most imports. A smarter approach: reserve ~200 entries
     // initially, grow up to kCapacity, then switch to ring-buffer logic....
@@ -59,9 +58,9 @@ public:
 
     void logf(LogEntry::Severity sev, const char *fmt, ...)
 #if defined(__GNUC__) || defined(__clang__)
-    __attribute__((format(printf, 3, 4)))
+        __attribute__((format(printf, 3, 4)))
 #endif
-    ;
+        ;
 
     [[nodiscard]] bool hasErrorsOrWarnings() const;
 
@@ -72,7 +71,7 @@ public:
     // Returns the entry at logical index idx (0 = oldest, size()-1 = newest).
     [[nodiscard]] const LogEntry &at(int idx) const;
 
-private:
+  private:
     LogEntry m_entries[kCapacity] = {};
     int m_head = 0; // next write position (ring index)
     int m_count = 0; // entries currently stored (max kCapacity)
