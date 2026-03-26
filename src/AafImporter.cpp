@@ -400,7 +400,7 @@ SourceData AafImporter::resolveAudioSource(const aafiAudioEssencePointer *essPtr
 
     if ( ess->is_embedded && !ess->usable_file_path ) {
         if ( !extractEmbeddedEssence(ess) ) {
-            m_logBuffer.logf(LogEntry::ERR, "embedded extraction failed: %s",
+            m_logBuffer.logf(LogEntry::ERR, "'%s' : embedded extraction failed",
                              ess->unique_name ? ess->unique_name : "(unnamed)");
             return {rppSourceTypeFromPath(ess->original_file_path),
                     ess->original_file_path ? ess->original_file_path : ""};
@@ -409,7 +409,7 @@ SourceData AafImporter::resolveAudioSource(const aafiAudioEssencePointer *essPtr
 
     const char *filePath = ess->usable_file_path;
     if ( !filePath || *filePath == '\0' ) {
-        m_logBuffer.logf(LogEntry::WARN, "no usable path for '%s'",
+        m_logBuffer.logf(LogEntry::WARN, "'%s' has no usable path, using original file path",
                          ess->unique_name ? ess->unique_name : "(unnamed)");
         return {rppSourceTypeFromPath(ess->original_file_path),
                 ess->original_file_path ? ess->original_file_path : ""};
@@ -424,7 +424,8 @@ SourceData AafImporter::resolveVideoSource(const aafiVideoEssence *ess) const {
         return {}; // empty → emptySource()
     }
     if ( !ess->usable_file_path || *ess->usable_file_path == '\0' ) {
-        m_logBuffer.log(LogEntry::WARN, "Video essence has no usable path");
+        m_logBuffer.logf(LogEntry::WARN, "'%s': Video has no usable path, using original path",
+                         ess->unique_name);
         return {rppSourceTypeFromPath(ess->original_file_path),
                 ess->original_file_path ? ess->original_file_path : ""};
     }
