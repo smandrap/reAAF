@@ -54,7 +54,6 @@ set(LIBAAF_DIR "${CMAKE_SOURCE_DIR}/extern/LibAAF" CACHE PATH "Path to agfline/L
 # Version header
 # -------------------------------------------------------------------------
 configure_file(src/version.h.in ${CMAKE_BINARY_DIR}/generated/version.h)
-configure_file(src/resource.rc.in ${CMAKE_SOURCE_DIR}/src/resource.rc)
 
 # -------------------------------------------------------------------------
 # LibAAF — use its own build system, static only, no tools/docs/tests
