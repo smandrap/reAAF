@@ -79,15 +79,16 @@ int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
     const int ok = AafImporter(&sink, fn, *logBuffer).run();
 
     const auto mode = PrefsPage::getVerbosity();
+    const bool isDebug = PrefsPage::getShowDebug();
     if ( mode == PrefsPage::LogVerbosity::NONE )
         return ok;
 
     if ( mode == PrefsPage::LogVerbosity::ERR ) {
         if ( !logBuffer->hasErrorsOrWarnings() )
             return ok;
-        LogDialog::open(std::move(logBuffer), LogEntry::WARN);
+        LogDialog::open(std::move(logBuffer), LogEntry::WARN, isDebug);
     } else {
-        LogDialog::open(std::move(logBuffer), LogEntry::INFO);
+        LogDialog::open(std::move(logBuffer), LogEntry::INFO, isDebug);
     }
     return ok;
 }

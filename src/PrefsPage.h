@@ -18,10 +18,10 @@
 #ifndef REAPER_AAF_PREFSPAGE_H
 #define REAPER_AAF_PREFSPAGE_H
 
-#include "reaper_plugin.h"   // HWND, prefs_page_register_t
+#include "reaper_plugin.h" // HWND, prefs_page_register_t
 
 class PrefsPage {
-public:
+  public:
     enum class LogVerbosity { NONE, ERR, ALL };
 
     // Called from REAPER_PLUGIN_ENTRYPOINT to register the preferences page.
@@ -32,6 +32,10 @@ public:
     static void unregisterPage();
 
     static LogVerbosity getVerbosity();
+
+    static bool getShowDebug();
+
+    static void setShowDebug(bool v);
 
     static void setVerbosity(int v);
 

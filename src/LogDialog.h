@@ -32,7 +32,8 @@
 // At most one instance exists at a time.
 class LogDialog {
   public:
-    explicit LogDialog(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
+    explicit LogDialog(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity,
+                       bool isDebug = false);
 
     LogDialog(const LogDialog &) = delete;
 
@@ -44,7 +45,8 @@ class LogDialog {
 
     ~LogDialog() = default;
 
-    static void open(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
+    static void open(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity,
+                     bool isDebug = false);
 
   private:
     struct InsertResult {
@@ -57,6 +59,7 @@ class LogDialog {
     WDL_WndSizer m_resizer;
     accelerator_register_t m_accel = {};
     bool m_isFocused = false;
+    bool m_isDebug = false;
     bool m_showInfo = true;
     bool m_showWarn = true;
     bool m_showError = true;

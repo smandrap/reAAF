@@ -153,9 +153,10 @@ extern REAPER_PLUGIN_HINSTANCE g_hInst;
 
 std::unique_ptr<LogDialog> LogDialog::s_owner;
 
-LogDialog::LogDialog(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity minSeverity)
+LogDialog::LogDialog(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity minSeverity,
+                     const bool isDebug)
     : m_buf(std::move(buf)), m_showInfo{minSeverity >= LogEntry::INFO},
-      m_showWarn{minSeverity >= LogEntry::WARN} {}
+      m_showWarn{minSeverity >= LogEntry::WARN}, m_isDebug{isDebug} {}
 
 
 void LogDialog::setupResizer(HWND hwnd) {
@@ -185,7 +186,12 @@ void LogDialog::setupFilterChecks(HWND hwnd, const LogDialog *self) {
     CheckDlgButton(hwnd, IDC_LOGFILTER_INFO, self->m_showInfo ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwnd, IDC_LOGFILTER_WARN, self->m_showWarn ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwnd, IDC_LOGFILTER_ERROR, self->m_showError ? BST_CHECKED : BST_UNCHECKED);
-    CheckDlgButton(hwnd, IDC_LOGFILTER_DEBUG, self->m_showDebug ? BST_CHECKED : BST_UNCHECKED);
+
+
+    ShowWindow(GetDlgItem(hwnd, IDC_LOGFILTER_DEBUG), self->m_isDebug ? SW_SHOW : SW_HIDE);
+    if ( self->m_isDebug ) {
+        CheckDlgButton(hwnd, IDC_LOGFILTER_DEBUG, self->m_showDebug ? BST_CHECKED : BST_UNCHECKED);
+    }
 }
 
 
@@ -342,21 +348,24 @@ void LogDialog::populate() const {
 }
 
 
-void LogDialog::open(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity minSeverity) {
+void LogDialog::open(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity minSeverity,
+                     const bool isDebug) {
     if ( s_owner ) {
         s_owner->m_buf = std::move(buf);
         s_owner->m_showInfo = (minSeverity >= LogEntry::INFO);
         s_owner->m_showWarn = (minSeverity >= LogEntry::WARN);
+        s_owner->m_showDebug = isDebug;
         HWND hw = s_owner->m_hwnd;
         setupFilterChecks(hw, s_owner.get());
         s_owner->populate();
         SetForegroundWindow(s_owner->m_hwnd);
         return;
     }
-    s_owner = std::make_unique<LogDialog>(std::move(buf), minSeverity);
+    s_owner = std::make_unique<LogDialog>(std::move(buf), minSeverity, isDebug);
     HWND parent = GetMainHwnd();
     HWND hwnd = CreateDialogParam(g_hInst, MAKEINTRESOURCE(IDD_AAF_LOG_DIALOG), parent, dialogProc,
                                   reinterpret_cast<LPARAM>(s_owner.get()));
+
     if ( !hwnd ) {
         s_owner.reset();
         return;

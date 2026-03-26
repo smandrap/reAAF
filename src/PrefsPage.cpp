@@ -27,6 +27,7 @@
 
 static constexpr auto kSection = "reaper_aaf";
 static constexpr auto kKeyVerb = "verbosity";
+static constexpr auto kKeyDebug = "debug";
 static constexpr auto kKeyZoom = "zoom_after_import";
 
 
@@ -55,6 +56,16 @@ PrefsPage::LogVerbosity PrefsPage::getVerbosity() {
     if ( end == s || v < 0 || v > 2 )
         return LogVerbosity::ERR; // unparseable or out of range
     return static_cast<LogVerbosity>(v);
+}
+
+bool PrefsPage::getShowDebug() {
+    if ( !HasExtState(kSection, kKeyDebug) )
+        return false; // default: off
+    return strtol(GetExtState(kSection, kKeyDebug), nullptr, 10) != 0;
+}
+
+void PrefsPage::setShowDebug(const bool v) {
+    SetExtState(kSection, kKeyDebug, v ? "1" : "0", true);
 }
 
 void PrefsPage::setVerbosity(const int v) {
@@ -89,6 +100,8 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
         SendMessage(combo, CB_SETCURSEL, static_cast<int>(PrefsPage::getVerbosity()), 0);
         CheckDlgButton(hwnd, IDC_CHECK_ZOOM,
                        PrefsPage::getZoomAfterImport() ? BST_CHECKED : BST_UNCHECKED);
+        CheckDlgButton(hwnd, IDC_CHECK_SHOWDEBUG,
+                       PrefsPage::getShowDebug() ? BST_CHECKED : BST_UNCHECKED);
         SetDlgItemText(hwnd, IDC_VERSION_LABEL, "v" REAAF_VERSION_STRING);
         EnableWindow(GetDlgItem(hwnd, IDC_VERSION_LABEL), FALSE);
         return 1;
@@ -97,7 +110,8 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
     case WM_COMMAND: {
         if ( const int ctrl = LOWORD(wParam);
              (ctrl == IDC_COMBO_VERBOSITY && HIWORD(wParam) == CBN_SELCHANGE) ||
-             (ctrl == IDC_CHECK_ZOOM && HIWORD(wParam) == BN_CLICKED) )
+             (ctrl == IDC_CHECK_ZOOM && HIWORD(wParam) == BN_CLICKED) ||
+             (ctrl == IDC_CHECK_SHOWDEBUG && HIWORD(wParam) == BN_CLICKED) )
             EnableWindow(GetDlgItem(GetParent(hwnd), IDC_PREFS_APPLY), TRUE);
         return 0;
     }
@@ -109,6 +123,7 @@ static WDL_DLGRET CALLBACK prefsDialogProc(HWND hwnd, const UINT msg, const WPAR
                  v >= 0 )
                 PrefsPage::setVerbosity(v);
             PrefsPage::setZoomAfterImport(IsDlgButtonChecked(hwnd, IDC_CHECK_ZOOM) == BST_CHECKED);
+            PrefsPage::setShowDebug(IsDlgButtonChecked(hwnd, IDC_CHECK_SHOWDEBUG) == BST_CHECKED);
         }
         return 0;
     }

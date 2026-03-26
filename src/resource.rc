@@ -8,12 +8,13 @@ STYLE WS_CHILD
 CAPTION "AAF Import Prefs"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX "AAF Import",               IDC_STATIC,           2,  4, 296,  58
+    GROUPBOX "AAF Import",               IDC_STATIC,           2,  4, 296,  68
     LTEXT    "Show import Log:",         IDC_STATIC,          13, 20,  68,  10
     COMBOBOX                             IDC_COMBO_VERBOSITY, 74, 18, 205,  50,
                                          CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CHECKBOX "Zoom to project after import", IDC_CHECK_ZOOM,  13, 34, 200,  12
-    LTEXT    "",                          IDC_VERSION_LABEL,    8, 54,  80,   8
+    CHECKBOX "Show LibAAF info in Log", IDC_CHECK_SHOWDEBUG,  123, 34, 200,  12
+    LTEXT    "",                          IDC_VERSION_LABEL,    8, 64,  80,   8
 END
 
 IDD_AAF_LOG_DIALOG DIALOGEX 0, 0, 308, 300
