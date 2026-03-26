@@ -170,6 +170,7 @@ void LogDialog::setupResizer(HWND hwnd) {
     m_resizer.init_item(IDC_LOGFILTER_INFO, 0.0f, 1.0f, 0.0f, 1.0f);
     m_resizer.init_item(IDC_LOGFILTER_WARN, 0.0f, 1.0f, 0.0f, 1.0f);
     m_resizer.init_item(IDC_LOGFILTER_ERROR, 0.0f, 1.0f, 0.0f, 1.0f);
+    m_resizer.init_item(IDC_LOGFILTER_DEBUG, 0.0f, 1.0f, 0.0f, 1.0f);
 }
 
 void LogDialog::registerAccel() {
@@ -184,6 +185,7 @@ void LogDialog::setupFilterChecks(HWND hwnd, const LogDialog *self) {
     CheckDlgButton(hwnd, IDC_LOGFILTER_INFO, self->m_showInfo ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwnd, IDC_LOGFILTER_WARN, self->m_showWarn ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwnd, IDC_LOGFILTER_ERROR, self->m_showError ? BST_CHECKED : BST_UNCHECKED);
+    CheckDlgButton(hwnd, IDC_LOGFILTER_DEBUG, self->m_showError ? BST_CHECKED : BST_UNCHECKED);
 }
 
 
