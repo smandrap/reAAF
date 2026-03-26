@@ -185,7 +185,7 @@ void LogDialog::setupFilterChecks(HWND hwnd, const LogDialog *self) {
     CheckDlgButton(hwnd, IDC_LOGFILTER_INFO, self->m_showInfo ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwnd, IDC_LOGFILTER_WARN, self->m_showWarn ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwnd, IDC_LOGFILTER_ERROR, self->m_showError ? BST_CHECKED : BST_UNCHECKED);
-    CheckDlgButton(hwnd, IDC_LOGFILTER_DEBUG, self->m_showError ? BST_CHECKED : BST_UNCHECKED);
+    CheckDlgButton(hwnd, IDC_LOGFILTER_DEBUG, self->m_showDebug ? BST_CHECKED : BST_UNCHECKED);
 }
 
 
@@ -222,10 +222,11 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
         } else if ( id == IDC_COPY_BTN ) {
             self->copyToClipboard();
         } else if ( id == IDC_LOGFILTER_INFO || id == IDC_LOGFILTER_WARN ||
-                    id == IDC_LOGFILTER_ERROR ) {
+                    id == IDC_LOGFILTER_ERROR || id == IDC_LOGFILTER_DEBUG ) {
             self->m_showInfo = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_INFO) == BST_CHECKED;
             self->m_showWarn = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_WARN) == BST_CHECKED;
             self->m_showError = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_ERROR) == BST_CHECKED;
+            self->m_showDebug = IsDlgButtonChecked(hwnd, IDC_LOGFILTER_DEBUG) == BST_CHECKED;
             self->populate();
         }
         return 0;
@@ -258,6 +259,8 @@ bool LogDialog::shouldShow(const LogEntry::Severity s) const {
         return m_showError;
     case LogEntry::WARN:
         return m_showWarn;
+    case LogEntry::DEBUG:
+        return m_showDebug;
     default:
         return m_showInfo;
     }
@@ -281,6 +284,9 @@ auto LogDialog::insertRows(HWND hwndList) const -> InsertResult {
         const LogEntry &e = m_buf->at(i);
         const char *level;
         switch ( e.severity ) {
+        case LogEntry::DEBUG:
+            level = "DEBUG";
+            break;
         case LogEntry::ERR:
             level = "ERROR";
             ++res.errors;

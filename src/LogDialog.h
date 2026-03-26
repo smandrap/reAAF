@@ -19,19 +19,19 @@
 #define REAPER_AAF_LOGDIALOG_H
 
 #include "LogBuffer.h"
-#include <memory>
-#include <vector>
 #include "reaper_plugin.h"
 #include "wdltypes.h"
 #include "wingui/wndsize.h"
+#include <memory>
+#include <vector>
 #ifdef _WIN32
-#  include <commctrl.h>
+#include <commctrl.h>
 #endif
 
 // Modeless dialog that displays log entries collected during an AAF import.
 // At most one instance exists at a time.
 class LogDialog {
-public:
+  public:
     explicit LogDialog(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
 
     LogDialog(const LogDialog &) = delete;
@@ -46,7 +46,7 @@ public:
 
     static void open(std::unique_ptr<LogBuffer> buf, LogEntry::Severity minSeverity);
 
-private:
+  private:
     struct InsertResult {
         std::vector<int> rowBufIdx;
         int info = 0, warnings = 0, errors = 0;
@@ -60,6 +60,7 @@ private:
     bool m_showInfo = true;
     bool m_showWarn = true;
     bool m_showError = true;
+    bool m_showDebug = true;
 
     static std::unique_ptr<LogDialog> s_owner;
 
