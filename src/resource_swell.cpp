@@ -12,6 +12,6 @@
 
 // WS_SIZEBOX in resource.rc is not auto-mapped to SWELL_DLG_WS_RESIZABLE by
 // swell_resgen.php, so we override the generated style before including it.
-#define SET_IDD_AAF_PROGRESS_STYLE (SWELL_DLG_FLAGS_AUTOGEN | SWELL_DLG_WS_RESIZABLE)
+#define SET_IDD_AAF_LOG_DIALOG_STYLE (SWELL_DLG_FLAGS_AUTOGEN | SWELL_DLG_WS_RESIZABLE)
 
 #include "resource.rc_mac_dlg"
