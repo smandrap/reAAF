@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="reAAF" commit="511b398c1e27ce96cb4f85fc4aba2ca6bba0eab9">
+<index version="1" name="reAAF" commit="6997e3e53bd49c890a4751e90478a3d9cf35f408">
   <category name="Extensions">
     <reapack name="reAAF.ext" type="extension" desc="reAAF">
       <metadata>
@@ -100,6 +100,14 @@
         <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.1/reaper_reAAF-x86_64.dylib</source>
         <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.3.1/reaper_reAAF-x86_64.dll</source>
         <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.3.1/reaper_reAAF-x86_64.so</source>
+      </version>
+      <version name="0.3.2" author="smandrap" time="2026-03-26T11:55:54Z">
+        <changelog><![CDATA[- fix: restore log dialog resizing (v0.3.0 regression)
+- fix marker/region colors in some circumstances]]></changelog>
+        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.2/reaper_reAAF-arm64.dylib</source>
+        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.2/reaper_reAAF-x86_64.dylib</source>
+        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.3.2/reaper_reAAF-x86_64.dll</source>
+        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.3.2/reaper_reAAF-x86_64.so</source>
       </version>
     </reapack>
   </category>

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.3.2] - 2026-03-26
+
+- fix: restore log dialog resizing (v0.3.0 regression)
+- fix marker/region colors in some circumstances
+
 ## [0.3.1] - 2026-03-25
 
 ### Fix:
