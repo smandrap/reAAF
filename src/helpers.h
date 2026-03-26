@@ -88,7 +88,8 @@ inline std::string escape_rpp_string(const char *raw) {
 }
 
 [[nodiscard]] constexpr int aafiColorToReaper(const uint16_t rgb[3]) noexcept {
-    return 0x1000000 | rgb[0] << 16 | rgb[1] << 8 | rgb[2];
+    return static_cast<int>(0x1000000u | static_cast<uint32_t>(rgb[0]) << 16 |
+                            static_cast<uint32_t>(rgb[1]) << 8 | rgb[2]);
 }
 
 
