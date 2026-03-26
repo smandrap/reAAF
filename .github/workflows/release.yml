@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. v0.1.0)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Verify VERSION file matches tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          FILE_VERSION="v$(tr -d '[:space:]' < VERSION)"
+          TAG_VERSION="${{ github.ref_name }}"
+          if [ "$FILE_VERSION" != "$TAG_VERSION" ]; then
+            echo "ERROR: VERSION file ($FILE_VERSION) does not match tag ($TAG_VERSION)"
+            exit 1
+          fi
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          # Strip leading 'v' for changelog lookup
+          echo "version_bare=${VERSION#v}" >> $GITHUB_OUTPUT
+          # Detect pre-release: version contains -betaN
+          if [[ "$VERSION" =~ -beta[0-9]+$ ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create tag (manual trigger only)
+        if: inputs.version != ''
+        run: |
+          git tag ${{ steps.ver.outputs.version }}
+          git push origin ${{ steps.ver.outputs.version }}
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          VERSION="${{ steps.ver.outputs.version_bare }}"
+          BODY=$(awk "/^## \[$VERSION\]/{found=1; next} /^## \[/{found=0} found" CHANGELOG.md | sed '/./,$!d')
+          if [ -z "$BODY" ]; then
+            BODY="No changelog entry found for $VERSION."
+          fi
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Rename artifacts for release
+        shell: bash
+        run: |
+          mkdir release-files
+          cp artifacts/reaper-aaf-windows-x86_64/reaper_reAAF.dll   release-files/reaper_reAAF-x86_64.dll
+          cp artifacts/reaper-aaf-macos-arm64/reaper_reAAF.dylib     release-files/reaper_reAAF-arm64.dylib
+          cp artifacts/reaper-aaf-macos-x86_64/reaper_reAAF.dylib    release-files/reaper_reAAF-x86_64.dylib
+          cp artifacts/reaper-aaf-linux-x86_64/reaper_reAAF.so       release-files/reaper_reAAF-x86_64.so
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.version }}
+          draft: false
+          prerelease: ${{ steps.ver.outputs.prerelease }}
+          generate_release_notes: false
+          name: ${{ steps.ver.outputs.version }}
+          body: ${{ steps.changelog.outputs.body }}
+          files: release-files/*

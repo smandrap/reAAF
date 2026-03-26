@@ -1,0 +1,107 @@
+name: Build
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x86_64
+            cmake_arch_flag: ""
+          - os: macos-latest
+            arch: arm64
+            cmake_arch_flag: "-DCMAKE_OSX_ARCHITECTURES=arm64"
+          - os: macos-14
+            arch: x86_64
+            cmake_arch_flag: "-DCMAKE_OSX_ARCHITECTURES=x86_64"
+          - os: ubuntu-latest
+            arch: x86_64
+            cmake_arch_flag: ""
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Get SDK/WDL SHAs for cache key
+        id: sdk-key
+        shell: bash
+        run: |
+          SDK_SHA=$(git ls-remote https://github.com/justinfrankel/reaper-sdk.git HEAD | cut -f1 | head -c12)
+          WDL_SHA=$(git ls-remote https://github.com/justinfrankel/WDL.git main | cut -f1 | head -c12)
+          echo "key=${{ runner.os }}-reaper-sdk-${SDK_SHA}-${WDL_SHA}" >> $GITHUB_OUTPUT
+
+      - name: Cache REAPER SDK + WDL
+        id: cache-sdk
+        uses: actions/cache@v4
+        with:
+          path: extern/reaper-sdk
+          key: ${{ steps.sdk-key.outputs.key }}
+
+      - name: Clone REAPER SDK and WDL
+        if: steps.cache-sdk.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/justinfrankel/reaper-sdk.git extern/reaper-sdk
+          cd extern/reaper-sdk
+          git remote add wdl https://github.com/justinfrankel/WDL.git
+          git fetch --depth 1 wdl
+          git config user.email "ci@reaaF"
+          git config user.name "CI"
+          git merge --allow-unrelated-histories wdl/main
+
+      - name: Setup MSVC
+        if: matrix.os == 'windows-latest'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Set up sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+
+      - name: Configure
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_arch_flag }} -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+      - name: Build
+        run: cmake --build build --config Release --target reaper_aaf
+
+      - name: Strip debug symbols (macOS)
+        if: runner.os == 'macOS'
+        run: strip -x build/reaper_reAAF.dylib
+
+      - name: Strip debug symbols (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: strip build/reaper_reAAF.so
+
+      - name: Upload artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reaper-aaf-windows-x86_64
+          path: build/Release/reaper_reAAF.dll
+
+      - name: Upload artifact (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reaper-aaf-macos-${{ matrix.arch }}
+          path: build/reaper_reAAF.dylib
+
+      - name: Upload artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: reaper-aaf-linux-x86_64
+          path: build/reaper_reAAF.so
