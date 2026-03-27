@@ -46,6 +46,8 @@ jobs:
         uses: mozilla-actions/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
 
       - name: Configure
+        env:
+          SCCACHE_GHA_ENABLED: "true"
         run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release ${{ matrix.cmake_arch_flag }} -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
 
       - name: Build
