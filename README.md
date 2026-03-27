@@ -44,8 +44,11 @@ https://raw.githubusercontent.com/smandrap/reAAF/refs/heads/main/index.xml
 
 ## Dependencies
 
-- [justinfrankel/reaper-sdk](https://github.com/justinfrankel/reaper-sdk) + [WDL](https://github.com/justinfrankel/WDL)
-- [agfline/LibAAF](https://github.com/agfline/LibAAF) — included as git submodule
+All dependencies are git submodules — no package manager needed.
+
+- [justinfrankel/reaper-sdk](https://github.com/justinfrankel/reaper-sdk)
+- [justinfrankel/WDL](https://github.com/justinfrankel/WDL)
+- [agfline/LibAAF](https://github.com/agfline/LibAAF)
 
 ---
 
@@ -53,18 +56,25 @@ https://raw.githubusercontent.com/smandrap/reAAF/refs/heads/main/index.xml
 
 ```bash
 git clone --recurse-submodules https://github.com/smandrap/reAAF.git
+cmake -B build -S reAAF -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
 ```
-clone reaper-sdk and WDL in reAAF/extern, then
+
+- On macOS the plugin is copied automatically to `~/Library/Application Support/REAPER/UserPlugins/`.
+- On Windows it is copied to `%APPDATA%\REAPER\UserPlugins\`. Requires MSVC — MinGW is unsupported.
+- On Linux copy `reaper_reAAF.so` to `~/.config/REAPER/UserPlugins/` manually.
+
+---
+
+## Tests
+
+Tests do not require a REAPER installation.
 
 ```bash
-mkdir build && cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build . --config Release
+cmake -B build -S reAAF -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --target all_tests
+ctest --test-dir build/tests --output-on-failure
 ```
-
-On macOS the plugin is copied automatically to `~/Library/Application Support/REAPER/UserPlugins/`.  
-On Windows it is copied to `%APPDATA%\REAPER\UserPlugins\`. Requires MSVC — MinGW is unsupported.  
-On Linux copy `reaper_reAAF.so` to `~/.config/REAPER/UserPlugins/` manually.
 
 ---
 
