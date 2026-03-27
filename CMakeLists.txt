@@ -20,7 +20,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Test frameworks (Catch2 + trompeloeil, no REAPER SDK required)
 # -------------------------------------------------------------------------
 add_subdirectory(extern/Catch2)
-add_subdirectory(extern/trompeloeil)
 
 # -------------------------------------------------------------------------
 # Paths
@@ -32,7 +31,7 @@ set(LIBAAF_DIR "${CMAKE_SOURCE_DIR}/extern/LibAAF" CACHE PATH "Path to agfline/L
 function(add_catch2_test TARGET)
     cmake_parse_arguments(ARG "" "" "SOURCES" ${ARGN})
     add_executable(${TARGET} ${ARG_SOURCES})
-    target_link_libraries(${TARGET} PRIVATE Catch2::Catch2WithMain trompeloeil::trompeloeil)
+    target_link_libraries(${TARGET} PRIVATE Catch2::Catch2WithMain)
     target_include_directories(${TARGET} PRIVATE
             ${CMAKE_SOURCE_DIR}/src
             ${REAPER_SDK_DIR}/sdk
