@@ -57,6 +57,7 @@ auto RppWriter::project(const double tcOffsetSec, const double maxProjLen, const
     line("TIMEMODE 1 5 -1 %d %d 0 -1", fps, isDrop);
     line("SMPTESYNC 0 %d 100 40 1000 300 0 0 0 0 0", fps);
     line("SAMPLERATE %u 0 0", samplerate);
+    line("PANMODE 3");
     return Chunk{*this};
 }
 
