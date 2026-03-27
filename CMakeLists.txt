@@ -22,13 +22,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(extern/Catch2)
 add_subdirectory(extern/trompeloeil)
 
+# -------------------------------------------------------------------------
+# Paths
+# -------------------------------------------------------------------------
+set(REAPER_SDK_DIR "${CMAKE_SOURCE_DIR}/extern/reaper-sdk" CACHE PATH "Path to justinfrankel/reaper-sdk checkout")
+set(WDL_DIR "${CMAKE_SOURCE_DIR}/extern/WDL/WDL" CACHE PATH "Path to justinfrankel/WDL checkout")
+set(LIBAAF_DIR "${CMAKE_SOURCE_DIR}/extern/LibAAF" CACHE PATH "Path to agfline/LibAAF checkout")
+
 function(add_catch2_test TARGET)
     cmake_parse_arguments(ARG "" "" "SOURCES" ${ARGN})
     add_executable(${TARGET} ${ARG_SOURCES})
     target_link_libraries(${TARGET} PRIVATE Catch2::Catch2WithMain trompeloeil::trompeloeil)
     target_include_directories(${TARGET} PRIVATE
             ${CMAKE_SOURCE_DIR}/src
-            ${CMAKE_SOURCE_DIR}/extern/reaper-sdk/WDL
+            ${REAPER_SDK_DIR}/sdk
+            ${LIBAAF_DIR}/include
     )
     set_target_properties(${TARGET} PROPERTIES
             CXX_STANDARD 17
@@ -43,12 +51,6 @@ endfunction()
 # Unit tests
 # -------------------------------------------------------------------------
 add_subdirectory(tests)
-
-# -------------------------------------------------------------------------
-# Paths
-# -------------------------------------------------------------------------
-set(REAPER_SDK_DIR "${CMAKE_SOURCE_DIR}/extern/reaper-sdk" CACHE PATH "Path to justinfrankel/reaper-sdk checkout")
-set(LIBAAF_DIR "${CMAKE_SOURCE_DIR}/extern/LibAAF" CACHE PATH "Path to agfline/LibAAF checkout")
 
 # -------------------------------------------------------------------------
 # Version header
@@ -93,7 +95,7 @@ add_library(reaper_aaf MODULE
         src/LogBuffer.cpp
         src/PrefsPage.cpp
         src/LogDialog.cpp
-        ${REAPER_SDK_DIR}/WDL/wingui/wndsize.cpp
+        ${WDL_DIR}/wingui/wndsize.cpp
 )
 
 set_target_properties(reaper_aaf PROPERTIES
@@ -106,11 +108,10 @@ set_target_properties(reaper_aaf PROPERTIES
 # -------------------------------------------------------------------------
 target_include_directories(reaper_aaf PRIVATE
         src
-        include
         ${CMAKE_BINARY_DIR}/generated
         ${LIBAAF_DIR}/include
         ${REAPER_SDK_DIR}/sdk
-        ${REAPER_SDK_DIR}/WDL
+        ${WDL_DIR}
 )
 
 # -------------------------------------------------------------------------
@@ -142,7 +143,7 @@ target_compile_definitions(reaper_aaf PRIVATE
 # -------------------------------------------------------------------------
 if (NOT WIN32)
     target_include_directories(reaper_aaf PRIVATE
-            ${REAPER_SDK_DIR}/WDL/swell
+            ${WDL_DIR}/swell
     )
 endif ()
 
@@ -173,7 +174,7 @@ elseif (APPLE)
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE "-framework CoreFoundation" "-framework Cocoa")
     target_sources(reaper_aaf PRIVATE
-            ${REAPER_SDK_DIR}/WDL/swell/swell-modstub.mm
+            ${WDL_DIR}/swell/swell-modstub.mm
             src/resource_swell.cpp
     )
     set(REAPER_PLUGINS_DIR "$ENV{HOME}/Library/Application Support/REAPER/UserPlugins")
@@ -189,7 +190,7 @@ else ()  # Linux
     target_compile_definitions(reaper_aaf PRIVATE SWELL_PROVIDED_BY_APP)
     target_link_libraries(reaper_aaf PRIVATE dl)
     target_sources(reaper_aaf PRIVATE
-            ${REAPER_SDK_DIR}/WDL/swell/swell-modstub-generic.cpp
+            ${WDL_DIR}/swell/swell-modstub-generic.cpp
             src/resource_swell.cpp
     )
 endif ()
