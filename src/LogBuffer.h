@@ -20,6 +20,7 @@
 
 #include <cstdarg>
 #include <string>
+#include <vector>
 
 
 // ---------------------------------------------------------------------------
@@ -48,11 +49,9 @@ struct LogEntry {
 
 class LogBuffer {
   public:
-    // We preallocate all 2000 entries upfront (~64 KB on heap).
-    // This is overkill for most imports. A smarter approach: reserve ~200 entries
-    // initially, grow up to kCapacity, then switch to ring-buffer logic....
-    // Hey contributor, if you want to go for it :)
-    static constexpr int kCapacity = 2000;
+    static constexpr size_t kCapacity = 2000;
+
+    LogBuffer() { m_entries.reserve(kCapacity); }
 
     void log(LogEntry::Severity sev, const char *msg);
 
@@ -64,17 +63,15 @@ class LogBuffer {
 
     [[nodiscard]] bool hasErrorsOrWarnings() const;
 
-    // --- Test-only accessors (used by TestableLogBuffer in tests/) ----------
-    // Returns the number of entries currently stored in the buffer.
-    [[nodiscard]] int size() const;
+    [[nodiscard]] size_t size() const;
 
-    // Returns the entry at logical index idx (0 = oldest, size()-1 = newest).
     [[nodiscard]] const LogEntry &at(int idx) const;
 
   private:
-    LogEntry m_entries[kCapacity] = {};
-    int m_head = 0; // next write position (ring index)
-    int m_count = 0; // entries currently stored (max kCapacity)
+    // LogEntry m_entries[kCapacity] = {};
+
+    std::vector<LogEntry> m_entries;
+    size_t m_head = 0; // next write position (ring index)
     bool m_overflowing = false; // true after the first capacity overflow
     bool m_hasErrorsOrWarnings = false;
 

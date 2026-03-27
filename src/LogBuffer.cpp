@@ -66,34 +66,22 @@ void LogBuffer::push(const LogEntry &entry) {
         m_hasErrorsOrWarnings = true;
     }
 
-    if ( m_count == kCapacity ) {
-        if ( !m_overflowing ) {
-            static constexpr char kSentinel[] = "1 earlier entry was dropped (buffer full)";
-            m_entries[m_head] = LogEntry(LogEntry::WARN, kSentinel);
-            m_head = (m_head + 1) % kCapacity;
-            m_overflowing = true;
-        }
-        // Pure ring: evict oldest, store new entry. m_count stays at kCapacity.
-        m_entries[m_head] = entry;
-        m_head = (m_head + 1) % kCapacity;
+    if ( m_entries.size() < kCapacity ) {
+        m_entries.push_back(entry);
         return;
     }
 
+    if ( !m_overflowing ) {
+        static constexpr char kSentinel[] = "1 earlier entry was dropped (buffer full)";
+        m_entries[m_head] = LogEntry(LogEntry::WARN, kSentinel);
+        m_head = (m_head + 1) % kCapacity;
+        m_overflowing = true;
+    }
     m_entries[m_head] = entry;
     m_head = (m_head + 1) % kCapacity;
-    ++m_count;
 }
 
-// ---------------------------------------------------------------------------
-// Test-only accessors
-// ---------------------------------------------------------------------------
 
-int LogBuffer::size() const { return m_count; }
+size_t LogBuffer::size() const { return m_entries.size(); }
 
-const LogEntry &LogBuffer::at(const int idx) const {
-    // idx 0 = oldest, idx m_count-1 = newest.
-    // The oldest entry lives at (m_head - m_count + kCapacity) % kCapacity.
-    const int oldest = (m_head - m_count + kCapacity) % kCapacity;
-    const int ring = (oldest + idx) % kCapacity;
-    return m_entries[ring];
-}
+const LogEntry &LogBuffer::at(const int idx) const { return m_entries[idx]; }
