@@ -62,6 +62,9 @@ void LogBuffer::logf(const LogEntry::Severity sev, const char *fmt, ...) {
 bool LogBuffer::hasErrorsOrWarnings() const { return m_hasErrorsOrWarnings; }
 
 void LogBuffer::push(const LogEntry &entry) {
+    if ( entry.severity > m_minSeverity ) {
+        return;
+    }
     if ( entry.severity == LogEntry::ERR || entry.severity == LogEntry::WARN ) {
         m_hasErrorsOrWarnings = true;
     }

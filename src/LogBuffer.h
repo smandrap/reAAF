@@ -51,7 +51,10 @@ class LogBuffer {
   public:
     static constexpr size_t kCapacity = 2000;
 
-    LogBuffer() { m_entries.reserve(kCapacity); }
+    explicit LogBuffer(const LogEntry::Severity minSeverity = LogEntry::INFO) {
+        m_entries.reserve(kCapacity);
+        m_minSeverity = minSeverity;
+    }
 
     void log(LogEntry::Severity sev, const char *msg);
 
@@ -68,9 +71,8 @@ class LogBuffer {
     [[nodiscard]] const LogEntry &at(int idx) const;
 
   private:
-    // LogEntry m_entries[kCapacity] = {};
-
     std::vector<LogEntry> m_entries;
+    LogEntry::Severity m_minSeverity;
     size_t m_head = 0; // next write position (ring index)
     bool m_overflowing = false; // true after the first capacity overflow
     bool m_hasErrorsOrWarnings = false;

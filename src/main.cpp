@@ -74,12 +74,13 @@ int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
         return -1;
     isAafImport = true;
 
-    auto logBuffer = std::make_unique<LogBuffer>();
+    const bool isDebug = PrefsPage::getShowDebug();
+    const auto mode = PrefsPage::getVerbosity();
+
+    auto logBuffer = std::make_unique<LogBuffer>(isDebug ? LogEntry::DEBUG : LogEntry::INFO);
     ReaperSink sink(ctx);
     const int ok = AafImporter(&sink, fn, *logBuffer).run();
 
-    const auto mode = PrefsPage::getVerbosity();
-    const bool isDebug = PrefsPage::getShowDebug();
     if ( mode == PrefsPage::LogVerbosity::NONE )
         return ok;
 

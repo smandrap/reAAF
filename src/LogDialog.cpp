@@ -117,7 +117,7 @@ void setClipboardText(HWND hwnd, const std::string &text) {
         GlobalFree(mem);
     CloseClipboard();
 #else
-    HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, text.size() + 1);
+    HANDLE mem = GlobalAlloc(GMEM_MOVEABLE, static_cast<int>(text.size()) + 1);
     if ( !mem )
         return;
     const auto dst = static_cast<char *>(GlobalLock(mem));
@@ -155,8 +155,8 @@ std::unique_ptr<LogDialog> LogDialog::s_owner;
 
 LogDialog::LogDialog(std::unique_ptr<LogBuffer> buf, const LogEntry::Severity minSeverity,
                      const bool isDebug)
-    : m_buf(std::move(buf)), m_showInfo{minSeverity >= LogEntry::INFO},
-      m_showWarn{minSeverity >= LogEntry::WARN}, m_isDebug{isDebug} {}
+    : m_buf(std::move(buf)), m_isDebug{isDebug}, m_showInfo{minSeverity >= LogEntry::INFO},
+      m_showWarn{minSeverity >= LogEntry::WARN} {}
 
 
 void LogDialog::setupResizer(HWND hwnd) {
@@ -285,7 +285,7 @@ void LogDialog::updateSummaryLabel(HWND hwnd, const int info, const int warnings
 auto LogDialog::insertRows(HWND hwndList) const -> InsertResult {
     InsertResult res;
 
-    const int n = m_buf->size();
+    const size_t n = m_buf->size();
     for ( int i = 0; i < n; ++i ) {
         const LogEntry &e = m_buf->at(i);
         const char *level;
@@ -389,7 +389,7 @@ void LogDialog::close() const { DestroyWindow(m_hwnd); }
 
 void LogDialog::copyToClipboard() const {
     std::string text;
-    const int n = m_buf->size();
+    const size_t n = m_buf->size();
     for ( int i = 0; i < n; ++i ) {
 #ifdef _WIN32
         constexpr const char *nl = "\r\n";
