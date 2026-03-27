@@ -2,7 +2,7 @@
 set -e
 
 # Paths
-SWELL_RESGEN="extern/reaper-sdk/WDL/swell/swell_resgen.php"
+SWELL_RESGEN="extern/WDL/WDL/swell/swell_resgen.php"
 RESOURCE_RC="src/resource.rc"
 OUT_DIR="src/"
 
