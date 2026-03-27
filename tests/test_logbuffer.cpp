@@ -47,6 +47,9 @@ static std::string formatEntry(const LogEntry &e) {
     case LogEntry::INFO:
         prefix = "[INFO]";
         break;
+    case LogEntry::DEBUG:
+        prefix = "[DEBUG]";
+        break;
     }
     return std::string(prefix) + " " + e.text;
 }
@@ -162,18 +165,18 @@ TEST_CASE("hasErrorsOrWarnings: true once set, stays true after subsequent INFO"
 // ---------------------------------------------------------------------------
 
 TEST_CASE("LogBuffer ring overflow: sentinel inserted, count stays at capacity") {
-    // On kCapacity+1 push: oldest entry evicted, a sentinel WARN is inserted,
-    // new entry stored — count stays at kCapacity.
+    // Fill to capacity then push one more. The ring evicts m_entries[0], writes
+    // the sentinel there, then writes the new entry at m_entries[1].
     TestableLogBuffer buf;
-    for ( int i = 0; i < LogBuffer::kCapacity; ++i )
+    for ( size_t i = 0; i < LogBuffer::kCapacity; ++i )
         buf.log(LogEntry::INFO, "fill");
 
     buf.log(LogEntry::ERR, "overflow entry");
 
     REQUIRE(buf.count() == LogBuffer::kCapacity);
 
-    const LogEntry sentinel = buf.entryAt(buf.count() - 2);
-    const LogEntry newest = buf.entryAt(buf.count() - 1);
+    const LogEntry sentinel = buf.entryAt(0);
+    const LogEntry newest = buf.entryAt(1);
 
     SECTION("sentinel severity is WARN") { REQUIRE(sentinel.severity == LogEntry::WARN); }
     SECTION("sentinel text matches exact format") {
