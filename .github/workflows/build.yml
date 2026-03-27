@@ -37,32 +37,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Get SDK/WDL SHAs for cache key
-        id: sdk-key
-        shell: bash
-        run: |
-          SDK_SHA=$(git ls-remote https://github.com/justinfrankel/reaper-sdk.git HEAD | cut -f1 | head -c12)
-          WDL_SHA=$(git ls-remote https://github.com/justinfrankel/WDL.git main | cut -f1 | head -c12)
-          echo "key=${{ runner.os }}-reaper-sdk-${SDK_SHA}-${WDL_SHA}" >> $GITHUB_OUTPUT
-
-      - name: Cache REAPER SDK + WDL
-        id: cache-sdk
-        uses: actions/cache@v4
-        with:
-          path: extern/reaper-sdk
-          key: ${{ steps.sdk-key.outputs.key }}
-
-      - name: Clone REAPER SDK and WDL
-        if: steps.cache-sdk.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          git clone --depth 1 https://github.com/justinfrankel/reaper-sdk.git extern/reaper-sdk
-          cd extern/reaper-sdk
-          git remote add wdl https://github.com/justinfrankel/WDL.git
-          git fetch --depth 1 wdl
-          git config user.email "ci@reaaF"
-          git config user.name "CI"
-          git merge --allow-unrelated-histories wdl/main
 
       - name: Setup MSVC
         if: matrix.os == 'windows-latest'
