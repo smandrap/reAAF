@@ -68,13 +68,15 @@ class LogBuffer {
 
     [[nodiscard]] size_t size() const;
 
+    [[nodiscard]] size_t droppedCount() const;
+
     [[nodiscard]] const LogEntry &at(int idx) const;
 
   private:
     std::vector<LogEntry> m_entries;
     LogEntry::Severity m_minSeverity;
     size_t m_head = 0; // next write position (ring index)
-    bool m_overflowing = false; // true after the first capacity overflow
+    size_t m_droppedCount = 0;
     bool m_hasErrorsOrWarnings = false;
 
     void push(const LogEntry &entry);

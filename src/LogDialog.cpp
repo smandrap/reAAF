@@ -273,19 +273,25 @@ bool LogDialog::shouldShow(const LogEntry::Severity s) const {
 }
 
 
-void LogDialog::updateSummaryLabel(HWND hwnd, const int info, const int warnings,
-                                   const int errors) {
+void LogDialog::updateSummaryLabel(HWND hwnd, const size_t info, const size_t warnings,
+                                   const size_t errors, const size_t dropped) {
     char label[128];
-    snprintf(label, sizeof(label), "Import complete: %d messages, %d warnings, %d errors", info,
-             warnings, errors);
+    if ( dropped > 0 ) {
+        snprintf(label, sizeof(label),
+                 "%zu messages, %zu warnings, %zu errors, [%zu entries were dropped]", info,
+                 warnings, errors, dropped);
+    } else {
+        snprintf(label, sizeof(label), "%zu messages, %zu warnings, %zu errors", info, warnings,
+                 errors);
+    }
     SetDlgItemText(hwnd, IDC_LOG_LABEL, label);
 }
 
 
 auto LogDialog::insertRows(HWND hwndList) const -> InsertResult {
     InsertResult res;
-
     const size_t n = m_buf->size();
+
     for ( int i = 0; i < n; ++i ) {
         const LogEntry &e = m_buf->at(i);
         const char *level;
@@ -335,13 +341,13 @@ void LogDialog::populate() const {
     ListView_DeleteAllItems(hwndList);
 
     const auto [rowBufIdx, info, warnings, errors] = insertRows(hwndList);
-
+    const size_t dropped = m_buf->droppedCount();
     restoreListViewSelection(hwndList, sel, rowBufIdx);
 
     SendMessage(hwndList, WM_SETREDRAW, TRUE, 0);
     InvalidateRect(hwndList, nullptr, TRUE);
 
-    updateSummaryLabel(m_hwnd, info, warnings, errors);
+    updateSummaryLabel(m_hwnd, info, warnings, errors, dropped);
 
     if ( !rowBufIdx.empty() )
         ListView_EnsureVisible(hwndList, static_cast<int>(rowBufIdx.size() - 1), FALSE);

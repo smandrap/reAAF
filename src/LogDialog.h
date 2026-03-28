@@ -51,7 +51,7 @@ class LogDialog {
   private:
     struct InsertResult {
         std::vector<int> rowBufIdx;
-        int info = 0, warnings = 0, errors = 0;
+        size_t info = 0, warnings = 0, errors = 0;
     };
 
     std::unique_ptr<LogBuffer> m_buf;
@@ -75,7 +75,8 @@ class LogDialog {
 
     [[nodiscard]] InsertResult insertRows(HWND hwndList) const;
 
-    static void updateSummaryLabel(HWND hwnd, int info, int warnings, int errors);
+    static void updateSummaryLabel(HWND hwnd, size_t info, size_t warnings, size_t errors,
+                                   size_t dropped);
 
     [[nodiscard]] bool shouldShow(LogEntry::Severity s) const;
 

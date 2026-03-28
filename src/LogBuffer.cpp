@@ -74,17 +74,13 @@ void LogBuffer::push(const LogEntry &entry) {
         return;
     }
 
-    if ( !m_overflowing ) {
-        static constexpr char kSentinel[] = "1 earlier entry was dropped (buffer full)";
-        m_entries[m_head] = LogEntry(LogEntry::WARN, kSentinel);
-        m_head = (m_head + 1) % kCapacity;
-        m_overflowing = true;
-    }
+    ++m_droppedCount;
     m_entries[m_head] = entry;
     m_head = (m_head + 1) % kCapacity;
 }
 
 
 size_t LogBuffer::size() const { return m_entries.size(); }
+size_t LogBuffer::droppedCount() const { return m_droppedCount; }
 
 const LogEntry &LogBuffer::at(const int idx) const { return m_entries[idx]; }
