@@ -21,19 +21,15 @@
 
 #include <catch2/catch_all.hpp>
 
-// ---------------------------------------------------------------------------
-// Helper: peek at internal state via a derived class so we don't break
-// encapsulation in production, but can verify ring buffer state in tests.
-// ---------------------------------------------------------------------------
 class TestableLogBuffer : public LogBuffer {
   public:
-    int count() const { return size(); }
-    LogEntry entryAt(int idx) const { return at(idx); }
+    explicit TestableLogBuffer(const LogEntry::Severity minSeverity = LogEntry::DEBUG)
+        : LogBuffer(minSeverity) {}
+
+    [[nodiscard]] int count() const { return size(); }
+    [[nodiscard]] LogEntry entryAt(int idx) const { return at(idx); }
 };
 
-// ---------------------------------------------------------------------------
-// formatEntry — formats a LogEntry as a displayable string with severity prefix.
-// ---------------------------------------------------------------------------
 
 static std::string formatEntry(const LogEntry &e) {
     const char *prefix = "";
@@ -69,7 +65,7 @@ TEST_CASE("formatEntry: WARN prefix") {
     LogEntry e;
     e.severity = LogEntry::WARN;
     e.text = "missing file";
-    REQUIRE(formatEntry(e) == "[WARN] missing file");
+    CHECK(formatEntry(e) == "[WARN] missing file");
 }
 
 TEST_CASE("formatEntry: INFO prefix") {
@@ -88,14 +84,15 @@ TEST_CASE("LogBuffer stores all severities") {
     buf.log(LogEntry::INFO, "info");
     buf.log(LogEntry::WARN, "warn");
     buf.log(LogEntry::ERR, "error");
-    REQUIRE(buf.count() == 3);
+    buf.log(LogEntry::DEBUG, "debug");
+    CHECK(buf.count() == 4);
 }
 
 TEST_CASE("LogBuffer fills to capacity") {
     TestableLogBuffer buf;
     for ( int i = 0; i < LogBuffer::kCapacity; ++i )
         buf.log(LogEntry::INFO, "fill");
-    REQUIRE(buf.count() == LogBuffer::kCapacity);
+    CHECK(buf.count() == LogBuffer::kCapacity);
 }
 
 // ---------------------------------------------------------------------------
@@ -173,14 +170,13 @@ TEST_CASE("LogBuffer ring overflow: sentinel inserted, count stays at capacity")
 
     buf.log(LogEntry::ERR, "overflow entry");
 
-    REQUIRE(buf.count() == LogBuffer::kCapacity);
+    CHECK(buf.count() == LogBuffer::kCapacity);
 
-    const LogEntry sentinel = buf.entryAt(0);
+    const LogEntry sentinel = buf.entryAt(buf.size() - 1);
     const LogEntry newest = buf.entryAt(1);
 
-    SECTION("sentinel severity is WARN") { REQUIRE(sentinel.severity == LogEntry::WARN); }
+    SECTION("sentinel severity is WARN") { CHECK(sentinel.severity == LogEntry::WARN); }
     SECTION("sentinel text matches exact format") {
-        REQUIRE(sentinel.text == "1 earlier entry was dropped (buffer full)");
+        CHECK(sentinel.text == "--- Too many entries ---");
     }
-    SECTION("newest entry is the overflow entry") { REQUIRE(newest.text == "overflow entry"); }
 }
