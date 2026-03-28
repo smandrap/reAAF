@@ -49,7 +49,7 @@ struct LogEntry {
 
 class LogBuffer {
   public:
-    static constexpr size_t kCapacity = 2000;
+    static constexpr size_t kCapacity = 2048;
 
     explicit LogBuffer(const LogEntry::Severity minSeverity = LogEntry::INFO) {
         m_entries.reserve(kCapacity);

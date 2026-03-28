@@ -65,18 +65,20 @@ void LogBuffer::push(const LogEntry &entry) {
     if ( entry.severity > m_minSeverity ) {
         return;
     }
-    if ( entry.severity == LogEntry::ERR || entry.severity == LogEntry::WARN ) {
-        m_hasErrorsOrWarnings = true;
-    }
 
-    if ( m_entries.size() < kCapacity ) {
-        m_entries.push_back(entry);
+    if ( m_entries.size() >= kCapacity ) {
+        if ( m_droppedCount == 0 ) {
+            m_entries[m_entries.size() - 1].severity = LogEntry::WARN;
+            m_entries[m_entries.size() - 1].text = "--- Too many entries ---";
+        }
+        ++m_droppedCount;
         return;
     }
 
-    ++m_droppedCount;
-    m_entries[m_head] = entry;
-    m_head = (m_head + 1) % kCapacity;
+    if ( entry.severity == LogEntry::ERR || entry.severity == LogEntry::WARN ) {
+        m_hasErrorsOrWarnings = true;
+    }
+    m_entries.push_back(entry);
 }
 
 
