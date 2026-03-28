@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.3] - 2026-03-28
+
+- add preference to display LibAAF debug messages in logger window (not recommended, but useful to see what's going on)
+- fix project pan mode being set to old deprecated REAPER option
+- abort import in case memory is full
+- drop new messages instead of older ones when logger is full
+- improve log messages in some situations
+
 ## [0.3.2] - 2026-03-26
 
 - fix: restore log dialog resizing (v0.3.0 regression)

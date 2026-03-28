@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="reAAF" commit="6997e3e53bd49c890a4751e90478a3d9cf35f408">
+<index version="1" name="reAAF" commit="b3413043a4d8e1bfbca3071644ed546cc90af776">
   <category name="Extensions">
     <reapack name="reAAF.ext" type="extension" desc="reAAF">
       <metadata>
@@ -108,6 +108,17 @@
         <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.2/reaper_reAAF-x86_64.dylib</source>
         <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.3.2/reaper_reAAF-x86_64.dll</source>
         <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.3.2/reaper_reAAF-x86_64.so</source>
+      </version>
+      <version name="0.3.3" author="smandrap" time="2026-03-28T15:11:33Z">
+        <changelog><![CDATA[- add preference to display LibAAF debug messages in logger window (not recommended, but useful to see what's going on)
+- fix project pan mode being set to old deprecated REAPER option
+- abort import in case memory is full
+- drop new messages instead of older ones when logger is full
+- improve log messages in some situations]]></changelog>
+        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.3/reaper_reAAF-arm64.dylib</source>
+        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.3/reaper_reAAF-x86_64.dylib</source>
+        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.3.3/reaper_reAAF-x86_64.dll</source>
+        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.3.3/reaper_reAAF-x86_64.so</source>
       </version>
     </reapack>
   </category>
