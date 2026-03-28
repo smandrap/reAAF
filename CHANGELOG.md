@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.4] - 2026-03-28
+
+- scroll log list to top on window open
+
 ## [0.3.3] - 2026-03-28
 
 - add preference to display LibAAF debug messages in logger window (not recommended, but useful to see what's going on)

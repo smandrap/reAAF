@@ -1,15 +1,11 @@
 @description reAAF
-@version 0.3.3
+@version 0.3.4
 @author smandrap
 @link https://github.com/smandrap/reAAF
 @about
   AAF session importer for REAPER. See the repository for details.
 @changelog
-  - add preference to display LibAAF debug messages in logger window (not recommended, but useful to see what's going on)
-  - fix project pan mode being set to old deprecated REAPER option
-  - abort import in case memory is full
-  - drop new messages instead of older ones when logger is full
-  - improve log messages in some situations
+  - scroll log list to top on window open
 @provides
   [darwin-arm64] reaper_reAAF-arm64.dylib    https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-arm64.dylib
   [darwin64]     reaper_reAAF-x86_64.dylib   https://github.com/smandrap/reAAF/releases/download/v$version/reaper_reAAF-x86_64.dylib
