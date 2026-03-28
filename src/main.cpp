@@ -21,6 +21,7 @@
 #include "PrefsPage.h"
 #include "ReaperSink.h"
 #include "defines.h"
+#include "helpers.h"
 #include <memory>
 // ReSharper disable once CppUnusedIncludeDirective
 #include "version.h"
@@ -75,12 +76,19 @@ int aaf_ImportProject(const char *fn, ProjectStateContext *ctx) {
     isAafImport = true;
 
     const bool isDebug = PrefsPage::getShowDebug();
+
+    std::unique_ptr<LogBuffer> logBuffer;
+    int ok;
+    try {
+        logBuffer = std::make_unique<LogBuffer>(isDebug ? LogEntry::DEBUG : LogEntry::INFO);
+        ReaperSink sink(ctx);
+        ok = AafImporter(&sink, fn, *logBuffer).run();
+    } catch ( const std::bad_alloc & ) {
+        rlog("reAAF ERROR: Out of memory importing AAF file!!\n");
+        return -1;
+    }
+
     const auto mode = PrefsPage::getVerbosity();
-
-    auto logBuffer = std::make_unique<LogBuffer>(isDebug ? LogEntry::DEBUG : LogEntry::INFO);
-    ReaperSink sink(ctx);
-    const int ok = AafImporter(&sink, fn, *logBuffer).run();
-
     if ( mode == PrefsPage::LogVerbosity::NONE )
         return ok;
 
