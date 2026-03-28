@@ -213,6 +213,7 @@ WDL_DLGRET CALLBACK LogDialog::dialogProc(HWND hwnd, const UINT msg, const WPARA
         self->setupResizer(hwnd);
         setupFilterChecks(hwnd, self);
 
+        self->m_isWindowOpening = false;
         return 1;
     }
 
@@ -349,8 +350,9 @@ void LogDialog::populate() const {
 
     updateSummaryLabel(m_hwnd, info, warnings, errors, dropped);
 
-    if ( !rowBufIdx.empty() )
-        ListView_EnsureVisible(hwndList, static_cast<int>(rowBufIdx.size() - 1), FALSE);
+    if ( m_isWindowOpening && !rowBufIdx.empty() ) {
+        ListView_EnsureVisible(hwndList, 0, FALSE); // scroll to top
+    }
 }
 
 

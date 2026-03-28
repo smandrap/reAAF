@@ -59,6 +59,7 @@ class LogDialog {
     WDL_WndSizer m_resizer;
     accelerator_register_t m_accel = {};
     bool m_isFocused = false;
+    bool m_isWindowOpening = true;
     bool m_isDebug = false;
     bool m_showInfo = true;
     bool m_showWarn = true;
