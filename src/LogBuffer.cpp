@@ -21,19 +21,6 @@
 #include <cstdio> // snprintf, vsnprintf
 #include <string>
 
-// ---------------------------------------------------------------------------
-// push() — the core operation.
-//
-// Overflow path (m_count == kCapacity):
-//   First overflow (m_overflowing == false):
-//     1. Evict the oldest entry; write a sentinel WARN at that slot:
-//        "1 earlier entry was dropped (buffer full)".
-//     2. Advance m_head; set m_overflowing = true.
-//     3. Fall through to the pure-ring write below.
-//   Subsequent overflows (m_overflowing == true):
-//     Just evict the oldest entry and store the new one. No sentinel spam.
-//   m_count never exceeds kCapacity.
-// ---------------------------------------------------------------------------
 
 void LogBuffer::log(const LogEntry::Severity sev, const char *msg) { push(LogEntry(sev, msg)); }
 
