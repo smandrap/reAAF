@@ -233,7 +233,7 @@ std::vector<AudioTrackData> AafImporter::extractAudioTrack(const aafiAudioTrack 
         m_logBuffer.logf(LogEntry::WARN, "Track %u (\"%s\") is muted", track->number, trackName);
 
     const double vol = clamp_volume(resolveConstantGain(track->gain));
-    const double pan = clamp_pan((resolveConstantGain(track->pan, 0.5) - 0.5) * -2.0);
+    const double pan = clamp_pan((resolveConstantGain(track->pan, 0.5) - 0.5) * 2.0);
     const int mute = track->mute != 0 ? 1 : 0;
     const int solo = track->solo != 0 ? 1 : 0;
 
@@ -442,7 +442,7 @@ void AafImporter::extractTrackAutomation(const aafiAudioTrack *track, const doub
     if ( track->pan && (track->pan->flags & AAFI_AUDIO_GAIN_VARIABLE) )
         out.panEnv = extractEnvelope(
             track->pan, compLen, "PANENV2",
-            [](const double v) { return clamp_pan((v - 0.5) * -2.0); },
+            [](const double v) { return clamp_pan((v - 0.5) * 2.0); },
             /*arm=*/true);
 }
 

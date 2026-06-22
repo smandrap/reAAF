@@ -7,7 +7,7 @@ SAMPLERATE 44100 0 0
 PANMODE 3
 <TRACK
 NAME "Audio 1_1"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -27,7 +27,7 @@ FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_mu
 >
 <TRACK
 NAME "Audio 1_2"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -47,7 +47,7 @@ FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_mu
 >
 <TRACK
 NAME "Audio 1_3"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -67,7 +67,7 @@ FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_mu
 >
 <TRACK
 NAME "Audio 1_4"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -87,7 +87,7 @@ FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_mu
 >
 <TRACK
 NAME "Audio 1_5"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -107,7 +107,7 @@ FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_mu
 >
 <TRACK
 NAME "Audio 1_6"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -127,7 +127,7 @@ FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_mu
 >
 <TRACK
 NAME "Audio 1_7"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -147,7 +147,7 @@ FILE "file:///c%3a/Users/user/Desktop/LibAAFTestFiles/tmp/PT_Multichannel_7.1_mu
 >
 <TRACK
 NAME "Audio 1_8"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
