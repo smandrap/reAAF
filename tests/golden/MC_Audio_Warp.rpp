@@ -27,7 +27,7 @@ FILE "file:///C%3A/Users/user/Downloads/bbb_sunflower_1080p_30fps_normal.mp4"
 >
 <TRACK
 NAME ""
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -47,7 +47,7 @@ FILE "file:///C%3A/Users/user/Downloads/bbb_sunflower_1080p_30fps_normal.mp4"
 >
 <TRACK
 NAME ""
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -67,7 +67,7 @@ FILE "file:///C%3A/Users/user/Downloads/bbb_sunflower_1080p_30fps_normal.mp4"
 >
 <TRACK
 NAME ""
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 6
 <ITEM
@@ -87,7 +87,7 @@ FILE "file:///C%3A/Users/user/Downloads/bbb_sunflower_1080p_30fps_normal.mp4"
 >
 <TRACK
 NAME ""
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 6
 <ITEM
@@ -107,7 +107,7 @@ FILE "file:///C%3A/Users/user/Downloads/bbb_sunflower_1080p_30fps_normal.mp4"
 >
 <TRACK
 NAME ""
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 6
 <ITEM
@@ -127,7 +127,7 @@ FILE "file:///C%3A/Users/user/Downloads/bbb_sunflower_1080p_30fps_normal.mp4"
 >
 <TRACK
 NAME ""
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 6
 <ITEM
@@ -147,7 +147,7 @@ FILE "file:///C%3A/Users/user/Downloads/bbb_sunflower_1080p_30fps_normal.mp4"
 >
 <TRACK
 NAME ""
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 6
 <ITEM
@@ -167,7 +167,7 @@ FILE "file:///C%3A/Users/user/Downloads/bbb_sunflower_1080p_30fps_normal.mp4"
 >
 <TRACK
 NAME ""
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 6
 <ITEM

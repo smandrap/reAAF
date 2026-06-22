@@ -7,7 +7,7 @@ SAMPLERATE 44100 0 0
 PANMODE 3
 <TRACK
 NAME "Audio 1"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -161,7 +161,7 @@ FILE "file:///c%3a/Users/user/localshare/aaf/dumb/PT_Audio_GayrgzWVCWpcszWZFB.wa
 >
 <TRACK
 NAME "Audio 2"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
@@ -306,7 +306,7 @@ FILE "file:///c%3a/Users/user/localshare/aaf/dumb/PT_Audio_GazyrbXVCWygszWZFB.wa
 >
 <TRACK
 NAME "Audio 2"
-VOLPAN 1.000000 -0.000000 -1 -1 1
+VOLPAN 1.000000 0.000000 -1 -1 1
 MUTESOLO 0 0 0
 NCHAN 2
 <ITEM
