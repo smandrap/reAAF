@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.5] - 2026-06-22
+
+- fix inverted pan on tracks in some situations
+
 ## [0.3.4] - 2026-03-28
 
 - scroll log list to top on window open
