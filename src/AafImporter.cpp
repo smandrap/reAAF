@@ -374,7 +374,6 @@ bool AafImporter::extractEmbeddedEssence(aafiAudioEssenceFile *ess) {
         m_extractDirCreated = true;
     }
 
-    // TODO: this code smells... Investigate
     char *outPath = nullptr;
     const int rc = aafi_extractAudioEssenceFile(m_aafi.get(), ess, AAFI_EXTRACT_DEFAULT,
                                                 m_extractDir.c_str(), 0, 0, nullptr, &outPath);
