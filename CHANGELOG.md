@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.6] - 2026-06-23
+
+- set ruler in imported project to timecode
+
 ## [0.3.5] - 2026-06-22
 
 - fix inverted pan on tracks in some situations
