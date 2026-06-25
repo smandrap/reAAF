@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.7] - 2026-06-23
+
+- version bump for Reapack (no changes)
+
 ## [0.3.6] - 2026-06-23
 
 - set ruler in imported project to timecode

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="reAAF" commit="06406cab371d6140d8060798cabcb5441aaada90">
+<index version="1" name="reAAF" commit="b2fec5dd7ff111a41d555b47b3891748ab2d670b">
   <category name="Extensions">
     <reapack name="reAAF.ext" type="extension" desc="reAAF">
       <metadata>
@@ -140,6 +140,13 @@
         <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.6/reaper_reAAF-x86_64.dylib</source>
         <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.3.6/reaper_reAAF-x86_64.dll</source>
         <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.3.6/reaper_reAAF-x86_64.so</source>
+      </version>
+      <version name="0.3.7" author="smandrap" time="2026-06-25T14:59:50Z">
+        <changelog><![CDATA[- version bump for Reapack (no changes)]]></changelog>
+        <source platform="darwin-arm64" file="reaper_reAAF-arm64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.7/reaper_reAAF-arm64.dylib</source>
+        <source platform="darwin64" file="reaper_reAAF-x86_64.dylib">https://github.com/smandrap/reAAF/releases/download/v0.3.7/reaper_reAAF-x86_64.dylib</source>
+        <source platform="win64" file="reaper_reAAF-windows-x86_64.dll">https://github.com/smandrap/reAAF/releases/download/v0.3.7/reaper_reAAF-x86_64.dll</source>
+        <source platform="linux64" file="reaper_reAAF-linux-x86_64.so">https://github.com/smandrap/reAAF/releases/download/v0.3.7/reaper_reAAF-x86_64.so</source>
       </version>
     </reapack>
   </category>
